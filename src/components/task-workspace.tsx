@@ -6,7 +6,12 @@ import { CopyTextButton } from "@/components/copy-text-button";
 import { StatusChip } from "@/components/status-chip";
 import { addContactLabel } from "@/lib/contacts/logic";
 import type { ClientNeedRow, DealContactRow, TaskRow } from "@/lib/data/deals";
-import { formatTimestamp, formatWaitingAge } from "@/lib/format";
+import {
+  formatCadenceHours,
+  formatFollowUpAt,
+  formatTimestamp,
+  formatWaitingAge,
+} from "@/lib/format";
 import {
   completeTaskAction,
   createTaskFromPlaybookAction,
@@ -179,14 +184,21 @@ export function TaskWorkspace({
                         onClick={() => setOpenId(open ? null : task.id)}
                         className="flex w-full flex-wrap items-center justify-between gap-3 px-3 py-2 text-left"
                       >
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-sm font-medium text-ink">
                             {task.title}
                           </p>
-                          <p className="mt-1 text-xs text-ink-muted">
-                            Due {formatTimestamp(task.dueAt)} · Last contacted{" "}
-                            {formatTimestamp(task.lastContactedAt)} · Next follow-up{" "}
-                            {formatTimestamp(task.nextFollowUpAt)}
+                          <p
+                            className={`mt-1 text-xs font-medium ${
+                              followUpDue ? "text-warning" : "text-ink"
+                            }`}
+                          >
+                            Next follow-up {formatFollowUpAt(task.nextFollowUpAt)}
+                          </p>
+                          <p className="mt-0.5 text-xs text-ink-muted">
+                            {task.contactName || "No contact"}
+                            {task.status === "waiting" ? " · Waiting" : ""}
+                            {task.assignedTo ? " · Assigned" : " · Unassigned"}
                           </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -336,7 +348,7 @@ function TaskDetail({
           </h5>
           <p className="mt-1 text-sm text-ink">{requestText}</p>
           <div className="mt-2">
-            <CopyTextButton value={requestText} label="Copy request text" />
+            <CopyTextButton value={requestText} label="Copy Request" />
           </div>
         </div>
       ) : null}
@@ -346,18 +358,30 @@ function TaskDetail({
       </Section>
       <dl className="grid gap-3 sm:grid-cols-2">
         <Item label="Last contacted" value={formatTimestamp(task.lastContactedAt)} />
-        <Item label="Next follow-up" value={formatTimestamp(task.nextFollowUpAt)} />
+        <Item label="Next follow-up" value={formatFollowUpAt(task.nextFollowUpAt, now)} />
         <Item
-          label="Waiting age"
-          value={formatWaitingAge(waitingAgeHours(task, now))}
+          label="Follow-up cadence"
+          value={formatCadenceHours(task.followUpIntervalHours)}
         />
         <Item
-          label="Escalation"
-          value={`${escalationLabel(task.escalationLevel, isEscalationDue(task, now))}${
+          label="Escalation timing"
+          value={
             task.escalationAfterHours
-              ? ` · after ${task.escalationAfterHours}h`
-              : ""
-          }`}
+              ? `Escalate after ${task.escalationAfterHours}h · ${escalationLabel(task.escalationLevel, isEscalationDue(task, now))}`
+              : escalationLabel(task.escalationLevel, isEscalationDue(task, now))
+          }
+        />
+        <Item
+          label="Waiting status"
+          value={
+            task.status === "waiting"
+              ? `Waiting ${formatWaitingAge(waitingAgeHours(task, now))}`
+              : task.status.replaceAll("_", " ")
+          }
+        />
+        <Item
+          label="Owner"
+          value={task.assignedTo ? "Assigned processor" : "Unassigned"}
         />
         <Item label="Linked Client Need" value={linkedNeed?.documentType ?? "None"} />
       </dl>
@@ -391,7 +415,7 @@ function TaskDetail({
             <form action={submitComplete}>
               <input type="hidden" name="taskId" value={task.id} />
               <button type="submit" className={actionClass}>
-                Mark Complete
+                Complete
               </button>
             </form>
             <form action={submitDismiss}>
@@ -446,7 +470,7 @@ function TaskDetail({
               />
             </label>
             <button type="submit" className={actionClass}>
-              Save follow-up
+              Set Follow-Up
             </button>
           </form>
         </div>

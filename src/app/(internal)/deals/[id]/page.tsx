@@ -21,7 +21,6 @@ import { SurfaceCard } from "@/components/ui/surface-card";
 import { pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
 import { canUseDocumentIntake } from "@/lib/documents/authorization";
-import { canMutateWorkflow, canClaimDeal, canUnclaimDeal } from "@/lib/ops/workflow";
 import { canCreateProcessorTask } from "@/lib/playbooks/authorization";
 import {
   baselinePlaybookKeysForLoanType,
@@ -33,9 +32,13 @@ import {
   listClientNeeds,
   listDealContacts,
   listDocuments,
+  listStaffNames,
   listTasks,
+  staffDisplayName,
 } from "@/lib/data/deals";
-import { formatTimestamp } from "@/lib/format";
+import { getDocumentStorageProviderName } from "@/lib/documents/config";
+import { formatActivityDisplay } from "@/lib/ops/activity-display";
+import { canMutateWorkflow, canClaimDeal, canUnclaimDeal, isDealOwnedByUser } from "@/lib/ops/workflow";
 import { decorateRankedActions } from "@/lib/playbooks/decorate";
 
 export default async function DealDetailPage({
@@ -90,19 +93,43 @@ export default async function DealDetailPage({
     tasks,
     [deal],
     contacts,
+    needs,
   );
+  const staff = await listStaffNames(supabase, [
+    deal.assignedProcessorId ?? "",
+    ...activity.map((event) => event.actorId ?? ""),
+  ]);
+  const staffNames = Object.fromEntries(
+    staff.map((person) => [person.id, staffDisplayName(person)]),
+  );
+  const assignedStaff = staff.find((person) => person.id === deal.assignedProcessorId);
+  const ownedByCurrentUser = isDealOwnedByUser(deal.assignedProcessorId, user.id);
+  const processorLabel = ownedByCurrentUser
+    ? "Assigned to you"
+    : assignedStaff
+      ? staffDisplayName(assignedStaff)
+      : deal.assignedProcessorId
+        ? "Assigned processor"
+        : "Unassigned";
+  const sandboxMock = getDocumentStorageProviderName() === "sandbox_mock";
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
       <div className="sticky top-14 z-10 space-y-4 bg-workspace/95 pb-1 backdrop-blur">
         <DealWorkspaceHeader
           deal={deal}
+          processorLabel={processorLabel}
           actions={
             <>
               <StatusChip status={deal.status} />
               {canMutate &&
               canClaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
                 <ClaimButton dealId={deal.id} />
+              ) : null}
+              {ownedByCurrentUser ? (
+                <span className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink">
+                  Assigned to you
+                </span>
               ) : null}
               {canMutate &&
               canUnclaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
@@ -126,8 +153,10 @@ export default async function DealDetailPage({
           tasks={tasks}
           nextActions={nextActions}
           intake={
+            deal.applicationIntake ??
             activity.find((event) => event.eventType === "application_received")
-              ?.safeMetadata ?? null
+              ?.safeMetadata ??
+            null
           }
         />
       ) : null}
@@ -197,6 +226,7 @@ export default async function DealDetailPage({
           {canIntake ? (
             <DocumentIntakePanel
               dealId={deal.id}
+              sandboxMock={sandboxMock}
               needs={needs.map((need) => ({
                 id: need.id,
                 documentType: need.documentType,
@@ -244,28 +274,22 @@ export default async function DealDetailPage({
             </p>
           ) : (
             <ol>
-              {activity.map((event) => (
-                <li
-                  key={event.id}
-                  className="border-t border-line py-2.5 first:border-0"
-                >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="text-sm font-medium text-ink">
-                      {event.eventType.replaceAll("_", " ")}
+              {activity.map((event) => {
+                const display = formatActivityDisplay(event, staffNames);
+                return (
+                  <li
+                    key={event.id}
+                    className="border-t border-line py-2.5 first:border-0"
+                  >
+                    <p className="text-sm font-medium text-ink">{display.who}</p>
+                    <p className="text-sm text-ink">
+                      {display.didWhat}
+                      {display.toWhat ? ` ${display.toWhat}` : ""}
                     </p>
-                    <p className="text-[11px] text-ink-muted">
-                      {event.actorType} · {formatTimestamp(event.createdAt)}
-                    </p>
-                  </div>
-                  {Object.keys(event.safeMetadata).length > 0 ? (
-                    <p className="mt-1 text-xs text-ink-muted">
-                      {Object.entries(event.safeMetadata)
-                        .map(([key, value]) => `${key}: ${value}`)
-                        .join(" · ")}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
+                    <p className="mt-0.5 text-[11px] text-ink-muted">{display.when}</p>
+                  </li>
+                );
+              })}
             </ol>
           )}
         </SurfaceCard>

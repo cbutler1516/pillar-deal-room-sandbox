@@ -31,6 +31,7 @@ export type DealDetail = DealListItem & {
   creditBand: string | null;
   experience: string | null;
   createdAt: string;
+  applicationIntake: unknown | null;
 };
 
 export type ClientNeedRow = {
@@ -111,8 +112,15 @@ export type ActivityRow = {
   dealId?: string;
   eventType: string;
   actorType: string;
+  actorId: string | null;
   createdAt: string;
   safeMetadata: Record<string, string>;
+};
+
+export type StaffName = {
+  id: string;
+  fullName: string | null;
+  email: string;
 };
 
 const DEAL_LIST_COLUMNS =
@@ -149,17 +157,31 @@ export async function getDealById(
   supabase: SupabaseClient,
   id: string,
 ): Promise<DealDetail | null> {
-  const { data, error } = await supabase
+  const expanded = await supabase
     .from("deals")
     .select(
-      `${DEAL_LIST_COLUMNS}, borrower_email, borrower_phone, loan_purpose, property_type, credit_band, experience`,
+      `${DEAL_LIST_COLUMNS}, borrower_email, borrower_phone, loan_purpose, property_type, credit_band, experience, application_intake`,
     )
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data) {
+  const result = expanded.error
+    ? await supabase
+        .from("deals")
+        .select(
+          `${DEAL_LIST_COLUMNS}, borrower_email, borrower_phone, loan_purpose, property_type, credit_band, experience`,
+        )
+        .eq("id", id)
+        .maybeSingle()
+    : expanded;
+
+  if (result.error || !result.data) {
     return null;
   }
+
+  const data = result.data as typeof result.data & {
+    application_intake?: unknown;
+  };
 
   return {
     id: data.id,
@@ -181,6 +203,7 @@ export async function getDealById(
     propertyType: data.property_type,
     creditBand: data.credit_band,
     experience: data.experience,
+    applicationIntake: data.application_intake ?? null,
   };
 }
 
@@ -458,6 +481,7 @@ function mapActivityRow(
     deal_id?: string;
     event_type: string;
     actor_type: string;
+    actor_id?: string | null;
     created_at: string;
     safe_metadata: unknown;
   },
@@ -467,6 +491,7 @@ function mapActivityRow(
     dealId: row.deal_id,
     eventType: row.event_type,
     actorType: row.actor_type,
+    actorId: row.actor_id ?? null,
     createdAt: row.created_at,
     safeMetadata:
       row.safe_metadata && typeof row.safe_metadata === "object"
@@ -485,7 +510,7 @@ export async function listActivity(
 ): Promise<ActivityRow[]> {
   const { data, error } = await supabase
     .from("activity_log")
-    .select("id, deal_id, event_type, actor_type, created_at, safe_metadata")
+    .select("id, deal_id, event_type, actor_type, actor_id, created_at, safe_metadata")
     .eq("deal_id", dealId)
     .order("created_at", { ascending: false });
 
@@ -502,7 +527,7 @@ export async function listRecentActivity(
 ): Promise<ActivityRow[]> {
   const { data, error } = await supabase
     .from("activity_log")
-    .select("id, deal_id, event_type, actor_type, created_at, safe_metadata")
+    .select("id, deal_id, event_type, actor_type, actor_id, created_at, safe_metadata")
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -511,4 +536,33 @@ export async function listRecentActivity(
   }
 
   return data.map(mapActivityRow);
+}
+
+export async function listStaffNames(
+  supabase: SupabaseClient,
+  ids: string[],
+): Promise<StaffName[]> {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (unique.length === 0) {
+    return [];
+  }
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, full_name, email")
+    .in("id", unique);
+  if (error || !data) {
+    return [];
+  }
+  return data.map((row) => ({
+    id: row.id,
+    fullName: row.full_name,
+    email: row.email,
+  }));
+}
+
+export function staffDisplayName(staff: StaffName | undefined): string {
+  if (!staff) {
+    return "Assigned processor";
+  }
+  return staff.fullName?.trim() || staff.email;
 }

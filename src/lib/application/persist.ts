@@ -31,7 +31,12 @@ export async function persistSandboxApplication(
 
   const { error: dealError } = await admin.from("deals").insert(pack.deal);
   if (dealError) {
-    return { ok: false, error: "Unable to create the deal from this application." };
+    const dealWithoutIntake = { ...pack.deal };
+    delete dealWithoutIntake.application_intake;
+    const retry = await admin.from("deals").insert(dealWithoutIntake);
+    if (retry.error) {
+      return { ok: false, error: "Unable to create the deal from this application." };
+    }
   }
 
   const { error: contactError } = await admin.from("deal_contacts").insert(pack.contact);

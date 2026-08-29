@@ -144,20 +144,31 @@ export async function updateDealStatusAction(
 
   if (status === "ready_for_submission") {
     const [{ data: needs }, { data: tasks }] = await Promise.all([
-      supabase.from("client_needs").select("required, status").eq("deal_id", dealId),
+      supabase
+        .from("client_needs")
+        .select("id, required, status, document_type")
+        .eq("deal_id", dealId),
       supabase
         .from("tasks")
-        .select("status, blocked_reason")
+        .select("status, blocked_reason, timing, client_need_id")
         .eq("deal_id", dealId),
     ]);
+    const timingByNeed = new Map(
+      (tasks ?? [])
+        .filter((task) => task.client_need_id)
+        .map((task) => [task.client_need_id as string, task.timing as string | null]),
+    );
     const readiness = evaluateSubmissionReadiness({
       needs: (needs ?? []).map((need) => ({
         required: Boolean(need.required),
         status: need.status,
+        documentType: need.document_type,
+        timing: timingByNeed.get(need.id) ?? null,
       })),
       tasks: (tasks ?? []).map((task) => ({
         status: task.status,
         blockedReason: task.blocked_reason,
+        timing: task.timing,
       })),
     });
     if (!readiness.ready) {

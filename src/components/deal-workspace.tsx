@@ -3,8 +3,13 @@ import { StatusChip } from "@/components/status-chip";
 import { TabList } from "@/components/ui/controls";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import { labelClass } from "@/components/ui/styles";
+import {
+  applicationIntakeFromUnknown,
+  intakeDisplayGroups,
+} from "@/lib/application/intake";
 import type { ClientNeedRow, DealDetail, DocumentRow, TaskRow } from "@/lib/data/deals";
-import { formatCurrency, formatProperty } from "@/lib/format";
+import { formatCurrency, formatFollowUpAt, formatProperty } from "@/lib/format";
+import { deriveDealNextAction } from "@/lib/ops/next-action";
 import { documentCompletion } from "@/lib/ops/metrics";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
@@ -27,9 +32,11 @@ export function parseDealTab(value: string | undefined): DealTab {
 export function DealWorkspaceHeader({
   deal,
   actions,
+  processorLabel,
 }: {
   deal: DealDetail;
   actions: ReactNode;
+  processorLabel?: string;
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
@@ -51,7 +58,10 @@ export function DealWorkspaceHeader({
           <HeaderItem label="Amount" value={formatCurrency(deal.loanAmount)} />
           <HeaderItem
             label="Processor"
-            value={deal.assignedProcessorId ? "Assigned" : "Unassigned"}
+            value={
+              processorLabel ??
+              (deal.assignedProcessorId ? "Assigned" : "Unassigned")
+            }
           />
         </dl>
       </div>
@@ -63,46 +73,40 @@ export function DealWorkspaceHeader({
   );
 }
 
-const INTAKE_LABELS: Array<[string, string]> = [
-  ["property_zip", "ZIP"],
-  ["units", "Units"],
-  ["square_footage", "Square footage"],
-  ["occupancy", "Occupancy"],
-  ["purchase_price", "Purchase price"],
-  ["current_value", "Current value"],
-  ["existing_payoff", "Existing payoff"],
-  ["cash_out", "Cash-out"],
-  ["estimated_arv", "Estimated ARV"],
-  ["rehab_budget", "Rehab budget"],
-  ["monthly_rent", "Monthly rent"],
-  ["noi", "NOI"],
-  ["land_owned", "Land owned"],
-  ["land_value", "Land value"],
-  ["construction_budget", "Construction budget"],
-  ["completed_value", "Completed value"],
-  ["plans_permits", "Plans / permits"],
-  ["liquidity", "Liquidity"],
-  ["net_worth", "Net worth"],
-  ["under_contract", "Under contract"],
-  ["closing_date", "Closing date"],
-  ["timeline", "Funding timeline"],
-  ["borrower_comments", "Borrower comments"],
-  ["loan_officer_notes", "Loan officer notes"],
-];
-
-function ApplicationIntakeCard({ intake }: { intake: Record<string, string> }) {
-  const rows = INTAKE_LABELS.filter(([key]) => intake[key]);
-  if (rows.length === 0) {
+function ApplicationIntakeCard({
+  intake,
+  loanType,
+}: {
+  intake: unknown;
+  loanType: string | null;
+}) {
+  const structured = applicationIntakeFromUnknown(intake);
+  if (!structured) {
+    return null;
+  }
+  const groups = intakeDisplayGroups(structured, loanType);
+  if (groups.length === 0) {
     return null;
   }
   return (
     <SurfaceCard>
       <CardHeader title="Application intake" />
-      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {rows.map(([key, label]) => (
-          <HeaderItem key={key} label={label} value={intake[key]} />
+      <div className="space-y-5">
+        {groups.map((group) => (
+          <div key={group.title}>
+            {groups.length > 1 ? (
+              <h3 className="mb-3 text-xs font-semibold tracking-wide text-ink-muted uppercase">
+                {group.title}
+              </h3>
+            ) : null}
+            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {group.rows.map((row) => (
+                <HeaderItem key={row.key} label={row.label} value={row.value} />
+              ))}
+            </dl>
+          </div>
         ))}
-      </dl>
+      </div>
     </SurfaceCard>
   );
 }
@@ -134,7 +138,7 @@ export function DealOverview({
   documents: DocumentRow[];
   tasks?: TaskRow[];
   nextActions: DecoratedAction[];
-  intake?: Record<string, string> | null;
+  intake?: unknown;
 }) {
   const docs = documentCompletion(
     deal.id,
@@ -157,16 +161,31 @@ export function DealOverview({
       task.overdue,
   );
   const rejectedNeeds = needs.filter((need) => need.status === "rejected");
+  const timingByNeed = new Map(
+    nextActions
+      .filter((task) => task.clientNeedId)
+      .map((task) => [task.clientNeedId as string, task.timing]),
+  );
   const readiness = evaluateSubmissionReadiness({
     needs: needs.map((need) => ({
       required: need.required,
       status: need.status,
+      documentType: need.documentType,
+      timing: timingByNeed.get(need.id) ?? null,
     })),
     tasks: nextActions.map((task) => ({
       status: task.status,
       blockedReason: task.blockedReason ?? null,
+      timing: task.timing,
     })),
   });
+  const nextAction = deriveDealNextAction({
+    dealId: deal.id,
+    needs,
+    documents,
+    nextActions,
+  });
+  const resolvedIntake = intake ?? deal.applicationIntake;
 
   return (
     <div className="space-y-6">
@@ -190,7 +209,29 @@ export function DealOverview({
           <HeaderItem label="Experience" value={deal.experience} />
         </dl>
       </SurfaceCard>
-      {intake ? <ApplicationIntakeCard intake={intake} /> : null}
+      {nextAction ? (
+        <SurfaceCard elevated>
+          <CardHeader title="Next action" />
+          <p className="text-sm font-medium text-ink">{nextAction.action}</p>
+          <p className="mt-1 text-xs text-ink-muted">
+            {[nextAction.source, nextAction.contactName]
+              .filter(Boolean)
+              .join(" · ") || "Internal"}
+            {nextAction.dueAt
+              ? ` · Follow-up ${formatFollowUpAt(nextAction.dueAt)}`
+              : ""}
+          </p>
+          <a
+            href={nextAction.href}
+            className="mt-3 inline-block text-xs font-medium text-pillar-navy underline"
+          >
+            Open {nextAction.target}
+          </a>
+        </SurfaceCard>
+      ) : null}
+      {resolvedIntake ? (
+        <ApplicationIntakeCard intake={resolvedIntake} loanType={deal.loanType} />
+      ) : null}
       <SurfaceCard>
         <CardHeader title="Processing health" />
         <dl className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -207,20 +248,36 @@ export function DealOverview({
       </SurfaceCard>
       <SurfaceCard>
         <CardHeader title="Submission readiness" />
-        <p className="text-sm text-ink">
-          {readiness.ready
-            ? "Minimum readiness conditions pass. This file may move to Ready for Submission."
-            : "Ready for Submission is blocked until minimum readiness conditions pass."}
-        </p>
-        {readiness.blockers.length > 0 ? (
-          <ul className="mt-3 space-y-1">
-            {readiness.blockers.map((blocker) => (
-              <li key={blocker} className="text-sm text-danger">
-                {blocker}
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <h3 className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              Ready
+            </h3>
+            <p className="mt-1 text-sm text-ink">
+              {readiness.satisfiedCount} requirement
+              {readiness.satisfiedCount === 1 ? "" : "s"} satisfied
+              {readiness.requiredCount > 0
+                ? ` of ${readiness.requiredCount} required before submission`
+                : ""}
+            </p>
+          </div>
+          <div>
+            <h3 className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              Needs attention
+            </h3>
+            {readiness.attention.length === 0 ? (
+              <p className="mt-1 text-sm text-ink">Nothing blocking submission.</p>
+            ) : (
+              <ul className="mt-1 space-y-1">
+                {readiness.attention.map((item) => (
+                  <li key={`${item.kind}-${item.label}`} className="text-sm text-danger">
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </SurfaceCard>
       <SurfaceCard>
         <CardHeader title="Current blockers" />

@@ -20,6 +20,7 @@ function documentRequest(input: {
   requestSummary?: string;
   requiresContact?: boolean;
   contactType?: PlaybookDefinition["contactType"];
+  expectedDocumentCount?: number | null;
 }): PlaybookDefinition {
   const requiresContact =
     input.requiresContact ?? input.sourceType !== "internal";
@@ -59,6 +60,7 @@ function documentRequest(input: {
     needCategory: input.needCategory,
     needDocumentType: input.needDocumentType,
     needMatchAliases: input.needMatchAliases,
+    expectedDocumentCount: input.expectedDocumentCount ?? null,
   };
 }
 
@@ -159,8 +161,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needCategory: "Liquidity",
     needDocumentType: "Bank Statements",
     needMatchAliases: ["bank statements", "liquidity"],
+    expectedDocumentCount: 2,
     requestTemplate:
-      "Please provide the most recent {{expected_months}} months of complete bank statements, including all pages.",
+      "Please provide your most recent {{expected_months}} months of complete bank statements, including all pages.",
     requestSummary:
       "Request the most recent {{expected_months}} months of complete bank statements.",
     instructions:
@@ -177,6 +180,10 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needCategory: "Income",
     needDocumentType: "Pay Stubs",
     needMatchAliases: ["pay stub", "pay stubs"],
+    expectedDocumentCount: 2,
+    requestTemplate:
+      "Please provide your most recent {{expected_document_count}} pay stubs.",
+    requestSummary: "Request the most recent {{expected_document_count}} pay stubs.",
     instructions:
       "Confirm the lookback (for example, most recent 30 days). Request each stub covering that window. Check pay dates, employer name, and that YTD figures are readable. Link every stub to the Pay Stubs Client Need. Follow up if a date is missing. Escalate to the LO after 48 hours with no complete set.",
     completionSummary:

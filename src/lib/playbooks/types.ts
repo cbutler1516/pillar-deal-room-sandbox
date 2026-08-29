@@ -87,6 +87,7 @@ export type PlaybookDefinition = {
   needCategory?: string;
   needDocumentType?: string;
   needMatchAliases?: string[];
+  expectedDocumentCount?: number | null;
 };
 
 export type InstantiatedTask = {

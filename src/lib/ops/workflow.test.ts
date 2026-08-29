@@ -5,6 +5,7 @@ import {
   canProcessorTouchAssignment,
   canUnclaimDeal,
   evaluateSubmissionReadiness,
+  isDealOwnedByUser,
   sanitizeActivityMetadata,
 } from "@/lib/ops/workflow";
 
@@ -26,6 +27,13 @@ describe("claim rules", () => {
   it("lets a processor unclaim only their own deal", () => {
     expect(canUnclaimDeal("proc-a", "proc-a", "processor")).toBe(true);
     expect(canUnclaimDeal("proc-b", "proc-a", "processor")).toBe(false);
+  });
+
+  it("hides Claim when the current user already owns the deal", () => {
+    expect(isDealOwnedByUser("admin-1", "admin-1")).toBe(true);
+    expect(canClaimDeal("admin-1", "admin-1", "admin")).toBe(false);
+    expect(canClaimDeal("proc-a", "proc-a", "processor")).toBe(false);
+    expect(canClaimDeal(null, "admin-1", "admin")).toBe(true);
   });
 });
 
@@ -71,7 +79,7 @@ describe("submission readiness", () => {
       ],
     });
     expect(blocked.ready).toBe(false);
-    expect(blocked.blockers[0]).toMatch(/required Client Need/);
+    expect(blocked.blockers[0]).toMatch(/required Need/);
 
     const ready = evaluateSubmissionReadiness({
       needs: [
@@ -83,6 +91,57 @@ describe("submission readiness", () => {
     });
     expect(ready.ready).toBe(true);
     expect(ready.blockers).toEqual([]);
+    expect(ready.satisfiedCount).toBe(2);
+    expect(ready.requiredCount).toBe(2);
+  });
+
+  it("does not let an optional Need block submission", () => {
+    const ready = evaluateSubmissionReadiness({
+      needs: [
+        { required: true, status: "approved", timing: "required_now" },
+        { required: false, status: "requested", timing: "optional" },
+      ],
+    });
+    expect(ready.ready).toBe(true);
+    expect(ready.attention).toEqual([]);
+  });
+
+  it("does not let a required-later Need block unless it is required before submission", () => {
+    const later = evaluateSubmissionReadiness({
+      needs: [
+        { required: true, status: "requested", timing: "required_later" },
+        { required: true, status: "approved", timing: "required_now" },
+      ],
+    });
+    expect(later.ready).toBe(true);
+
+    const beforeSubmission = evaluateSubmissionReadiness({
+      needs: [
+        {
+          required: true,
+          status: "requested",
+          timing: "required_later",
+          requiredBeforeSubmission: true,
+        },
+      ],
+    });
+    expect(beforeSubmission.ready).toBe(false);
+  });
+
+  it("blocks when a required Need is rejected", () => {
+    const blocked = evaluateSubmissionReadiness({
+      needs: [
+        {
+          required: true,
+          status: "rejected",
+          documentType: "Government-issued ID",
+          timing: "required_now",
+        },
+      ],
+    });
+    expect(blocked.ready).toBe(false);
+    expect(blocked.attention.some((item) => item.kind === "replacement")).toBe(true);
+    expect(blocked.blockers.join(" ")).toMatch(/Government-issued ID/);
   });
 
   it("blocks Ready for Submission when a required contact is still missing", () => {

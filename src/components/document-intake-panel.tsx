@@ -5,6 +5,7 @@ import {
   completeUploadSessionAction,
   createUploadSessionAction,
   requestTemporaryAccessAction,
+  simulateSandboxMockUploadAction,
 } from "@/lib/documents/actions";
 import {
   createFictitiousTestBlob,
@@ -23,10 +24,12 @@ export function DocumentIntakePanel({
   dealId,
   needs,
   defaultNeedId,
+  sandboxMock = false,
 }: {
   dealId: string;
   needs: NeedOption[];
   defaultNeedId?: string;
+  sandboxMock?: boolean;
 }) {
   const [clientNeedId, setClientNeedId] = useState(defaultNeedId ?? needs[0]?.id ?? "");
   const [fileName, setFileName] = useState("sandbox-test-statement.pdf");
@@ -102,6 +105,29 @@ export function DocumentIntakePanel({
       setError(response.error ?? "Unable to complete the mock upload.");
       return;
     }
+    setResult(response.data.document);
+  }
+
+  async function simulateUpload() {
+    setError(null);
+    setAccess(null);
+    setResult(null);
+    setSimulated(false);
+    setPending(true);
+    const formData = new FormData();
+    formData.set("dealId", dealId);
+    formData.set("clientNeedId", clientNeedId);
+    formData.set("fileName", fileName);
+    formData.set("mimeType", mimeType);
+    formData.set("fileSize", String(createFictitiousTestBlob(fileName, mimeType).size));
+    const response = await simulateSandboxMockUploadAction(formData);
+    setPending(false);
+    if (response.error || !response.data) {
+      setSession(null);
+      setError(response.error ?? "Unable to simulate the sandbox upload.");
+      return;
+    }
+    setSimulated(true);
     setResult(response.data.document);
   }
 
@@ -208,6 +234,26 @@ export function DocumentIntakePanel({
             </select>
           </label>
         </div>
+
+      {sandboxMock ? (
+        <div className="rounded-xl border border-dashed border-pillar-teal/40 bg-pillar-teal-soft/40 px-3 py-3">
+          <p className="text-[11px] font-semibold tracking-wide text-pillar-teal uppercase">
+            SANDBOX — Simulated Upload
+          </p>
+          <p className="mt-1 text-xs text-ink-muted">
+            Runs the mock session, receive, complete, and metadata persist steps in
+            one action. No file bytes are stored.
+          </p>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => void simulateUpload()}
+            className="mt-2 rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
+          >
+            Simulate Upload
+          </button>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <button

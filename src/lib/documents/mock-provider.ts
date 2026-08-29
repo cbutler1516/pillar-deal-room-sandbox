@@ -81,6 +81,18 @@ export class SandboxMockDocumentProvider implements DocumentStorageProvider {
     return session;
   }
 
+  async simulateReceive(sessionId: string): Promise<{ received: true; fileName: string }> {
+    const pending = this.pending.get(sessionId);
+    if (!pending) {
+      throw new Error("Upload session was not found.");
+    }
+    if (this.isExpired(pending.session.expiresAt)) {
+      this.pending.delete(sessionId);
+      throw new Error("Upload session has expired.");
+    }
+    return { received: true, fileName: pending.session.fileName };
+  }
+
   async completeUploadSession(
     input: CompleteUploadSessionInput,
   ): Promise<CompleteUploadSessionResult> {

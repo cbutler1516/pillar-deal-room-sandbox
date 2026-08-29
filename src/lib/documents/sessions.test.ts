@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { authorizeDocumentIntake, canUseDocumentIntake } from "@/lib/documents/authorization";
 import { SandboxMockDocumentProvider } from "@/lib/documents/mock-provider";
+import type { DocumentStorageProvider } from "@/lib/documents/types";
 import {
   activityMetadataForTest,
   completeDocumentUploadSession,
   createDocumentUploadSession,
   requestTemporaryDocumentAccess,
+  simulateSandboxMockUpload,
   type DocumentIntakeStore,
   type SessionServiceDeps,
 } from "@/lib/documents/sessions";
@@ -93,7 +95,7 @@ function deps(options?: {
   role?: "admin" | "processor" | "loan_officer" | null;
   assignedProcessorId?: string | null;
   needStatus?: string;
-  provider?: SandboxMockDocumentProvider;
+  provider?: DocumentStorageProvider;
   evaluation?: boolean;
 }): SessionServiceDeps & {
   inserted: Record<string, unknown>[];
@@ -387,5 +389,80 @@ describe("activity metadata exclusions", () => {
     expect(sanitized).not.toHaveProperty("upload_url");
     expect(sanitized).not.toHaveProperty("external_file_id");
     expect(sanitized.filename).toBe("w2-test.pdf");
+  });
+});
+
+describe("sandbox mock one-click upload", () => {
+  it("still persists metadata only and uses the provider abstraction", async () => {
+    const provider = new SandboxMockDocumentProvider();
+    const service = deps({ provider });
+    const result = await simulateSandboxMockUpload(service, {
+      dealId: "deal-1",
+      clientNeedId: "need-1",
+      fileName: "sandbox-one-click.pdf",
+      mimeType: "application/pdf",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.data.verified).toBe(true);
+    expect(result.data.document.storageProvider).toBe("sandbox_mock");
+    expect(result.data.document).not.toHaveProperty("bytes");
+    expect(result.data.document).not.toHaveProperty("base64");
+    expect(service.inserted[0]).not.toHaveProperty("bytes");
+    expect(service.inserted[0]).not.toHaveProperty("content");
+    expect(service.links).toEqual([
+      { documentId: result.data.document.id, clientNeedId: "need-1" },
+    ]);
+    expect(service.events.map((event) => event.eventType)).toEqual(
+      expect.arrayContaining([
+        "document_upload_session_created",
+        "document_metadata_recorded",
+      ]),
+    );
+  });
+
+  it("does not run the mock shortcut for a non-mock provider", async () => {
+    const service = deps({
+      provider: {
+        name: "sharefile" as const,
+        capabilities: {
+          directBrowserUpload: true,
+          temporaryAccessUrls: true,
+          fileDeletion: true,
+          webhookCompletion: false,
+          folderDealOrganization: true,
+          retentionControls: false,
+          auditEvents: false,
+          virusScanningStatus: false,
+          versioning: false,
+        },
+        createUploadSession: async () => {
+          throw new Error("ShareFile should not be used by the mock shortcut.");
+        },
+        completeUploadSession: async () => {
+          throw new Error("ShareFile should not be used by the mock shortcut.");
+        },
+        getDocumentMetadata: async () => {
+          throw new Error("ShareFile should not be used by the mock shortcut.");
+        },
+        getTemporaryAccessUrl: async () => {
+          throw new Error("ShareFile should not be used by the mock shortcut.");
+        },
+        deleteDocument: async () => undefined,
+        listDealDocuments: async () => [],
+      },
+    });
+    const result = await simulateSandboxMockUpload(service, {
+      dealId: "deal-1",
+      clientNeedId: "need-1",
+      fileName: "sandbox-one-click.pdf",
+      mimeType: "application/pdf",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/sandbox mock provider/i);
+    }
   });
 });

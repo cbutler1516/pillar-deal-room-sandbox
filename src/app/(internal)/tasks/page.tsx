@@ -48,7 +48,7 @@ export default async function TasksPage({
     view: view === "list" ? undefined : view,
   };
 
-  const filtered = decorateBoardTasks(tasks, snapshot.deals, contacts).filter((row) => {
+  const filtered = decorateBoardTasks(tasks, snapshot.deals, contacts, snapshot.needs).filter((row) => {
     if (scope === "mine" && row.assignedTo !== user.id) {
       return false;
     }
@@ -81,7 +81,7 @@ export default async function TasksPage({
       query,
     );
   });
-  const listRows = decorateRankedActions(tasks, snapshot.deals, contacts).filter((row) =>
+  const listRows = decorateRankedActions(tasks, snapshot.deals, contacts, snapshot.needs).filter((row) =>
     filtered.some((item) => item.id === row.id),
   );
 

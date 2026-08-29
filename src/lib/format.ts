@@ -36,6 +36,32 @@ export function formatTimestamp(value: string | null): string {
   }).format(new Date(value));
 }
 
+export function formatFollowUpAt(value: string | null, now = new Date()): string {
+  if (!value) {
+    return "Not set";
+  }
+  const date = new Date(value);
+  const due = date.getTime() <= now.getTime();
+  const label = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+  return due ? `Due ${label}` : label;
+}
+
+export function formatCadenceHours(hours: number | null): string {
+  if (hours == null || hours <= 0) {
+    return "—";
+  }
+  if (hours % 24 === 0) {
+    const days = hours / 24;
+    return days === 1 ? "Every 24 hours" : `Every ${days} days`;
+  }
+  return `Every ${hours} hours`;
+}
+
 export function formatAgeDays(days: number): string {
   if (days <= 0) {
     return "Today";

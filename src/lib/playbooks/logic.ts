@@ -42,6 +42,7 @@ export type RankableTask = {
   assignedTo: string | null;
   createdAt: string | null;
   playbookKey: string | null;
+  clientNeedId?: string | null;
   dealContactId?: string | null;
   blockedReason?: string | null;
   requiresContact?: boolean;
@@ -360,6 +361,7 @@ export function clientNeedInsertFromPlaybook(
   description: string;
   required: boolean;
   status: "missing";
+  expected_document_count: number | null;
 } {
   return {
     deal_id: dealId,
@@ -368,6 +370,7 @@ export function clientNeedInsertFromPlaybook(
     description: playbook.title,
     required: playbook.alwaysRequired,
     status: "missing",
+    expected_document_count: playbook.expectedDocumentCount ?? null,
   };
 }
 

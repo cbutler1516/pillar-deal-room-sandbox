@@ -121,6 +121,17 @@ describe("application package", () => {
       estimated_arv: "620000",
       loan_officer_notes: "Internal evaluation note",
     });
+    expect(pack.deal.application_intake).toMatchObject({
+      source: "sandbox_application",
+      estimatedArv: "620000",
+      rehabBudget: "80000",
+      purchasePrice: "400000",
+      requestedLoan: "450000",
+    });
+    const bankNeed = pack.needs.find(
+      (need) => need.document_type === "Bank Statements",
+    );
+    expect(bankNeed?.expected_document_count).toBe(2);
   });
 
   it("blocks third-party tasks until a matching contact exists", () => {

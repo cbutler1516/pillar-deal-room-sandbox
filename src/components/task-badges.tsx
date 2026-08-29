@@ -18,7 +18,6 @@ function Badge({
 
 export function TaskBadges({
   row,
-  compact = false,
 }: {
   row: Pick<
     DecoratedAction,
@@ -41,7 +40,7 @@ export function TaskBadges({
   if (row.priority === "urgent") {
     items.push({ label: "Urgent", tone: "danger" });
   }
-  if (!compact && row.followUpDue) {
+  if (row.followUpDue) {
     items.push({ label: "Follow-up due", tone: "warning" });
   }
   if (items.length === 0) {

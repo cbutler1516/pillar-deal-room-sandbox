@@ -7,6 +7,7 @@ import {
   completeDocumentUploadSession,
   createDocumentUploadSession,
   requestTemporaryDocumentAccess,
+  simulateSandboxMockUpload,
   type DocumentIntakeStore,
 } from "@/lib/documents/sessions";
 import type { DocumentMetadataRecord, SafeUploadSession, TemporaryAccess } from "@/lib/documents/types";
@@ -243,6 +244,50 @@ export async function completeUploadSessionAction(
         error instanceof Error
           ? error.message
           : "Unable to complete the upload.",
+      data: null,
+    };
+  }
+}
+
+export async function simulateSandboxMockUploadAction(
+  formData: FormData,
+): Promise<
+  DocumentIntakeResult<{ document: DocumentMetadataRecord; needUpdated: boolean }>
+> {
+  assertSandboxGuard();
+  assertDocumentProviderGuard();
+  if (formContainsFilePayload(formData)) {
+    return { error: "Raw file bytes are not accepted.", data: null };
+  }
+
+  const { supabase, user, profile } = await requireInternalUser();
+  const dealId = asString(formData.get("dealId"));
+  try {
+    const result = await simulateSandboxMockUpload(
+      {
+        actor: { userId: user.id, role: profile.role },
+        store: createUserScopedStore(supabase),
+        logActivity: logAuthorizedActivity,
+      },
+      {
+        dealId,
+        clientNeedId: asString(formData.get("clientNeedId")),
+        fileName: asString(formData.get("fileName")),
+        mimeType: asString(formData.get("mimeType")),
+        fileSize: asOptionalFileSize(formData.get("fileSize")),
+      },
+    );
+    if (!result.ok) {
+      return { error: result.error, data: null };
+    }
+    refreshDeal(dealId);
+    return { error: null, data: result.data };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to simulate the sandbox upload.",
       data: null,
     };
   }

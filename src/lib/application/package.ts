@@ -1,3 +1,4 @@
+import { applicationIntakeFromDraft } from "@/lib/application/intake";
 import { parseMoney } from "@/lib/application/validate";
 import type { ApplicationDraft } from "@/lib/application/types";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
@@ -124,6 +125,8 @@ export function buildApplicationPackage(
       required: playbook.timing !== "optional",
       status: "requested",
       requested_at: createdAt,
+      expected_document_count:
+        playbook.expectedDocumentCount ?? row.expected_document_count,
       description: playbook.instructions.split(/(?<=\.)\s/)[0] ?? playbook.title,
     });
   }
@@ -198,6 +201,7 @@ export function buildApplicationPackage(
       experience: draft.experience.trim() || null,
       assigned_processor_id: null,
       status: "new",
+      application_intake: applicationIntakeFromDraft(draft),
       created_at: createdAt,
       updated_at: createdAt,
     },

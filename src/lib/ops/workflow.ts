@@ -51,13 +51,23 @@ export function canMutateWorkflow(role: UserRole): boolean {
   return isAdmin(role) || isProcessor(role);
 }
 
+export function isDealOwnedByUser(
+  assignedProcessorId: string | null,
+  userId: string,
+): boolean {
+  return assignedProcessorId != null && assignedProcessorId === userId;
+}
+
 export function canClaimDeal(
   assignedProcessorId: string | null,
   userId: string,
   role: UserRole,
 ): boolean {
+  if (isDealOwnedByUser(assignedProcessorId, userId)) {
+    return false;
+  }
   if (isAdmin(role)) {
-    return assignedProcessorId == null || assignedProcessorId === userId;
+    return assignedProcessorId == null;
   }
   if (!isProcessor(role)) {
     return false;
@@ -82,41 +92,114 @@ export function canUnclaimDeal(
 export type SubmissionNeed = {
   required: boolean;
   status: string;
+  documentType?: string | null;
+  timing?: string | null;
+  requiredBeforeSubmission?: boolean;
 };
 
 export type SubmissionTask = {
   status: string;
   blockedReason: string | null;
+  timing?: string | null;
+  blocksSubmission?: boolean;
 };
+
+export type ReadinessAttention = {
+  kind: "incomplete" | "replacement" | "missing_contact" | "blocking_task";
+  label: string;
+};
+
+export type SubmissionReadiness = {
+  ready: boolean;
+  blockers: string[];
+  satisfiedCount: number;
+  requiredCount: number;
+  attention: ReadinessAttention[];
+};
+
+export function needRequiredBeforeSubmission(need: SubmissionNeed): boolean {
+  if (need.requiredBeforeSubmission === false) {
+    return false;
+  }
+  if (need.requiredBeforeSubmission === true) {
+    return true;
+  }
+  if (!need.required) {
+    return false;
+  }
+  if (need.timing === "optional" || need.timing === "required_later") {
+    return false;
+  }
+  return true;
+}
+
+function isOpenBlockingTask(task: SubmissionTask): boolean {
+  const open =
+    task.status === "open" ||
+    task.status === "in_progress" ||
+    task.status === "waiting";
+  if (!open) {
+    return false;
+  }
+  if (task.blocksSubmission === false) {
+    return false;
+  }
+  if (task.blockedReason === CONTACT_MISSING) {
+    return task.timing !== "optional" && task.timing !== "required_later";
+  }
+  return Boolean(task.blocksSubmission);
+}
 
 export function evaluateSubmissionReadiness(input: {
   needs: SubmissionNeed[];
   tasks?: SubmissionTask[];
-}): { ready: boolean; blockers: string[] } {
-  const blockers: string[] = [];
-  const required = input.needs.filter((need) => need.required);
+}): SubmissionReadiness {
+  const required = input.needs.filter(needRequiredBeforeSubmission);
+  const satisfied = required.filter(
+    (need) => need.status === "approved" || need.status === "waived",
+  );
   const incomplete = required.filter(
     (need) => need.status !== "approved" && need.status !== "waived",
   );
+  const replacements = required.filter((need) => need.status === "rejected");
+  const missingContacts = (input.tasks ?? []).filter(isOpenBlockingTask);
+  const attention: ReadinessAttention[] = [];
+  const blockers: string[] = [];
+
   if (incomplete.length > 0) {
-    blockers.push(
-      `${incomplete.length} required Client Need${incomplete.length === 1 ? "" : "s"} not approved or waived.`,
-    );
+    const label = `${incomplete.length} required Need${incomplete.length === 1 ? "" : "s"} incomplete`;
+    attention.push({ kind: "incomplete", label });
+    blockers.push(label);
   }
-  if (required.some((need) => need.status === "rejected")) {
-    blockers.push("A required Client Need still needs a replacement.");
+  for (const need of replacements) {
+    const label = need.documentType
+      ? `Replacement needed: ${need.documentType}`
+      : "Replacement needed on a required Client Need";
+    attention.push({ kind: "replacement", label });
+    blockers.push(label);
   }
-  const missingContacts = (input.tasks ?? []).filter(
-    (task) =>
-      (task.status === "open" ||
-        task.status === "in_progress" ||
-        task.status === "waiting") &&
-      task.blockedReason === CONTACT_MISSING,
-  );
   if (missingContacts.length > 0) {
+    const label = `${missingContacts.length} missing contact${missingContacts.length === 1 ? "" : "s"}`;
+    attention.push({ kind: "missing_contact", label });
     blockers.push("Required contacts are still missing.");
   }
-  return { ready: blockers.length === 0, blockers };
+  const extraBlocking = (input.tasks ?? []).filter(
+    (task) =>
+      isOpenBlockingTask(task) && task.blockedReason !== CONTACT_MISSING,
+  );
+  if (extraBlocking.length > 0) {
+    const label = `${extraBlocking.length} open blocking task${extraBlocking.length === 1 ? "" : "s"}`;
+    attention.push({ kind: "blocking_task", label });
+    blockers.push(label);
+  }
+
+  return {
+    ready: blockers.length === 0,
+    blockers,
+    satisfiedCount: satisfied.length,
+    requiredCount: required.length,
+    attention,
+  };
 }
 
 export function canProcessorTouchAssignment(

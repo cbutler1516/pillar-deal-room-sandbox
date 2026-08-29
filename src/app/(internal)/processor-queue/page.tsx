@@ -16,6 +16,7 @@ import {
   dealExceptionCount,
   documentCompletion,
 } from "@/lib/ops/metrics";
+import { compareDealPriority, rankDealPriority } from "@/lib/ops/priority";
 import {
   hrefWithQuery,
   matchesTaskQuery,
@@ -60,6 +61,7 @@ export default async function ProcessorQueuePage({
     queueTasks,
     snapshot.deals,
     queueContacts,
+    snapshot.needs,
   ).filter((row) =>
     matchesTaskQuery(
       taskSearchHaystack({
@@ -76,6 +78,7 @@ export default async function ProcessorQueuePage({
     queueTasks,
     snapshot.deals,
     queueContacts,
+    snapshot.needs,
   ).filter((row) =>
     matchesTaskQuery(
       taskSearchHaystack({
@@ -106,7 +109,24 @@ export default async function ProcessorQueuePage({
     );
     const docs = documentCompletion(deal.id, snapshot.needs);
     const ageDays = ageInDays(deal.createdAt);
-    return { ...deal, exceptions, docs, ageDays };
+    const priority = rankDealPriority(
+      {
+        id: deal.id,
+        status: deal.status,
+        assignedProcessorId: deal.assignedProcessorId,
+        createdAt: deal.createdAt,
+        dealReference: deal.dealReference,
+      },
+      snapshot.needs.map((need) => ({
+        ...need,
+        timing:
+          snapshot.tasks.find((task) => task.clientNeedId === need.id)?.timing ??
+          null,
+      })),
+      snapshot.documents,
+      snapshot.tasks,
+    );
+    return { ...deal, exceptions, docs, ageDays, priority };
   };
 
   return (
@@ -187,7 +207,7 @@ export default async function ProcessorQueuePage({
                   ),
                 );
               }
-              rows.sort((a, b) => b.exceptions - a.exceptions || b.ageDays - a.ageDays);
+              rows.sort((a, b) => compareDealPriority(a.priority, b.priority));
 
               return (
                 <SurfaceCard key={section.key} padded={false}>
@@ -212,6 +232,12 @@ export default async function ProcessorQueuePage({
                             <p className="text-xs text-ink-muted">
                               {deal.loanType} · {formatCurrency(deal.loanAmount)} ·{" "}
                               {formatProperty(deal.propertyCity, deal.propertyState)}
+                            </p>
+                            <p className="mt-1 text-xs text-ink">
+                              Priority: {deal.priority.label}
+                            </p>
+                            <p className="text-[11px] text-ink-muted">
+                              Why: {deal.priority.reasons.slice(0, 2).join(" · ")}
                             </p>
                           </div>
                           <div className="flex items-center gap-3 text-xs">

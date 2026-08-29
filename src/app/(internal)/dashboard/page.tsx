@@ -8,7 +8,7 @@ import { requireInternalUser } from "@/lib/auth/session";
 import { listQueueContacts, listQueueTasks, listRecentActivity, listReviewDocuments } from "@/lib/data/deals";
 import { getDashboardCounts } from "@/lib/data/dashboard";
 import { loadDealSnapshot } from "@/lib/data/snapshot";
-import { formatTimestamp } from "@/lib/format";
+import { formatActivityDisplay } from "@/lib/ops/activity-display";
 import {
   computeOpsMetrics,
   firstNameFromProfile,
@@ -41,6 +41,7 @@ export default async function DashboardPage() {
     queueTasks,
     snapshot.deals,
     queueContacts,
+    snapshot.needs,
     now,
   );
   const metrics = computeOpsMetrics({
@@ -166,12 +167,16 @@ export default async function DashboardPage() {
           <ul>
             {activity.map((event) => {
               const deal = snapshot.deals.find((item) => item.id === event.dealId);
+              const display = formatActivityDisplay(event);
               return (
                 <li key={event.id} className="border-t border-line py-2 first:border-0">
-                  <p className="text-sm text-ink">{event.eventType.replaceAll("_", " ")}</p>
+                  <p className="text-sm font-medium text-ink">{display.who}</p>
+                  <p className="text-sm text-ink">
+                    {display.didWhat}
+                    {display.toWhat ? ` ${display.toWhat}` : ""}
+                  </p>
                   <p className="text-xs text-ink-muted">
-                    {deal?.borrowerName ?? "Deal"} · {event.actorType} ·{" "}
-                    {formatTimestamp(event.createdAt)}
+                    {deal?.borrowerName ?? "Deal"} · {display.when}
                   </p>
                 </li>
               );

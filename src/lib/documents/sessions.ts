@@ -298,6 +298,68 @@ export async function completeDocumentUploadSession(
   };
 }
 
+export async function simulateSandboxMockUpload(
+  deps: SessionServiceDeps,
+  input: {
+    dealId: string;
+    clientNeedId?: string;
+    fileName: string;
+    mimeType: string;
+    fileSize?: number | null;
+  },
+): Promise<
+  SessionServiceResult<{
+    document: DocumentMetadataRecord;
+    needUpdated: boolean;
+    verified: boolean;
+  }>
+> {
+  const provider = providerOf(deps);
+  if (provider.name !== "sandbox_mock") {
+    return {
+      ok: false,
+      error: "Simulated upload is only available for the sandbox mock provider.",
+    };
+  }
+
+  const created = await createDocumentUploadSession(deps, input);
+  if (!created.ok) {
+    return created;
+  }
+
+  if ("simulateReceive" in provider && typeof provider.simulateReceive === "function") {
+    await provider.simulateReceive(created.data.sessionId);
+  }
+
+  const completed = await completeDocumentUploadSession(deps, {
+    sessionId: created.data.sessionId,
+    dealId: input.dealId,
+  });
+  if (!completed.ok) {
+    return completed;
+  }
+
+  const stored = await deps.store.getDocument(completed.data.document.id);
+  let verified = false;
+  if (stored?.externalFileId) {
+    const metadata = await provider.getDocumentMetadata(stored.externalFileId);
+    verified =
+      metadata.fileName === completed.data.document.fileName &&
+      metadata.provider === "sandbox_mock" &&
+      !("bytes" in metadata) &&
+      !("base64" in metadata) &&
+      !("content" in metadata);
+  }
+
+  return {
+    ok: true,
+    data: {
+      ...completed.data,
+      verified,
+    },
+  };
+}
+
 export async function requestTemporaryDocumentAccess(
   deps: SessionServiceDeps,
   input: { documentId: string; dealId: string },
