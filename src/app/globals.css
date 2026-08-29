@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --pillar-navy: #0b1f3a;
+  --pillar-navy-soft: #16324f;
+  --pillar-teal: #1b7a72;
+  --pillar-teal-soft: #e7f4f2;
+  --pillar-gold: #c4a15a;
+  --surface: #ffffff;
+  --surface-muted: #f7f9fb;
+  --workspace: #eef2f6;
+  --line: #e4e9ef;
+  --ink: #0b1f3a;
+  --ink-muted: #5b6b7c;
+  --success: #1f6b4a;
+  --success-soft: #e8f5ee;
+  --warning: #9a6b16;
+  --warning-soft: #f8f1dd;
+  --danger: #9b2c2c;
+  --danger-soft: #f8eaea;
+  --info: #3d5a80;
+  --info-soft: #eaf0f6;
+  --violet: #5b4b8a;
+  --violet-soft: #f0ecf7;
+  --shadow-card: 0 1px 2px rgb(11 31 58 / 0.04);
+}
+
+@theme inline {
+  --color-background: var(--workspace);
+  --color-foreground: var(--ink);
+  --color-pillar-navy: var(--pillar-navy);
+  --color-pillar-navy-soft: var(--pillar-navy-soft);
+  --color-pillar-teal: var(--pillar-teal);
+  --color-pillar-teal-soft: var(--pillar-teal-soft);
+  --color-pillar-gold: var(--pillar-gold);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-workspace: var(--workspace);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-navy-900: var(--pillar-navy-soft);
+  --color-navy-950: var(--pillar-navy);
+  --color-teal-50: var(--pillar-teal-soft);
+  --color-teal-700: var(--pillar-teal);
+  --color-teal-800: var(--pillar-teal);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--workspace);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--pillar-teal-soft);
+  color: var(--pillar-navy);
+}
