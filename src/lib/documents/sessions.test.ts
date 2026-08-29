@@ -27,6 +27,7 @@ function createMemoryStore(input?: {
   const deal = {
     id: "deal-1",
     assignedProcessorId: input?.assignedProcessorId ?? null,
+    dealReference: "PDR-SBX-001",
   };
   const need = {
     id: "need-1",
@@ -93,6 +94,7 @@ function deps(options?: {
   assignedProcessorId?: string | null;
   needStatus?: string;
   provider?: SandboxMockDocumentProvider;
+  evaluation?: boolean;
 }): SessionServiceDeps & {
   inserted: Record<string, unknown>[];
   links: { documentId: string; clientNeedId: string }[];
@@ -111,6 +113,7 @@ function deps(options?: {
     store: memory.store,
     provider: options?.provider ?? new SandboxMockDocumentProvider(),
     env,
+    evaluation: options?.evaluation,
     inserted: memory.inserted,
     links: memory.links,
     events,
@@ -191,6 +194,33 @@ describe("document intake authorization", () => {
     if (!denied.ok) {
       expect(denied.error).toMatch(/assigned to them/i);
     }
+  });
+
+  it("lets an evaluation portal upload after the deal exists", async () => {
+    const service = deps({ userId: null, role: null, evaluation: true });
+    const created = await createDocumentUploadSession(service, {
+      dealId: "deal-1",
+      clientNeedId: "need-1",
+      fileName: "sandbox-test-lease.pdf",
+      mimeType: "application/pdf",
+      fileSize: 42,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) {
+      return;
+    }
+    const completed = await completeDocumentUploadSession(service, {
+      sessionId: created.data.sessionId,
+      dealId: "deal-1",
+    });
+    expect(completed.ok).toBe(true);
+    if (!completed.ok) {
+      return;
+    }
+    expect(completed.data.document.storageProvider).toBe("sandbox_mock");
+    expect(completed.data.document).not.toHaveProperty("bytes");
+    expect(service.inserted[0]).not.toHaveProperty("bytes");
+    expect(service.inserted[0]).not.toHaveProperty("base64");
   });
 });
 

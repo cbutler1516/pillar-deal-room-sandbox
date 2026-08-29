@@ -6,6 +6,7 @@ import { labelClass } from "@/components/ui/styles";
 import type { ClientNeedRow, DealDetail, DocumentRow, TaskRow } from "@/lib/data/deals";
 import { formatCurrency, formatProperty } from "@/lib/format";
 import { documentCompletion } from "@/lib/ops/metrics";
+import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
 
 export const DEAL_TABS = [
@@ -62,6 +63,50 @@ export function DealWorkspaceHeader({
   );
 }
 
+const INTAKE_LABELS: Array<[string, string]> = [
+  ["property_zip", "ZIP"],
+  ["units", "Units"],
+  ["square_footage", "Square footage"],
+  ["occupancy", "Occupancy"],
+  ["purchase_price", "Purchase price"],
+  ["current_value", "Current value"],
+  ["existing_payoff", "Existing payoff"],
+  ["cash_out", "Cash-out"],
+  ["estimated_arv", "Estimated ARV"],
+  ["rehab_budget", "Rehab budget"],
+  ["monthly_rent", "Monthly rent"],
+  ["noi", "NOI"],
+  ["land_owned", "Land owned"],
+  ["land_value", "Land value"],
+  ["construction_budget", "Construction budget"],
+  ["completed_value", "Completed value"],
+  ["plans_permits", "Plans / permits"],
+  ["liquidity", "Liquidity"],
+  ["net_worth", "Net worth"],
+  ["under_contract", "Under contract"],
+  ["closing_date", "Closing date"],
+  ["timeline", "Funding timeline"],
+  ["borrower_comments", "Borrower comments"],
+  ["loan_officer_notes", "Loan officer notes"],
+];
+
+function ApplicationIntakeCard({ intake }: { intake: Record<string, string> }) {
+  const rows = INTAKE_LABELS.filter(([key]) => intake[key]);
+  if (rows.length === 0) {
+    return null;
+  }
+  return (
+    <SurfaceCard>
+      <CardHeader title="Application intake" />
+      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {rows.map(([key, label]) => (
+          <HeaderItem key={key} label={label} value={intake[key]} />
+        ))}
+      </dl>
+    </SurfaceCard>
+  );
+}
+
 function HeaderItem({
   label,
   value,
@@ -81,14 +126,15 @@ export function DealOverview({
   deal,
   needs,
   documents,
-  tasks,
   nextActions,
+  intake = null,
 }: {
   deal: DealDetail;
   needs: ClientNeedRow[];
   documents: DocumentRow[];
-  tasks: TaskRow[];
+  tasks?: TaskRow[];
   nextActions: DecoratedAction[];
+  intake?: Record<string, string> | null;
 }) {
   const docs = documentCompletion(
     deal.id,
@@ -99,12 +145,10 @@ export function DealOverview({
     })),
   );
   const reviewCount = documents.filter((doc) => doc.status === "needs_review").length;
-  const openTasks = tasks.filter((task) =>
-    ["open", "in_progress", "waiting"].includes(task.status),
-  ).length;
   const requiredNow = nextActions.filter((task) => task.timing === "required_now").length;
   const followUps = nextActions.filter((task) => task.followUpDue).length;
   const escalations = nextActions.filter((task) => task.escalationDue).length;
+  const missingContacts = nextActions.filter((task) => task.contactMissing).length;
   const blockers = nextActions.filter(
     (task) =>
       task.contactMissing ||
@@ -113,6 +157,16 @@ export function DealOverview({
       task.overdue,
   );
   const rejectedNeeds = needs.filter((need) => need.status === "rejected");
+  const readiness = evaluateSubmissionReadiness({
+    needs: needs.map((need) => ({
+      required: need.required,
+      status: need.status,
+    })),
+    tasks: nextActions.map((task) => ({
+      status: task.status,
+      blockedReason: task.blockedReason ?? null,
+    })),
+  });
 
   return (
     <div className="space-y-6">
@@ -136,19 +190,37 @@ export function DealOverview({
           <HeaderItem label="Experience" value={deal.experience} />
         </dl>
       </SurfaceCard>
+      {intake ? <ApplicationIntakeCard intake={intake} /> : null}
       <SurfaceCard>
         <CardHeader title="Processing health" />
         <dl className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <HeaderItem label="Open tasks" value={String(openTasks)} />
-          <HeaderItem label="Required now" value={String(requiredNow)} />
+          <HeaderItem label="Required now incomplete" value={String(requiredNow)} />
           <HeaderItem label="Documents to review" value={String(reviewCount)} />
           <HeaderItem
             label="Client Needs"
             value={`${docs.complete}/${docs.required} complete`}
           />
+          <HeaderItem label="Missing contacts" value={String(missingContacts)} />
           <HeaderItem label="Follow-ups due" value={String(followUps)} />
           <HeaderItem label="Escalations" value={String(escalations)} />
         </dl>
+      </SurfaceCard>
+      <SurfaceCard>
+        <CardHeader title="Submission readiness" />
+        <p className="text-sm text-ink">
+          {readiness.ready
+            ? "Minimum readiness conditions pass. This file may move to Ready for Submission."
+            : "Ready for Submission is blocked until minimum readiness conditions pass."}
+        </p>
+        {readiness.blockers.length > 0 ? (
+          <ul className="mt-3 space-y-1">
+            {readiness.blockers.map((blocker) => (
+              <li key={blocker} className="text-sm text-danger">
+                {blocker}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </SurfaceCard>
       <SurfaceCard>
         <CardHeader title="Current blockers" />

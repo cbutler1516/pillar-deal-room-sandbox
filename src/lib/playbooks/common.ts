@@ -64,6 +64,93 @@ function documentRequest(input: {
 
 export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
   documentRequest({
+    playbookKey: "request_government_id",
+    title: "Request government-issued ID",
+    sourceType: "borrower",
+    timing: "required_now",
+    alwaysRequired: true,
+    needCategory: "Identity",
+    needDocumentType: "Government-issued ID",
+    needMatchAliases: ["government id", "driver license", "passport"],
+    requestTemplate:
+      "Please provide a current government-issued photo ID for the borrower on {{deal_reference}}.",
+    requestSummary: "Request a government-issued photo ID.",
+    instructions:
+      "Request a current government-issued photo ID. Confirm the name matches the borrower. Link the file to the Government-issued ID Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when the ID is received, reviewed, and the Client Need is approved or explicitly accepted. This is not a KYC legal determination.",
+  }),
+  documentRequest({
+    playbookKey: "request_construction_plans",
+    title: "Request construction plans",
+    sourceType: "borrower",
+    timing: "required_now",
+    alwaysRequired: false,
+    needCategory: "Construction",
+    needDocumentType: "Construction Plans",
+    needMatchAliases: ["plans", "architectural"],
+    instructions:
+      "Request current construction plans. Confirm they are for this property. Link them to the Construction Plans Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when the plans are received, reviewed, and the Client Need is approved or explicitly accepted.",
+  }),
+  documentRequest({
+    playbookKey: "request_construction_budget",
+    title: "Request construction budget",
+    sourceType: "borrower",
+    timing: "required_now",
+    alwaysRequired: false,
+    needCategory: "Construction",
+    needDocumentType: "Construction Budget",
+    needMatchAliases: ["construction budget"],
+    instructions:
+      "Request a line-item construction budget. Confirm it covers the planned work. Link it to the Construction Budget Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when a usable budget is received, reviewed, and the Client Need is approved or explicitly accepted.",
+  }),
+  documentRequest({
+    playbookKey: "request_permits",
+    title: "Request permits status",
+    sourceType: "borrower",
+    timing: "required_now",
+    alwaysRequired: false,
+    needCategory: "Construction",
+    needDocumentType: "Permits",
+    needMatchAliases: ["permit"],
+    instructions:
+      "Request permit evidence or a written status. Confirm the property address. Link files to the Permits Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when permit evidence or status is received, reviewed, and the Client Need is approved or explicitly accepted.",
+  }),
+  documentRequest({
+    playbookKey: "request_land_documentation",
+    title: "Request land documentation",
+    sourceType: "borrower",
+    timing: "required_now",
+    alwaysRequired: false,
+    needCategory: "Legal",
+    needDocumentType: "Land Documentation",
+    needMatchAliases: ["land", "deed"],
+    instructions:
+      "Request evidence of land ownership or the land contract. Confirm the parcel matches the deal. Link it to the Land Documentation Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when land documentation is received, reviewed, and the Client Need is approved or explicitly accepted.",
+  }),
+  documentRequest({
+    playbookKey: "request_construction_schedule",
+    title: "Request construction schedule",
+    sourceType: "borrower",
+    timing: "required_later",
+    alwaysRequired: false,
+    needCategory: "Construction",
+    needDocumentType: "Construction Schedule",
+    needMatchAliases: ["construction schedule"],
+    instructions:
+      "Request a construction schedule. Confirm start and completion estimates. Link it to the Construction Schedule Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+    completionSummary:
+      "Complete when the schedule is received, reviewed, and the Client Need is approved or explicitly accepted.",
+  }),
+  documentRequest({
     playbookKey: "request_bank_statements",
     title: "Request most recent bank statements",
     sourceType: "borrower",

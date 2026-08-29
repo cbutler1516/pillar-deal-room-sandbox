@@ -2,7 +2,7 @@
 
 **Status:** Evaluation only. No production provider is connected.
 
-**Sandbox provider in use:** `sandbox_mock`
+**Sandbox provider in use:** `sandbox_mock` by default. `sharefile` is a sandbox-only spike behind the same factory. See `docs/sharefile-sandbox-spike.md`.
 
 **Hard storage boundary:** Pillar must not permanently store borrower document files. File bytes belong with a third-party secure document provider. Pillar stores workflow state, document metadata, external references, review/classification status, and safe audit events.
 

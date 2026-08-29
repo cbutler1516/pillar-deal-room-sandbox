@@ -27,6 +27,9 @@ describe("protected routes", () => {
   it("does not treat login as protected", () => {
     expect(isProtectedPath("/login")).toBe(false);
     expect(isProtectedPath("/")).toBe(false);
+    expect(isProtectedPath("/apply")).toBe(false);
+    expect(isProtectedPath("/apply/received")).toBe(false);
+    expect(isProtectedPath("/portal/demo-token")).toBe(false);
   });
 });
 

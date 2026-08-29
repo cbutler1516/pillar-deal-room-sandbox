@@ -1,5 +1,6 @@
 import type { UserRole } from "@/lib/auth/roles";
 import { isAdmin, isProcessor } from "@/lib/auth/roles";
+import { CONTACT_MISSING } from "@/lib/contacts/types";
 
 export const DEAL_STATUSES = [
   "new",
@@ -78,6 +79,46 @@ export function canUnclaimDeal(
   return assignedProcessorId === userId;
 }
 
+export type SubmissionNeed = {
+  required: boolean;
+  status: string;
+};
+
+export type SubmissionTask = {
+  status: string;
+  blockedReason: string | null;
+};
+
+export function evaluateSubmissionReadiness(input: {
+  needs: SubmissionNeed[];
+  tasks?: SubmissionTask[];
+}): { ready: boolean; blockers: string[] } {
+  const blockers: string[] = [];
+  const required = input.needs.filter((need) => need.required);
+  const incomplete = required.filter(
+    (need) => need.status !== "approved" && need.status !== "waived",
+  );
+  if (incomplete.length > 0) {
+    blockers.push(
+      `${incomplete.length} required Client Need${incomplete.length === 1 ? "" : "s"} not approved or waived.`,
+    );
+  }
+  if (required.some((need) => need.status === "rejected")) {
+    blockers.push("A required Client Need still needs a replacement.");
+  }
+  const missingContacts = (input.tasks ?? []).filter(
+    (task) =>
+      (task.status === "open" ||
+        task.status === "in_progress" ||
+        task.status === "waiting") &&
+      task.blockedReason === CONTACT_MISSING,
+  );
+  if (missingContacts.length > 0) {
+    blockers.push("Required contacts are still missing.");
+  }
+  return { ready: blockers.length === 0, blockers };
+}
+
 export function canProcessorTouchAssignment(
   currentAssignedId: string | null,
   nextAssignedId: string | null,
@@ -117,6 +158,10 @@ const BLOCKED_METADATA_KEYS = [
   "provider_secret",
   "api_key",
   "session_token",
+  "refresh_token",
+  "client_secret",
+  "chunk_uri",
+  "download_url",
 ];
 
 const BLOCKED_METADATA_FRAGMENTS = [

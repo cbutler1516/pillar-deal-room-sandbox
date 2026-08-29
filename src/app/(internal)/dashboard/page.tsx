@@ -63,7 +63,12 @@ export default async function DashboardPage() {
           {greetingForHour(now.getHours())}, {firstName}
         </h2>
         <p className={pageLeadClass}>
-          Work that is blocking, waiting, or ready to move.
+          Work that is blocking, waiting, or ready to move. New evaluation
+          applications from{" "}
+          <Link href="/apply" className={linkClass}>
+            /apply
+          </Link>{" "}
+          appear here as new deals.
         </p>
       </div>
 

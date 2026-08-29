@@ -71,9 +71,37 @@ describe("source security guards", () => {
     expect(hits.map((hit) => hit.rel)).toEqual([]);
   });
 
-  it("does not expose a browser file input that can send bytes", () => {
+  it("keeps file inputs metadata-only", () => {
     const hits = files.filter(({ source }) =>
       /type\s*=\s*["']file["']/.test(source),
+    );
+    expect(hits.map((hit) => hit.rel).sort()).toEqual([
+      "components/document-intake-panel.tsx",
+      "components/portal-workspace.tsx",
+    ]);
+    for (const hit of hits) {
+      expect(hit.source).not.toMatch(/formData\.set\(\s*["']file["']/);
+      expect(hit.source).not.toMatch(/formData\.append\(\s*["']file["']/);
+    }
+  });
+
+  it("does not expose ShareFile credentials to the browser", () => {
+    const publicHits = files.filter(({ source }) =>
+      source.includes("NEXT_PUBLIC_SHAREFILE"),
+    );
+    expect(publicHits.map((hit) => hit.rel)).toEqual([]);
+
+    const credentialFiles = files.filter(({ source }) =>
+      /SHAREFILE_(CLIENT_SECRET|REFRESH_TOKEN|CLIENT_ID)/.test(source),
+    );
+    expect(credentialFiles.every(({ source }) => source.includes("server-only"))).toBe(
+      true,
+    );
+  });
+
+  it("does not use ShareFile password-grant authentication", () => {
+    const hits = files.filter(({ source }) =>
+      /grant_type["'=:\s]+password/.test(source),
     );
     expect(hits.map((hit) => hit.rel)).toEqual([]);
   });

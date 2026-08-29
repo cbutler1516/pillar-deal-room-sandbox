@@ -1,5 +1,7 @@
+import { BRIDGE_BASELINE_KEYS } from "@/lib/playbooks/bridge";
 import { COMMERCIAL_BASELINE_KEYS } from "@/lib/playbooks/commercial";
 import { COMMON_PLAYBOOKS } from "@/lib/playbooks/common";
+import { CONSTRUCTION_BASELINE_KEYS } from "@/lib/playbooks/construction";
 import {
   DSCR_PURCHASE_BASELINE_KEYS,
   DSCR_REFINANCE_BASELINE_KEYS,
@@ -31,6 +33,14 @@ export function playbooksForKeys(keys: readonly string[]): PlaybookDefinition[] 
   return keys.map((key) => requirePlaybook(key));
 }
 
+const COMMON_EVALUATION_KEYS = [
+  "request_government_id",
+  "request_entity_documents",
+  "request_bank_statements",
+  "request_insurance_binder",
+  "prepare_submission",
+] as const;
+
 export function baselinePlaybookKeysForLoanType(loanType: string): string[] {
   const value = loanType.toLowerCase();
   if (value.includes("flip")) {
@@ -42,10 +52,16 @@ export function baselinePlaybookKeysForLoanType(loanType: string): string[] {
   if (value.includes("dscr")) {
     return [...DSCR_PURCHASE_BASELINE_KEYS];
   }
+  if (value.includes("construction") || value.includes("ground-up") || value.includes("ground up")) {
+    return [...CONSTRUCTION_BASELINE_KEYS];
+  }
   if (value.includes("commercial") || value.includes("multifamily")) {
     return [...COMMERCIAL_BASELINE_KEYS];
   }
-  return [];
+  if (value.includes("bridge")) {
+    return [...BRIDGE_BASELINE_KEYS];
+  }
+  return [...COMMON_EVALUATION_KEYS];
 }
 
 export function baselinePlaybooksForLoanType(

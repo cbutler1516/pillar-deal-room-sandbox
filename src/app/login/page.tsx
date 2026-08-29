@@ -48,7 +48,11 @@ export default async function LoginPage({
           </div>
           <p className="mt-2 text-sm leading-6 text-ink-muted">
             Internal operations workspace. Access is limited to provisioned staff
-            accounts.
+            accounts. Evaluation applications are at{" "}
+            <a href="/apply" className="text-pillar-navy underline">
+              /apply
+            </a>
+            .
           </p>
           <h2 className="mt-6 text-sm font-semibold text-ink">Sign in</h2>
           <LoginForm initialError={initialError} />

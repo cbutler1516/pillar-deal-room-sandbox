@@ -21,8 +21,12 @@
  */
 
 export const SANDBOX_MOCK_PROVIDER = "sandbox_mock" as const;
+export const SHAREFILE_PROVIDER = "sharefile" as const;
 
-export const DOCUMENT_STORAGE_PROVIDERS = [SANDBOX_MOCK_PROVIDER] as const;
+export const DOCUMENT_STORAGE_PROVIDERS = [
+  SANDBOX_MOCK_PROVIDER,
+  SHAREFILE_PROVIDER,
+] as const;
 
 export type DocumentStorageProviderName =
   (typeof DOCUMENT_STORAGE_PROVIDERS)[number];
@@ -51,6 +55,18 @@ export const SANDBOX_MOCK_CAPABILITIES: ProviderCapabilities = {
   versioning: false,
 };
 
+export const SHAREFILE_CAPABILITIES: ProviderCapabilities = {
+  directBrowserUpload: true,
+  temporaryAccessUrls: true,
+  fileDeletion: true,
+  webhookCompletion: false,
+  folderDealOrganization: true,
+  retentionControls: false,
+  auditEvents: false,
+  virusScanningStatus: false,
+  versioning: false,
+};
+
 export const SANDBOX_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -62,9 +78,11 @@ export type SandboxMimeType = (typeof SANDBOX_MIME_TYPES)[number];
 
 export type CreateUploadSessionInput = {
   dealId: string;
+  dealReference?: string | null;
   clientNeedId?: string | null;
   fileName: string;
   mimeType: string;
+  fileSize?: number | null;
 };
 
 export type UploadSession = {
@@ -74,6 +92,9 @@ export type UploadSession = {
   expiresAt: string;
   fileName: string;
   mimeType: string;
+  uploadMethod?: "POST";
+  formFieldName?: string;
+  rawBody?: boolean;
 };
 
 export type SafeUploadSession = {
@@ -83,8 +104,11 @@ export type SafeUploadSession = {
   expiresAt: string;
   fileName: string;
   mimeType: string;
-  simulated: true;
+  simulated: boolean;
   message: string;
+  uploadMethod: "POST";
+  formFieldName?: string;
+  rawBody: boolean;
 };
 
 export type CompleteUploadSessionInput = {
@@ -156,6 +180,7 @@ export function isSandboxMimeType(value: string): value is SandboxMimeType {
 }
 
 export function toSafeUploadSession(session: UploadSession): SafeUploadSession {
+  const simulated = session.provider === SANDBOX_MOCK_PROVIDER;
   return {
     sessionId: session.sessionId,
     provider: session.provider,
@@ -163,7 +188,12 @@ export function toSafeUploadSession(session: UploadSession): SafeUploadSession {
     expiresAt: session.expiresAt,
     fileName: session.fileName,
     mimeType: session.mimeType,
-    simulated: true,
-    message: "Sandbox secure upload simulation — no files are stored",
+    simulated,
+    message: simulated
+      ? "Sandbox secure upload simulation — no files are stored"
+      : "Upload the test file directly to the storage provider. Pillar will not receive the file bytes.",
+    uploadMethod: session.uploadMethod ?? "POST",
+    formFieldName: session.formFieldName,
+    rawBody: session.rawBody ?? false,
   };
 }

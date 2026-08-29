@@ -36,6 +36,7 @@ import type { SandboxEnv } from "@/lib/sandbox";
 export type DealAccessRecord = {
   id: string;
   assignedProcessorId: string | null;
+  dealReference?: string | null;
 };
 
 export type NeedAccessRecord = {
@@ -69,7 +70,7 @@ export type DocumentIntakeStore = {
   linkDocument(input: {
     documentId: string;
     clientNeedId: string;
-    linkedBy: string;
+    linkedBy: string | null;
     linkSource: "upload";
   }): Promise<void>;
   listNeedDocuments(needId: string): Promise<{ id: string; status: string }[]>;
@@ -90,6 +91,7 @@ export type SessionServiceDeps = {
   logActivity: ActivitySink;
   provider?: DocumentStorageProvider;
   env?: SandboxEnv;
+  evaluation?: boolean;
 };
 
 export type SessionServiceResult<T> =
@@ -101,18 +103,24 @@ async function authorizeForDeal(
   dealId: string,
 ): Promise<SessionServiceResult<DealAccessRecord>> {
   assertDocumentProviderGuard(deps.env);
-  const decision = authorizeDocumentIntake({
-    userId: deps.actor.userId,
-    role: deps.actor.role,
-    assignedProcessorId: null,
-  });
-  if (decision === "unauthenticated" || decision === "forbidden_role") {
-    return { ok: false, error: documentIntakeErrorMessage(decision) };
+  if (!deps.evaluation) {
+    const decision = authorizeDocumentIntake({
+      userId: deps.actor.userId,
+      role: deps.actor.role,
+      assignedProcessorId: null,
+    });
+    if (decision === "unauthenticated" || decision === "forbidden_role") {
+      return { ok: false, error: documentIntakeErrorMessage(decision) };
+    }
   }
 
   const deal = await deps.store.getDeal(dealId);
   if (!deal) {
     return { ok: false, error: "Deal not found." };
+  }
+
+  if (deps.evaluation) {
+    return { ok: true, data: deal };
   }
 
   const dealDecision = authorizeDocumentIntake({
@@ -137,6 +145,7 @@ export async function createDocumentUploadSession(
     clientNeedId?: string;
     fileName: string;
     mimeType: string;
+    fileSize?: number | null;
   },
 ): Promise<SessionServiceResult<SafeUploadSession>> {
   assertNoFilePayload(input);
@@ -163,9 +172,11 @@ export async function createDocumentUploadSession(
 
   const session = await providerOf(deps).createUploadSession({
     dealId: input.dealId,
+    dealReference: authorized.data.dealReference ?? null,
     clientNeedId: input.clientNeedId || null,
     fileName: input.fileName.trim(),
     mimeType: input.mimeType,
+    fileSize: input.fileSize ?? null,
   });
 
   await deps.logActivity({
@@ -175,7 +186,7 @@ export async function createDocumentUploadSession(
     metadata: {
       filename: session.fileName,
       client_need: needLabel,
-      simulated: "true",
+      simulated: session.provider === "sandbox_mock" ? "true" : "false",
       upload_url: session.uploadUrl,
       token: session.sessionId,
       external_file_id: "must-be-stripped",
@@ -235,7 +246,7 @@ export async function completeDocumentUploadSession(
     await deps.store.linkDocument({
       documentId: inserted.id,
       clientNeedId: need.id,
-      linkedBy: deps.actor.userId as string,
+      linkedBy: deps.actor.userId,
       linkSource: "upload",
     });
     const linked = await deps.store.listNeedDocuments(need.id);
@@ -259,7 +270,7 @@ export async function completeDocumentUploadSession(
     metadata: {
       filename: completed.fileName,
       status: "received",
-      simulated: "true",
+      simulated: completed.provider === "sandbox_mock" ? "true" : "false",
       linked: need ? "true" : "false",
       external_file_id: completed.externalFileId,
       storage_provider: completed.provider,
@@ -310,7 +321,7 @@ export async function requestTemporaryDocumentAccess(
     eventType: "document_access_requested",
     metadata: {
       filename: document.fileName,
-      simulated: "true",
+      simulated: access.simulated ? "true" : "false",
       access_url: access.url,
       token: "must-be-stripped",
       external_file_id: document.externalFileId,

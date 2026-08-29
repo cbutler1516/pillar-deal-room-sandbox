@@ -8,6 +8,7 @@ import { buttonClass } from "@/components/ui/button";
 import { DocumentStatusControl } from "@/components/workflow-controls";
 import type { ClientNeedRow, DocumentRow } from "@/lib/data/deals";
 import { attachExistingAction } from "@/lib/documents/link-actions";
+import { classifyDocumentAction } from "@/lib/workflow/actions";
 import {
   filterDocumentsForWorkspace,
   type DocumentWorkspaceFilter,
@@ -159,6 +160,7 @@ function DocumentDetailPanel({
   needLabel: (needId: string) => string;
 }) {
   const [needId, setNeedId] = useState("");
+  const [classification, setClassification] = useState(document.documentType ?? "");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const attachable = needs.filter(
@@ -252,6 +254,31 @@ function DocumentDetailPanel({
             </p>
             <DocumentStatusControl documentId={document.id} status={document.status} />
           </div>
+          <form
+            action={async (formData) => {
+              formData.set("documentId", document.id);
+              const result = await classifyDocumentAction(formData);
+              if (result.error) {
+                setError(result.error);
+                return;
+              }
+              setMessage("Document type updated. This is not an underwriting decision.");
+            }}
+            className="space-y-2"
+          >
+            <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+              Classify manually
+            </p>
+            <input
+              name="documentType"
+              value={classification}
+              onChange={(event) => setClassification(event.target.value)}
+              className="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink"
+            />
+            <button type="submit" className={buttonClass("secondary", "sm")}>
+              Save classification
+            </button>
+          </form>
         </div>
       ) : null}
       {message ? <p className="text-xs text-pillar-teal">{message}</p> : null}

@@ -23,6 +23,33 @@ function asString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function asOptionalFileSize(value: FormDataEntryValue | null): number | null {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1 || parsed > 25_000_000) {
+    return null;
+  }
+  return Math.round(parsed);
+}
+
+const REJECTED_BYTE_FIELDS = [
+  "file",
+  "bytes",
+  "content",
+  "base64",
+  "buffer",
+  "blob",
+  "document",
+  "filedata",
+  "binary",
+] as const;
+
+function formContainsFilePayload(formData: FormData): boolean {
+  return REJECTED_BYTE_FIELDS.some((field) => formData.get(field) != null);
+}
+
 function refreshDeal(dealId: string) {
   revalidatePath("/dashboard");
   revalidatePath("/deals");
@@ -35,7 +62,7 @@ function createUserScopedStore(supabase: SupabaseClient): DocumentIntakeStore {
     async getDeal(dealId) {
       const { data } = await supabase
         .from("deals")
-        .select("id, assigned_processor_id")
+        .select("id, assigned_processor_id, deal_reference")
         .eq("id", dealId)
         .maybeSingle();
       if (!data) {
@@ -44,6 +71,7 @@ function createUserScopedStore(supabase: SupabaseClient): DocumentIntakeStore {
       return {
         id: data.id,
         assignedProcessorId: data.assigned_processor_id,
+        dealReference: data.deal_reference,
       };
     },
     async getNeed(needId) {
@@ -143,7 +171,7 @@ export async function createUploadSessionAction(
 ): Promise<DocumentIntakeResult<SafeUploadSession>> {
   assertSandboxGuard();
   assertDocumentProviderGuard();
-  if (formData.get("file") != null || formData.get("bytes") != null) {
+  if (formContainsFilePayload(formData)) {
     return { error: "Raw file bytes are not accepted.", data: null };
   }
 
@@ -160,6 +188,7 @@ export async function createUploadSessionAction(
         clientNeedId: asString(formData.get("clientNeedId")),
         fileName: asString(formData.get("fileName")),
         mimeType: asString(formData.get("mimeType")),
+        fileSize: asOptionalFileSize(formData.get("fileSize")),
       },
     );
 
@@ -185,7 +214,7 @@ export async function completeUploadSessionAction(
 > {
   assertSandboxGuard();
   assertDocumentProviderGuard();
-  if (formData.get("file") != null || formData.get("bytes") != null) {
+  if (formContainsFilePayload(formData)) {
     return { error: "Raw file bytes are not accepted.", data: null };
   }
 
@@ -213,7 +242,7 @@ export async function completeUploadSessionAction(
       error:
         error instanceof Error
           ? error.message
-          : "Unable to complete the mock upload.",
+          : "Unable to complete the upload.",
       data: null,
     };
   }

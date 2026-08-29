@@ -4,6 +4,7 @@ import {
   canClaimDeal,
   canProcessorTouchAssignment,
   canUnclaimDeal,
+  evaluateSubmissionReadiness,
   sanitizeActivityMetadata,
 } from "@/lib/ops/workflow";
 
@@ -57,6 +58,40 @@ describe("activity logging", () => {
     });
     expect(event.actorType).toBe("user");
     expect(event.safeMetadata.to).toBe("user-1");
+  });
+});
+
+describe("submission readiness", () => {
+  it("blocks Ready for Submission until required needs are approved or waived", () => {
+    const blocked = evaluateSubmissionReadiness({
+      needs: [
+        { required: true, status: "received" },
+        { required: true, status: "requested" },
+        { required: false, status: "requested" },
+      ],
+    });
+    expect(blocked.ready).toBe(false);
+    expect(blocked.blockers[0]).toMatch(/required Client Need/);
+
+    const ready = evaluateSubmissionReadiness({
+      needs: [
+        { required: true, status: "approved" },
+        { required: true, status: "waived" },
+        { required: false, status: "requested" },
+      ],
+      tasks: [{ status: "open", blockedReason: null }],
+    });
+    expect(ready.ready).toBe(true);
+    expect(ready.blockers).toEqual([]);
+  });
+
+  it("blocks Ready for Submission when a required contact is still missing", () => {
+    const blocked = evaluateSubmissionReadiness({
+      needs: [{ required: true, status: "approved" }],
+      tasks: [{ status: "open", blockedReason: "contact_missing" }],
+    });
+    expect(blocked.ready).toBe(false);
+    expect(blocked.blockers.some((item) => /contacts/.test(item))).toBe(true);
   });
 });
 

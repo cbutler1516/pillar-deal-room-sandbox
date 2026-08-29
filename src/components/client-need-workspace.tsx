@@ -31,12 +31,20 @@ export function ClientNeedsWorkspace({
   documents,
   canMutate,
   canIntake,
+  needOps = [],
 }: {
   dealId: string;
   needs: ClientNeedRow[];
   documents: DocumentRow[];
   canMutate: boolean;
   canIntake: boolean;
+  needOps?: {
+    needId: string;
+    timing: string | null;
+    sourceType: string | null;
+    nextAction: string | null;
+    contactMissing: boolean;
+  }[];
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [attachFor, setAttachFor] = useState<string | null>(null);
@@ -75,6 +83,7 @@ export function ClientNeedsWorkspace({
         {needs.map((need) => {
           const linked = documents.filter((doc) => doc.linkedNeedIds.includes(need.id));
           const progress = summarizeNeedDocuments(linked, need.expectedDocumentCount);
+          const ops = needOps.find((item) => item.needId === need.id);
           const open = openId === need.id;
           return (
             <article key={need.id}>
@@ -86,7 +95,9 @@ export function ClientNeedsWorkspace({
                 >
                   <p className="text-sm font-semibold text-ink">{need.documentType}</p>
                   <p className="mt-0.5 truncate text-xs text-ink-muted">
-                    {need.description || need.category}
+                    {(ops?.timing ?? "required_now").replaceAll("_", " ")}
+                    {ops?.sourceType ? ` · ${ops.sourceType.replaceAll("_", " ")}` : ""}
+                    {need.description ? ` · ${need.description}` : ` · ${need.category}`}
                   </p>
                 </button>
                 <button
@@ -98,6 +109,8 @@ export function ClientNeedsWorkspace({
                   {progress.reviewLabel ? (
                     <p>{progress.reviewLabel.replaceAll(", ", " · ")}</p>
                   ) : null}
+                  {ops?.nextAction ? <p>Next: {ops.nextAction}</p> : null}
+                  {ops?.contactMissing ? <p>Contact missing</p> : null}
                 </button>
                 <div className="flex items-center justify-end gap-2">
                   <StatusChip

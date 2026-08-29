@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   claimDealAction,
   unclaimDealAction,
@@ -20,10 +21,6 @@ async function submitClaim(formData: FormData) {
 
 async function submitUnclaim(formData: FormData) {
   await unclaimDealAction(formData);
-}
-
-async function submitDealStatus(formData: FormData) {
-  await updateDealStatusAction(formData);
 }
 
 async function submitNeedStatus(formData: FormData) {
@@ -108,15 +105,28 @@ export function DealStatusControl({
   dealId: string;
   status: string;
 }) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function submitDealStatus(formData: FormData) {
+    setError(null);
+    const result = await updateDealStatusAction(formData);
+    if (result.error) {
+      setError(result.error);
+    }
+  }
+
   return (
-    <form action={submitDealStatus} className="flex items-center gap-2">
-      <StatusFields
-        idName="dealId"
-        idValue={dealId}
-        options={DEAL_STATUSES}
-        current={status}
-      />
-    </form>
+    <div className="space-y-1">
+      <form action={submitDealStatus} className="flex items-center gap-2">
+        <StatusFields
+          idName="dealId"
+          idValue={dealId}
+          options={DEAL_STATUSES}
+          current={status}
+        />
+      </form>
+      {error ? <p className="max-w-xs text-[11px] text-danger">{error}</p> : null}
+    </div>
   );
 }
 

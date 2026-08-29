@@ -11,6 +11,7 @@ import {
   canClaimDeal,
   canMutateWorkflow,
   canUnclaimDeal,
+  evaluateSubmissionReadiness,
 } from "@/lib/ops/workflow";
 import { nextFollowUpAtFrom } from "@/lib/playbooks/logic";
 import { assertSandboxGuard } from "@/lib/sandbox";
@@ -141,6 +142,33 @@ export async function updateDealStatusAction(
     return { error: "Deal not found." };
   }
 
+  if (status === "ready_for_submission") {
+    const [{ data: needs }, { data: tasks }] = await Promise.all([
+      supabase.from("client_needs").select("required, status").eq("deal_id", dealId),
+      supabase
+        .from("tasks")
+        .select("status, blocked_reason")
+        .eq("deal_id", dealId),
+    ]);
+    const readiness = evaluateSubmissionReadiness({
+      needs: (needs ?? []).map((need) => ({
+        required: Boolean(need.required),
+        status: need.status,
+      })),
+      tasks: (tasks ?? []).map((task) => ({
+        status: task.status,
+        blockedReason: task.blocked_reason,
+      })),
+    });
+    if (!readiness.ready) {
+      return {
+        error:
+          readiness.blockers[0] ??
+          "This file is not ready for submission until required items are complete.",
+      };
+    }
+  }
+
   const { error } = await supabase.from("deals").update({ status }).eq("id", dealId);
   if (error) {
     return { error: "Unable to update deal status." };
@@ -241,6 +269,48 @@ export async function updateDocumentStatusAction(
     actorId: user.id,
     eventType: "document_status_changed",
     metadata: { from: document.status, to: status },
+  });
+  refreshDeal(document.deal_id);
+  return { error: null };
+}
+
+export async function classifyDocumentAction(
+  formData: FormData,
+): Promise<WorkflowResult> {
+  assertSandboxGuard();
+  const documentId = asString(formData.get("documentId"));
+  const documentType = asString(formData.get("documentType"));
+  if (!documentType) {
+    return { error: "Enter a document type." };
+  }
+
+  const { supabase, user, profile } = await requireInternalUser();
+  if (!canMutateWorkflow(profile.role)) {
+    return { error: "Your role cannot classify documents." };
+  }
+
+  const { data: document } = await supabase
+    .from("documents")
+    .select("id, deal_id, document_type")
+    .eq("id", documentId)
+    .maybeSingle();
+  if (!document) {
+    return { error: "Document not found." };
+  }
+
+  const { error } = await supabase
+    .from("documents")
+    .update({ document_type: documentType, ai_classification: documentType })
+    .eq("id", documentId);
+  if (error) {
+    return { error: "Unable to classify this document." };
+  }
+
+  await logAuthorizedActivity({
+    dealId: document.deal_id,
+    actorId: user.id,
+    eventType: "document_classified",
+    metadata: { from: document.document_type ?? "unclassified", to: documentType },
   });
   refreshDeal(document.deal_id);
   return { error: null };

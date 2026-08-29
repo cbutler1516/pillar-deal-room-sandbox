@@ -6,6 +6,10 @@ import {
   createUploadSessionAction,
   requestTemporaryAccessAction,
 } from "@/lib/documents/actions";
+import {
+  createFictitiousTestBlob,
+  uploadBlobToProviderSession,
+} from "@/lib/documents/direct-upload";
 import { SANDBOX_MIME_TYPES } from "@/lib/documents/types";
 import type { DocumentMetadataRecord, SafeUploadSession, TemporaryAccess } from "@/lib/documents/types";
 
@@ -47,6 +51,7 @@ export function DocumentIntakePanel({
     formData.set("clientNeedId", clientNeedId);
     formData.set("fileName", fileName);
     formData.set("mimeType", mimeType);
+    formData.set("fileSize", String(createFictitiousTestBlob(fileName, mimeType).size));
     const response = await createUploadSessionAction(formData);
     setPending(false);
     if (response.error || !response.data) {
@@ -57,9 +62,29 @@ export function DocumentIntakePanel({
     setSession(response.data);
   }
 
-  function simulateUpload() {
+  async function sendTestDocument() {
+    if (!session) {
+      return;
+    }
     setError(null);
-    setSimulated(true);
+    if (session.simulated) {
+      setSimulated(true);
+      return;
+    }
+    setPending(true);
+    try {
+      const blob = createFictitiousTestBlob(session.fileName, session.mimeType);
+      await uploadBlobToProviderSession(session, blob);
+      setSimulated(true);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Direct provider upload failed.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
 
   async function completeSession() {
@@ -118,8 +143,8 @@ export function DocumentIntakePanel({
         <div>
           <h3 className="text-sm font-semibold text-ink">Secure Document Upload</h3>
           <p className="mt-1 text-xs leading-5 text-ink-muted">
-            Sandbox simulation — documents are stored with the external provider
-            in production, not Pillar.
+            Test documents upload directly to the configured storage provider.
+            Pillar stores metadata and an external reference only.
           </p>
         </div>
       </div>
@@ -147,6 +172,23 @@ export function DocumentIntakePanel({
               value={fileName}
               onChange={(event) => setFileName(event.target.value)}
               className="mt-1 w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
+            />
+          </label>
+          <label className="text-xs text-ink-muted">
+            Local test file
+            <input
+              type="file"
+              className="mt-1 block w-full text-xs"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) {
+                  return;
+                }
+                setFileName(file.name);
+                if ((SANDBOX_MIME_TYPES as readonly string[]).includes(file.type)) {
+                  setMimeType(file.type as (typeof SANDBOX_MIME_TYPES)[number]);
+                }
+              }}
             />
           </label>
           <label className="text-xs text-ink-muted">
@@ -179,10 +221,12 @@ export function DocumentIntakePanel({
         <button
           type="button"
           disabled={!session || pending}
-          onClick={simulateUpload}
+          onClick={() => void sendTestDocument()}
           className="rounded-lg border border-pillar-teal bg-surface px-3 py-1.5 text-xs font-medium text-pillar-teal hover:bg-pillar-teal-soft disabled:opacity-50"
         >
-          Simulate secure upload
+          {session && !session.simulated
+            ? "Upload test document"
+            : "Simulate secure upload"}
         </button>
         <button
           type="button"
@@ -190,7 +234,7 @@ export function DocumentIntakePanel({
           onClick={() => void completeSession()}
           className="rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
         >
-          Complete mock upload
+          Complete upload
         </button>
       </div>
 
@@ -205,15 +249,21 @@ export function DocumentIntakePanel({
             <dd>{session.expiresAt}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-ink-muted">Simulated upload target</dt>
-            <dd className="break-all">{session.uploadUrl}</dd>
+            <dt className="text-ink-muted">Upload session</dt>
+            <dd>
+              {session.simulated
+                ? session.uploadUrl
+                : "Provider upload session ready. The upload URL is not shown."}
+            </dd>
           </div>
         </dl>
       ) : null}
 
       {simulated && !result ? (
         <p className="text-xs text-pillar-teal">
-          Direct-to-provider upload simulated. No file bytes left this browser.
+          {session?.simulated
+            ? "Direct-to-provider upload simulated. No file bytes were sent to Pillar."
+            : "Test document sent directly to the storage provider. No file bytes were sent to Pillar."}
         </p>
       ) : null}
 
@@ -266,8 +316,23 @@ export function DocumentIntakePanel({
       {access ? (
         <div className="rounded-xl border border-dashed border-line px-3 py-2 text-xs text-ink-muted">
           <p className="font-medium text-ink">{access.label}</p>
-          <p className="mt-1">Simulated URL (does not render a file):</p>
-          <p className="mt-1 break-all">{access.url}</p>
+          <p className="mt-1">
+            {access.simulated
+              ? "Simulated URL (does not render a file):"
+              : "Temporary access is available. Open it only from this authorized session."}
+          </p>
+          {access.simulated ? (
+            <p className="mt-1 break-all">{access.url}</p>
+          ) : (
+            <a
+              href={access.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block text-pillar-navy underline"
+            >
+              Open temporary view
+            </a>
+          )}
           <p className="mt-1">Expires {access.expiresAt}</p>
         </div>
       ) : null}
@@ -310,9 +375,21 @@ export function TemporaryAccessControl({
         Temp Access
       </button>
       {access ? (
-        <p className="max-w-xs text-[11px] break-all text-ink-muted">
-          {access.label}. Expires {access.expiresAt}
-        </p>
+        <div className="max-w-xs text-[11px] text-ink-muted">
+          <p>
+            {access.label}. Expires {access.expiresAt}
+          </p>
+          {access.simulated ? null : (
+            <a
+              href={access.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-pillar-navy underline"
+            >
+              Open temporary view
+            </a>
+          )}
+        </div>
       ) : null}
       {error ? <p className="text-[11px] text-danger">{error}</p> : null}
     </div>

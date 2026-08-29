@@ -35,17 +35,34 @@ describe("provider selection guard", () => {
     ).toThrow(/PRODUCTION_INTEGRATIONS_ENABLED/);
   });
 
-  it("refuses production provider names", () => {
-    expect(() =>
+  it("allows sharefile only while the sandbox guard is valid", () => {
+    expect(
       getDocumentStorageProviderName({
         ...sandboxEnv,
-        DOCUMENT_STORAGE_PROVIDER: "box",
+        DOCUMENT_STORAGE_PROVIDER: "sharefile",
       }),
-    ).toThrow(/Production document providers/);
+    ).toBe("sharefile");
     expect(() =>
       getDocumentStorageProviderName({
         ...sandboxEnv,
         DOCUMENT_STORAGE_PROVIDER: "sharefile",
+        SANDBOX_MODE: "false",
+      }),
+    ).toThrow(/SANDBOX_MODE/);
+    expect(() =>
+      getDocumentStorageProvider({
+        ...sandboxEnv,
+        DOCUMENT_STORAGE_PROVIDER: "sharefile",
+        PRODUCTION_INTEGRATIONS_ENABLED: "true",
+      }),
+    ).toThrow(/PRODUCTION_INTEGRATIONS_ENABLED/);
+  });
+
+  it("refuses other production provider names", () => {
+    expect(() =>
+      getDocumentStorageProviderName({
+        ...sandboxEnv,
+        DOCUMENT_STORAGE_PROVIDER: "box",
       }),
     ).toThrow(/Production document providers/);
     expect(() =>

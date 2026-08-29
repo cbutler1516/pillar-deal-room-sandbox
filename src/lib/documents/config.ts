@@ -2,22 +2,20 @@ import { assertSandboxGuard, getSandboxGuardError, type SandboxEnv } from "@/lib
 import {
   DOCUMENT_STORAGE_PROVIDERS,
   SANDBOX_MOCK_PROVIDER,
+  SHAREFILE_PROVIDER,
   type DocumentStorageProviderName,
 } from "@/lib/documents/types";
 
 /**
  * Env-driven provider selection.
- * DOCUMENT_STORAGE_PROVIDER=sandbox_mock is the only allowed value in this
- * repository. Production vendors (ShareFile, Box, Dropbox, etc.) must not be
- * configured or credentialed here.
- *
- * The selector refuses any provider when the sandbox guard is invalid.
+ * Allowed sandbox values: sandbox_mock | sharefile.
+ * sharefile still requires SANDBOX_MODE=true and
+ * PRODUCTION_INTEGRATIONS_ENABLED=false.
  */
 export const DOCUMENT_STORAGE_PROVIDER_ENV = "DOCUMENT_STORAGE_PROVIDER";
 
 const BLOCKED_PRODUCTION_PROVIDER_NAMES = [
   "box",
-  "sharefile",
   "dropbox",
   "dropbox_business",
   "dropbox-business",
@@ -39,24 +37,27 @@ export function getDocumentStorageProviderName(
   const raw = env[DOCUMENT_STORAGE_PROVIDER_ENV]?.trim();
   if (!raw) {
     throw new Error(
-      "DOCUMENT_STORAGE_PROVIDER must be set to sandbox_mock in this sandbox.",
+      "DOCUMENT_STORAGE_PROVIDER must be set to sandbox_mock or sharefile in this sandbox.",
     );
   }
 
   const normalized = raw.toLowerCase();
   if (BLOCKED_PRODUCTION_PROVIDER_NAMES.includes(normalized)) {
     throw new Error(
-      "Production document providers are disabled. Only sandbox_mock is allowed.",
+      "Production document providers are disabled. Only sandbox_mock or sharefile is allowed.",
     );
   }
 
-  if (normalized !== SANDBOX_MOCK_PROVIDER) {
-    throw new Error(
-      "Only sandbox_mock is allowed while PRODUCTION_INTEGRATIONS_ENABLED=false.",
-    );
+  if (normalized === SANDBOX_MOCK_PROVIDER) {
+    return SANDBOX_MOCK_PROVIDER;
+  }
+  if (normalized === SHAREFILE_PROVIDER) {
+    return SHAREFILE_PROVIDER;
   }
 
-  return SANDBOX_MOCK_PROVIDER;
+  throw new Error(
+    "Only sandbox_mock or sharefile is allowed while PRODUCTION_INTEGRATIONS_ENABLED=false.",
+  );
 }
 
 export function assertDocumentProviderGuard(env: SandboxEnv = process.env): void {

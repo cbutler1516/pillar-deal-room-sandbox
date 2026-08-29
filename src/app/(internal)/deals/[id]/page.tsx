@@ -125,6 +125,10 @@ export default async function DealDetailPage({
           documents={documents}
           tasks={tasks}
           nextActions={nextActions}
+          intake={
+            activity.find((event) => event.eventType === "application_received")
+              ?.safeMetadata ?? null
+          }
         />
       ) : null}
 
@@ -173,6 +177,17 @@ export default async function DealDetailPage({
             documents={documents}
             canMutate={canMutate}
             canIntake={canIntake}
+            needOps={needs.map((need) => {
+              const task = tasks.find((item) => item.clientNeedId === need.id);
+              const action = nextActions.find((item) => item.id === task?.id);
+              return {
+                needId: need.id,
+                timing: task?.timing ?? null,
+                sourceType: task?.sourceType ?? null,
+                nextAction: task?.title ?? null,
+                contactMissing: Boolean(action?.contactMissing),
+              };
+            })}
           />
         </SurfaceCard>
       ) : null}
