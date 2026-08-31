@@ -99,6 +99,12 @@ describe("task activity logging", () => {
       "task_completed",
       "task_escalated",
       "task_dismissed",
+      "contact_marked",
+      "follow_up_scheduled",
+      "escalation_triggered",
+      "response_received",
+      "communication_draft_copied",
+      "portal_message_created",
     ];
     for (const eventType of events) {
       const event = buildActivityEvent({

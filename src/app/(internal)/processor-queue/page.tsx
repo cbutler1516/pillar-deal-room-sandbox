@@ -8,7 +8,8 @@ import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
-import { listQueueContacts, listWorkspaceTasks } from "@/lib/data/deals";
+import { listActiveStaff } from "@/lib/communications/data";
+import { listQueueContacts, listWorkspaceTasks, staffDisplayName } from "@/lib/data/deals";
 import { queueSectionIds } from "@/lib/data/dashboard";
 import { loadDealSnapshot } from "@/lib/data/snapshot";
 import {
@@ -53,10 +54,14 @@ export default async function ProcessorQueuePage({
 
   const { supabase } = await requireInternalUser();
   const snapshot = await loadDealSnapshot(supabase);
-  const [queueTasks, queueContacts] = await Promise.all([
+  const [queueTasks, queueContacts, staff] = await Promise.all([
     listWorkspaceTasks(supabase),
     listQueueContacts(supabase),
+    listActiveStaff(supabase),
   ]);
+  const staffNames = Object.fromEntries(
+    staff.map((person) => [person.id, staffDisplayName(person)]),
+  );
   const nextActions = decorateRankedActions(
     queueTasks,
     snapshot.deals,
@@ -258,7 +263,9 @@ export default async function ProcessorQueuePage({
                               {formatAgeDays(deal.ageDays)}
                             </span>
                             <span className="text-ink-muted">
-                              {deal.assignedProcessorId ? "Assigned" : "Unassigned"}
+                              {deal.assignedProcessorId
+                                ? staffNames[deal.assignedProcessorId] ?? "Assigned"
+                                : "Unassigned"}
                             </span>
                           </div>
                         </li>

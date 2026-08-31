@@ -13,6 +13,7 @@ import {
   matchesTaskQuery,
   taskSearchHaystack,
 } from "@/lib/ops/ops-board";
+import { matchesQueueFilter, parseQueueFilter } from "@/lib/communications/filters";
 import { decorateBoardTasks, decorateRankedActions } from "@/lib/playbooks/decorate";
 
 export default async function TasksPage({
@@ -28,6 +29,7 @@ export default async function TasksPage({
   const dealId = typeof params.deal === "string" ? params.deal : "all";
   const followUp = typeof params.followUp === "string" ? params.followUp : "all";
   const escalated = typeof params.escalated === "string" ? params.escalated : "all";
+  const queue = parseQueueFilter(typeof params.queue === "string" ? params.queue : undefined);
   const view = typeof params.view === "string" ? params.view : "list";
   const query = typeof params.q === "string" ? params.q : "";
   const { supabase, user } = await requireInternalUser();
@@ -45,6 +47,7 @@ export default async function TasksPage({
     deal: dealId === "all" ? undefined : dealId,
     followUp: followUp === "all" ? undefined : followUp,
     escalated: escalated === "all" ? undefined : escalated,
+    queue: queue ?? undefined,
     view: view === "list" ? undefined : view,
   };
 
@@ -68,6 +71,9 @@ export default async function TasksPage({
       return false;
     }
     if (escalated === "yes" && !row.escalationDue) {
+      return false;
+    }
+    if (!matchesQueueFilter(row, queue)) {
       return false;
     }
     return matchesTaskQuery(
@@ -137,6 +143,17 @@ export default async function TasksPage({
           <SelectField name="escalated" defaultValue={escalated}>
             <option value="all">Any escalation</option>
             <option value="yes">Escalated</option>
+          </SelectField>
+          <SelectField name="queue" defaultValue={queue ?? "all"}>
+            <option value="all">All queue states</option>
+            <option value="due_today">Due today</option>
+            <option value="overdue">Follow-up overdue</option>
+            <option value="waiting_borrower">Waiting on borrower</option>
+            <option value="waiting_third_party">Waiting on third party</option>
+            <option value="escalated">Escalated</option>
+            <option value="no_contact">No contact</option>
+            <option value="response_received">Response received</option>
+            <option value="ready_review">Ready for review</option>
           </SelectField>
           {view !== "list" ? <input type="hidden" name="view" value={view} /> : null}
           <button type="submit" className={buttonClass("primary", "sm")}>

@@ -3,7 +3,9 @@ import { ClientNeedsWorkspace } from "@/components/client-need-workspace";
 import { DocumentIntakePanel } from "@/components/document-intake-panel";
 import { DocumentsWorkspace } from "@/components/documents-workspace";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
+import { CommunicationTimeline } from "@/components/communication-timeline";
 import { TaskWorkspace } from "@/components/task-workspace";
+import { listCommunications, listActiveStaff } from "@/lib/communications/data";
 import {
   DealOverview,
   DealTabNav,
@@ -65,13 +67,16 @@ export default async function DealDetailPage({
     );
   }
 
-  const [needs, documents, tasks, contacts, activity] = await Promise.all([
-    listClientNeeds(supabase, deal.id),
-    listDocuments(supabase, deal.id),
-    listTasks(supabase, deal.id),
-    listDealContacts(supabase, deal.id),
-    listActivity(supabase, deal.id),
-  ]);
+  const [needs, documents, tasks, contacts, activity, attempts, activeStaff] =
+    await Promise.all([
+      listClientNeeds(supabase, deal.id),
+      listDocuments(supabase, deal.id),
+      listTasks(supabase, deal.id),
+      listDealContacts(supabase, deal.id),
+      listActivity(supabase, deal.id),
+      listCommunications(supabase, deal.id),
+      listActiveStaff(supabase),
+    ]);
 
   const canMutate = canMutateWorkflow(profile.role);
   const canEditTasks = canCreateProcessorTask({
@@ -98,9 +103,11 @@ export default async function DealDetailPage({
   const staff = await listStaffNames(supabase, [
     deal.assignedProcessorId ?? "",
     ...activity.map((event) => event.actorId ?? ""),
+    ...tasks.map((task) => task.assignedTo ?? ""),
+    ...activeStaff.map((person) => person.id),
   ]);
   const staffNames = Object.fromEntries(
-    staff.map((person) => [person.id, staffDisplayName(person)]),
+    [...staff, ...activeStaff].map((person) => [person.id, staffDisplayName(person)]),
   );
   const assignedStaff = staff.find((person) => person.id === deal.assignedProcessorId);
   const ownedByCurrentUser = isDealOwnedByUser(deal.assignedProcessorId, user.id);
@@ -152,6 +159,7 @@ export default async function DealDetailPage({
           documents={documents}
           tasks={tasks}
           nextActions={nextActions}
+          attempts={attempts}
           intake={
             deal.applicationIntake ??
             activity.find((event) => event.eventType === "application_received")
@@ -194,6 +202,11 @@ export default async function DealDetailPage({
               canEditTasks &&
               baselinePlaybookKeysForLoanType(deal.loanType ?? "").length > 0
             }
+            attempts={attempts}
+            staffNames={staffNames}
+            replacementNeedIds={needs
+              .filter((need) => need.required && need.status === "rejected")
+              .map((need) => need.id)}
           />
         </SurfaceCard>
       ) : null}
@@ -267,32 +280,37 @@ export default async function DealDetailPage({
       ) : null}
 
       {tab === "activity" ? (
-        <SurfaceCard>
-          {activity.length === 0 ? (
-            <p className="text-sm text-ink-muted">
-              No operational events on this file yet.
-            </p>
-          ) : (
-            <ol>
-              {activity.map((event) => {
-                const display = formatActivityDisplay(event, staffNames);
-                return (
-                  <li
-                    key={event.id}
-                    className="border-t border-line py-2.5 first:border-0"
-                  >
-                    <p className="text-sm font-medium text-ink">{display.who}</p>
-                    <p className="text-sm text-ink">
-                      {display.didWhat}
-                      {display.toWhat ? ` ${display.toWhat}` : ""}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-ink-muted">{display.when}</p>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </SurfaceCard>
+        <div className="space-y-4">
+          <SurfaceCard>
+            <CommunicationTimeline attempts={attempts} />
+          </SurfaceCard>
+          <SurfaceCard>
+            {activity.length === 0 ? (
+              <p className="text-sm text-ink-muted">
+                No operational events on this file yet.
+              </p>
+            ) : (
+              <ol>
+                {activity.map((event) => {
+                  const display = formatActivityDisplay(event, staffNames);
+                  return (
+                    <li
+                      key={event.id}
+                      className="border-t border-line py-2.5 first:border-0"
+                    >
+                      <p className="text-sm font-medium text-ink">{display.who}</p>
+                      <p className="text-sm text-ink">
+                        {display.didWhat}
+                        {display.toWhat ? ` ${display.toWhat}` : ""}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-ink-muted">{display.when}</p>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </SurfaceCard>
+        </div>
       ) : null}
     </div>
   );

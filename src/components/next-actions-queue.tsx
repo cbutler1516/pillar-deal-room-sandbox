@@ -53,7 +53,10 @@ export function NextActionsQueue({
                       ? ` · ${row.contactName}`
                       : ""}
                 </p>
-                <p className="mt-1">Follow-up {formatTimestamp(row.nextFollowUpAt)}</p>
+                <p className="mt-1">
+                  {row.followUpDue ? "Follow-up overdue" : "Follow-up"}{" "}
+                  {formatTimestamp(row.nextFollowUpAt)}
+                </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {row.requestText ? (
                     <CopyTextButton value={row.requestText} label="Copy Request" />

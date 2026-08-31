@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { NextActionsQueue } from "@/components/next-actions-queue";
+import { WorkloadSummary } from "@/components/workload-summary";
+import { listActiveStaff } from "@/lib/communications/data";
+import { summarizeWorkload } from "@/lib/communications/workload";
+import { isAdmin } from "@/lib/auth/roles";
+import { staffDisplayName } from "@/lib/data/deals";
 import { StatusChip } from "@/components/status-chip";
 import { MetricCard } from "@/components/ui/metric-card";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
@@ -28,7 +33,7 @@ const WAITING_LABELS = [
 export default async function DashboardPage() {
   const { supabase, profile } = await requireInternalUser();
   const now = new Date();
-  const [counts, snapshot, queueTasks, queueContacts, reviewDocs, activity] =
+  const [counts, snapshot, queueTasks, queueContacts, reviewDocs, activity, staff] =
     await Promise.all([
       getDashboardCounts(supabase),
       loadDealSnapshot(supabase),
@@ -36,6 +41,7 @@ export default async function DashboardPage() {
       listQueueContacts(supabase),
       listReviewDocuments(supabase),
       listRecentActivity(supabase),
+      listActiveStaff(supabase),
     ]);
   const nextActions = decorateRankedActions(
     queueTasks,
@@ -55,6 +61,10 @@ export default async function DashboardPage() {
     (deal) => deal.status === "ready_for_submission",
   );
   const firstName = firstNameFromProfile(profile);
+  const staffNames = Object.fromEntries(
+    staff.map((person) => [person.id, staffDisplayName(person)]),
+  );
+  const workload = summarizeWorkload(queueTasks, staffNames);
 
   return (
     <div className={`${pageWidthClass} space-y-8`}>
@@ -81,6 +91,8 @@ export default async function DashboardPage() {
         <MetricCard label="Ready for submission" value={metrics.readyForSubmission} />
         <MetricCard label="Escalations" value={metrics.escalations} />
       </div>
+
+      {isAdmin(profile.role) ? <WorkloadSummary rows={workload} /> : null}
 
       <NextActionsQueue
         rows={nextActions.slice(0, 6)}

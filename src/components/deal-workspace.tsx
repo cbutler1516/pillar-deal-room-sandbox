@@ -7,6 +7,8 @@ import {
   applicationIntakeFromUnknown,
   intakeDisplayGroups,
 } from "@/lib/application/intake";
+import { CommunicationTimeline } from "@/components/communication-timeline";
+import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ClientNeedRow, DealDetail, DocumentRow, TaskRow } from "@/lib/data/deals";
 import { formatCurrency, formatFollowUpAt, formatProperty } from "@/lib/format";
 import { deriveDealNextAction } from "@/lib/ops/next-action";
@@ -132,6 +134,7 @@ export function DealOverview({
   documents,
   nextActions,
   intake = null,
+  attempts = [],
 }: {
   deal: DealDetail;
   needs: ClientNeedRow[];
@@ -139,6 +142,7 @@ export function DealOverview({
   tasks?: TaskRow[];
   nextActions: DecoratedAction[];
   intake?: unknown;
+  attempts?: CommunicationAttempt[];
 }) {
   const docs = documentCompletion(
     deal.id,
@@ -242,7 +246,7 @@ export function DealOverview({
             value={`${docs.complete}/${docs.required} complete`}
           />
           <HeaderItem label="Missing contacts" value={String(missingContacts)} />
-          <HeaderItem label="Follow-ups due" value={String(followUps)} />
+          <HeaderItem label="Follow-ups overdue" value={String(followUps)} />
           <HeaderItem label="Escalations" value={String(escalations)} />
         </dl>
       </SurfaceCard>
@@ -306,6 +310,9 @@ export function DealOverview({
             ))}
           </ul>
         )}
+      </SurfaceCard>
+      <SurfaceCard>
+        <CommunicationTimeline attempts={attempts} />
       </SurfaceCard>
     </div>
   );

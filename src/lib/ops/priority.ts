@@ -36,6 +36,7 @@ export type PriorityTask = {
   dealContactId?: string | null;
   nextFollowUpAt?: string | null;
   lastContactedAt?: string | null;
+  lastResponseAt?: string | null;
   followUpIntervalHours?: number | null;
   escalationAfterHours?: number | null;
   escalationLevel?: string | null;
@@ -66,6 +67,9 @@ export type PrioritySignals = {
   activeCollection: boolean;
   requiredLaterOnly: boolean;
   optionalOnly: boolean;
+  noInitialContactRequiredNow: boolean;
+  responseAwaitingReview: boolean;
+  waitingBeyondSla: boolean;
 };
 
 export type DealPriority = {
@@ -129,6 +133,7 @@ export function collectPrioritySignals(
       dueAt: task.dueAt ?? null,
       nextFollowUpAt: task.nextFollowUpAt ?? null,
       lastContactedAt: task.lastContactedAt ?? null,
+      lastResponseAt: task.lastResponseAt ?? null,
       waitingSince: task.waitingSince ?? null,
       followUpIntervalHours: task.followUpIntervalHours ?? null,
       escalationAfterHours: task.escalationAfterHours ?? null,
@@ -174,6 +179,23 @@ export function collectPrioritySignals(
     !requiredLaterOnly &&
     fileTasks.every((task) => task.timing === "optional" || task.timing == null) &&
     fileNeeds.every((need) => !need.required);
+  const noInitialContactRequiredNow = fileTasks.some(
+    (task) =>
+      task.timing === "required_now" &&
+      !task.lastContactedAt &&
+      !isContactMissing(task) &&
+      (task.sourceType === "borrower" ||
+        task.sourceType === "insurance" ||
+        task.sourceType === "title" ||
+        task.sourceType === "escrow"),
+  );
+  const responseAwaitingReview = fileTasks.some((task) =>
+    Boolean(task.lastResponseAt),
+  );
+  const waitingBeyondSla = fileTasks.some(
+    (task) =>
+      task.status === "waiting" && (isFollowUpDue(task, now) || isEscalationDue(task, now)),
+  );
 
   return {
     escalated,
@@ -188,6 +210,9 @@ export function collectPrioritySignals(
     activeCollection,
     requiredLaterOnly,
     optionalOnly,
+    noInitialContactRequiredNow,
+    responseAwaitingReview,
+    waitingBeyondSla,
   };
 }
 
@@ -225,7 +250,16 @@ export function priorityReasons(
     reasons.push("Missing contact on required-now task");
   }
   if (signals.overdueFollowUp) {
-    reasons.push("Follow-up due");
+    reasons.push("Follow-up overdue");
+  }
+  if (signals.noInitialContactRequiredNow) {
+    reasons.push("No initial contact");
+  }
+  if (signals.responseAwaitingReview) {
+    reasons.push("Response awaiting review");
+  }
+  if (signals.waitingBeyondSla && !signals.overdueFollowUp) {
+    reasons.push("Waiting beyond SLA");
   }
   if (signals.documentAwaitingReview) {
     reasons.push("Document awaiting review");

@@ -35,6 +35,7 @@ export type RankableTask = {
   dueAt: string | null;
   nextFollowUpAt: string | null;
   lastContactedAt: string | null;
+  lastResponseAt?: string | null;
   waitingSince: string | null;
   followUpIntervalHours: number | null;
   escalationAfterHours: number | null;
