@@ -1,4 +1,4 @@
-import { formatStatusLabel } from "@/lib/format";
+import { formatInStaffZone, formatStatusLabel, staffCalendarDate } from "@/lib/format";
 
 export type ActivityDisplayInput = {
   eventType: string;
@@ -139,15 +139,12 @@ export function formatActivityAction(
 
 export function formatActivityClock(iso: string, now = new Date()): string {
   const date = new Date(iso);
-  const sameDay =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
-  return new Intl.DateTimeFormat("en-US", {
+  const sameDay = staffCalendarDate(date) === staffCalendarDate(now);
+  return formatInStaffZone(date, {
     hour: "numeric",
     minute: "2-digit",
     ...(sameDay ? {} : { month: "short", day: "numeric" }),
-  }).format(date);
+  });
 }
 
 export function formatActivityDisplay(

@@ -50,6 +50,7 @@ export function CommunicationPanel({
   processorName,
   canMutate,
   replacementNeeded = false,
+  now,
 }: {
   task: TaskRow;
   dealContext: DealRequestContext;
@@ -59,10 +60,10 @@ export function CommunicationPanel({
   processorName: string | null;
   canMutate: boolean;
   replacementNeeded?: boolean;
+  now: Date;
 }) {
   const [open, setOpen] = useState(false);
   const [channel, setChannel] = useState<CommunicationChannel>("email");
-  const now = new Date();
   const playbook = task.playbookKey ? getPlaybook(task.playbookKey) : null;
   const recommendation = recommendedDraftForTask(
     {

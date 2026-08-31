@@ -15,6 +15,7 @@ import {
   waitingBucket,
   waitingCounts,
 } from "@/lib/ops/ops-board";
+import { staffHour } from "@/lib/format";
 import { decorateRankedActions } from "@/lib/playbooks/decorate";
 
 const WAITING_LABELS = [
@@ -58,7 +59,7 @@ export default async function DashboardPage() {
       <div>
         <p className="text-[11px] text-ink-muted">{formatLongDate(now)}</p>
         <h2 className={`mt-1 ${pageTitleClass}`}>
-          {greetingForHour(now.getHours())}, {firstName}
+          {greetingForHour(staffHour(now))}, {firstName}
         </h2>
         <p className={pageLeadClass}>
           {attentionFiles === 0

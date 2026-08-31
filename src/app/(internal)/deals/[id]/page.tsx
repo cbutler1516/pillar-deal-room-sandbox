@@ -60,6 +60,7 @@ export default async function DealDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const tab = parseDealTab(typeof query.tab === "string" ? query.tab : undefined);
+  const nowIso = new Date().toISOString();
   const { supabase, user, profile } = await requireInternalUser();
   const deal = await getDealById(supabase, id);
 
@@ -169,30 +170,33 @@ export default async function DealDetailPage({
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
-      <div className="sticky top-14 z-10 space-y-4 bg-workspace/95 pb-1 backdrop-blur">
-        <DealWorkspaceHeader
-          deal={deal}
-          processorLabel={processorLabel}
-          actions={
-            <>
-              {canMutate &&
-              canClaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
-                <ClaimButton dealId={deal.id} />
-              ) : null}
-              {canMutate &&
-              canUnclaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
-                <UnclaimButton dealId={deal.id} />
-              ) : null}
-              {canMutate ? (
-                <DealStatusControl dealId={deal.id} status={deal.status} />
-              ) : null}
-            </>
-          }
-        />
+      <DealWorkspaceHeader
+        deal={deal}
+        processorLabel={processorLabel}
+        actions={
+          <>
+            {canMutate &&
+            canClaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
+              <ClaimButton dealId={deal.id} />
+            ) : null}
+            {canMutate &&
+            canUnclaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
+              <UnclaimButton dealId={deal.id} />
+            ) : null}
+            {canMutate ? (
+              <DealStatusControl dealId={deal.id} status={deal.status} />
+            ) : null}
+          </>
+        }
+      />
 
-        <DealTabNav dealId={deal.id} tab={tab} />
+      <div className="pointer-events-none sticky top-14 z-10 -mx-3 bg-workspace px-3 sm:-mx-5 sm:px-5">
+        <div className="pointer-events-auto">
+          <DealTabNav dealId={deal.id} tab={tab} />
+        </div>
       </div>
 
+      <div className="relative z-0">
       {tab === "overview" ? (
         <>
           <DealOverview
@@ -261,6 +265,7 @@ export default async function DealDetailPage({
             replacementNeedIds={needs
               .filter((need) => need.required && need.status === "rejected")
               .map((need) => need.id)}
+            nowIso={nowIso}
           />
         </SurfaceCard>
       ) : null}
@@ -348,9 +353,11 @@ export default async function DealDetailPage({
             attempts={attempts}
             contacts={contacts}
             staffNames={staffNames}
+            nowIso={nowIso}
           />
         </SurfaceCard>
       ) : null}
+      </div>
     </div>
   );
 }

@@ -24,15 +24,17 @@ export function DealTimeline({
   attempts,
   contacts = [],
   staffNames = {},
+  nowIso,
 }: {
   activity: ActivityRow[];
   attempts: CommunicationAttempt[];
   contacts?: DealContactRow[];
   staffNames?: Record<string, string>;
+  nowIso: string;
 }) {
   const [filter, setFilter] = useState<TimelineFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
-  const now = useMemo(() => new Date(), []);
+  const now = useMemo(() => new Date(nowIso), [nowIso]);
   const entries = useMemo(
     () =>
       filterTimelineEntries(

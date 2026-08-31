@@ -1,3 +1,4 @@
+import { formatInStaffZone } from "@/lib/format";
 import type { RankedNextAction } from "@/lib/playbooks/logic";
 
 export const BOARD_COLUMNS = [
@@ -44,12 +45,12 @@ export function firstNameFromProfile(input: {
 }
 
 export function formatLongDate(now = new Date()): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInStaffZone(now, {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(now);
+  });
 }
 
 export function boardColumnForStatus(status: string): BoardColumnKey | null {

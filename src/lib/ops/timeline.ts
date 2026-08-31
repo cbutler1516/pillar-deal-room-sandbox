@@ -1,6 +1,7 @@
 import { historyItemsFromAttempts } from "@/lib/communications/history";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ActivityRow, DealContactRow } from "@/lib/data/deals";
+import { formatInStaffZone, staffCalendarDate } from "@/lib/format";
 import { formatActivityDisplay } from "@/lib/ops/activity-display";
 
 export const TIMELINE_FILTERS = [
@@ -132,8 +133,7 @@ export function groupTimelineByDay(
 ): TimelineDayGroup[] {
   const groups = new Map<string, TimelineEntry[]>();
   for (const entry of entries) {
-    const date = new Date(entry.at);
-    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const key = staffCalendarDate(new Date(entry.at));
     const list = groups.get(key) ?? [];
     list.push(entry);
     groups.set(key, list);
@@ -147,26 +147,27 @@ export function groupTimelineByDay(
 
 export function formatTimelineDay(iso: string, now = new Date()): string {
   const date = new Date(iso);
-  const today = new Date(now);
-  const yesterday = new Date(now);
-  yesterday.setDate(today.getDate() - 1);
-  if (sameCalendarDay(date, today)) {
+  const today = staffCalendarDate(now);
+  const entryDay = staffCalendarDate(date);
+  if (entryDay === today) {
     return "Today";
   }
-  if (sameCalendarDay(date, yesterday)) {
+  if (entryDay === shiftCalendarDate(today, -1)) {
     return "Yesterday";
   }
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInStaffZone(date, {
     weekday: "long",
     month: "short",
     day: "numeric",
-  }).format(date);
+  });
 }
 
-function sameCalendarDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+function shiftCalendarDate(yyyyMmDd: string, days: number): string {
+  const [year, month, day] = yyyyMmDd.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return [
+    next.getUTCFullYear(),
+    String(next.getUTCMonth() + 1).padStart(2, "0"),
+    String(next.getUTCDate()).padStart(2, "0"),
+  ].join("-");
 }

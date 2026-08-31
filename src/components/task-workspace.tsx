@@ -99,6 +99,7 @@ export function TaskWorkspace({
   attempts = [],
   staffNames = {},
   replacementNeedIds = [],
+  nowIso,
 }: {
   dealId: string;
   loanType: string | null;
@@ -115,10 +116,11 @@ export function TaskWorkspace({
   attempts?: CommunicationAttempt[];
   staffNames?: Record<string, string>;
   replacementNeedIds?: string[];
+  nowIso: string;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const now = new Date();
+  const now = new Date(nowIso);
 
   return (
     <div className="space-y-4">
@@ -192,7 +194,7 @@ export function TaskWorkspace({
                     ? "Follow-up overdue"
                     : aging.followUpOverdue
                       ? "Follow-up overdue"
-                      : formatFollowUpAt(task.nextFollowUpAt);
+                      : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
                     <li key={task.id}>
                       <div className="flex flex-wrap items-start justify-between gap-3 py-3.5">
@@ -392,6 +394,7 @@ function TaskDetail({
         }
         canMutate={canMutate}
         replacementNeeded={replacementNeeded}
+        now={now}
       />
 
       {canMutate && active ? (
