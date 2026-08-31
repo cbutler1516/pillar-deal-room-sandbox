@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 export function OverflowMenu({
   items,
+  label = "More",
 }: {
   items: { label: string; onClick: () => void; tone?: "default" | "danger" }[];
+  label?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -33,16 +35,13 @@ export function OverflowMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-line bg-surface text-ink hover:bg-surface-muted"
+        className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-md px-2 text-xs font-medium text-ink-muted hover:bg-surface-muted hover:text-ink"
         onClick={(event) => {
           event.stopPropagation();
           setOpen((value) => !value);
         }}
       >
-        <span className="sr-only">More actions</span>
-        <span aria-hidden className="text-base leading-none">
-          ⋯
-        </span>
+        <span>{label}</span>
       </button>
       {open ? (
         <div

@@ -1,4 +1,8 @@
-import { CONTACT_MISSING, type ContactType } from "@/lib/contacts/types";
+import {
+  CONTACT_MISSING,
+  contactTypeLabel,
+  type ContactType,
+} from "@/lib/contacts/types";
 import type { PlaybookDefinition } from "@/lib/playbooks/types";
 
 export function isSameDealContact(
@@ -68,7 +72,7 @@ export function addContactLabel(
   if (!contactType) {
     return "Add Contact";
   }
-  return `Add ${contactType.replaceAll("_", " ")} contact`;
+  return `Add ${contactTypeLabel(contactType)}`;
 }
 
 export function contactActionChannel(): {

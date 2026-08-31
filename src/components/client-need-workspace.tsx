@@ -14,7 +14,7 @@ import {
   updateNeedNotesAction,
 } from "@/lib/documents/link-actions";
 import { summarizeNeedDocuments } from "@/lib/documents/need-progress";
-import { formatPercent, formatTimestamp } from "@/lib/format";
+import { formatPercent, formatStatusLabel, formatTimestamp } from "@/lib/format";
 import { updateNeedStatusAction } from "@/lib/workflow/actions";
 
 const SUMMARY_CHIPS = [
@@ -24,6 +24,44 @@ const SUMMARY_CHIPS = [
   { key: "approved", label: "Approved", match: "approved" },
   { key: "replacement", label: "Replacement Needed", match: "rejected" },
 ] as const;
+
+function NeedGlyph({ status }: { status: string }) {
+  const tone =
+    status === "approved" || status === "waived"
+      ? "text-success"
+      : status === "rejected"
+        ? "text-danger"
+        : status === "received" || status === "needs_review"
+          ? "text-pillar-teal"
+          : "text-ink-muted";
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex h-5 w-5 shrink-0 items-center justify-center ${tone}`}
+      title={status === "rejected" ? "Replacement needed" : formatStatusLabel(status)}
+    >
+      {status === "approved" || status === "waived" ? (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+          <circle cx="8" cy="8" r="6.2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M5 8.1 7.1 10.2 11 6.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ) : status === "rejected" ? (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+          <circle cx="8" cy="8" r="6.2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M8 5v4.2M8 11.2h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ) : status === "received" || status === "needs_review" ? (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor">
+          <circle cx="8" cy="8" r="5" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+          <circle cx="8" cy="8" r="6.2" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      )}
+    </span>
+  );
+}
 
 export function ClientNeedsWorkspace({
   dealId,
@@ -68,19 +106,14 @@ export function ClientNeedsWorkspace({
     );
   }
 
+  const openCount = SUMMARY_CHIPS.reduce((sum, chip) => sum + (counts[chip.key] ?? 0), 0);
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {SUMMARY_CHIPS.map((chip) => (
-          <span
-            key={chip.key}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-muted px-2.5 py-1 text-[11px] font-medium text-ink"
-          >
-            {chip.label}
-            <span className="text-ink-muted">{counts[chip.key] ?? 0}</span>
-          </span>
-        ))}
-      </div>
+      <p className="px-1 text-xs text-ink-muted">
+        {needs.length} item{needs.length === 1 ? "" : "s"}
+        {openCount > 0 ? ` · ${counts.approved ?? 0} approved` : ""}
+      </p>
 
       <div className="divide-y divide-line border-y border-line">
         {needs.map((need) => {
@@ -88,65 +121,46 @@ export function ClientNeedsWorkspace({
           const progress = summarizeNeedDocuments(linked, need.expectedDocumentCount);
           const ops = needOps.find((item) => item.needId === need.id);
           const open = openId === need.id;
+          const hint = ops?.replacementCandidate
+            ? "Replacement received"
+            : ops?.mismatch
+              ? "Possible mismatch"
+              : ops?.reviewNeeded
+                ? "Review needed"
+                : ops?.contactMissing
+                  ? "Contact missing"
+                  : progress.receivedLabel;
           return (
             <article key={need.id}>
-              <div className="grid items-center gap-3 px-4 py-2.5 lg:grid-cols-[minmax(0,1.3fr)_minmax(10rem,1fr)_auto]">
+              <div className="flex items-center gap-3 px-4 py-2.5">
+                <NeedGlyph status={need.status} />
                 <button
                   type="button"
                   onClick={() => setOpenId(open ? null : need.id)}
-                  className="min-w-0 text-left"
+                  className="min-w-0 flex-1 text-left"
                 >
                   <p className="text-sm font-semibold text-ink">{need.documentType}</p>
-                  <p className="mt-0.5 truncate text-xs text-ink-muted">
-                    {(ops?.timing ?? "required_now").replaceAll("_", " ")}
-                    {ops?.sourceType ? ` · ${ops.sourceType.replaceAll("_", " ")}` : ""}
-                    {need.description ? ` · ${need.description}` : ` · ${need.category}`}
-                  </p>
+                  <p className="mt-0.5 truncate text-xs text-ink-muted">{hint}</p>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setOpenId(open ? null : need.id)}
-                  className="text-left text-xs text-ink-muted"
-                >
-                  <p className="font-medium text-ink">{progress.receivedLabel}</p>
-                  {progress.reviewLabel ? (
-                    <p>{progress.reviewLabel.replaceAll(", ", " · ")}</p>
-                  ) : null}
-                  {ops?.nextAction ? <p>Next: {ops.nextAction}</p> : null}
-                  {ops?.contactMissing ? <p>Contact missing</p> : null}
-                  {ops?.mismatch ? <p>Metadata mismatch — Need status is unchanged</p> : null}
-                  {ops?.replacementCandidate ? (
-                    <p>Replacement candidate — processor review required</p>
-                  ) : null}
-                  {ops?.reviewNeeded ? <p>Review needed</p> : null}
-                </button>
-                <div className="flex items-center justify-end gap-2">
-                  <StatusChip
-                    status={need.status}
-                    label={
-                      need.status === "rejected" ? "Replacement Needed" : undefined
-                    }
+                {canMutate && open ? (
+                  <OverflowMenu
+                    items={needOverflowItems(need.status, {
+                      onApprove: () => void runNeedStatus(need.id, "approved"),
+                      onReplace: () => void runNeedStatus(need.id, "rejected"),
+                      onAttach: () => {
+                        setOpenId(need.id);
+                        setAttachFor(need.id);
+                      },
+                      onClone: () => void cloneNeed(dealId, need.id),
+                      onRequest: () => void runNeedStatus(need.id, "requested"),
+                      onWaive: () => void runNeedStatus(need.id, "waived"),
+                      onNote: () => {
+                        setOpenId(need.id);
+                        setNoteFor(need.id);
+                      },
+                    })}
                   />
-                  {canMutate ? (
-                    <OverflowMenu
-                      items={needOverflowItems(need.status, {
-                        onApprove: () => void runNeedStatus(need.id, "approved"),
-                        onReplace: () => void runNeedStatus(need.id, "rejected"),
-                        onAttach: () => {
-                          setOpenId(need.id);
-                          setAttachFor(need.id);
-                        },
-                        onClone: () => void cloneNeed(dealId, need.id),
-                        onRequest: () => void runNeedStatus(need.id, "requested"),
-                        onWaive: () => void runNeedStatus(need.id, "waived"),
-                        onNote: () => {
-                          setOpenId(need.id);
-                          setNoteFor(need.id);
-                        },
-                      })}
-                    />
-                  ) : null}
-                </div>
+                ) : null}
               </div>
               {open ? (
                 <NeedReviewPanel

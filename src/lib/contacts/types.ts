@@ -74,6 +74,42 @@ export function isContactType(value: string): value is ContactType {
   return (CONTACT_TYPES as readonly string[]).includes(value);
 }
 
+const CONTACT_TYPE_LABELS: Record<string, string> = {
+  borrower: "Borrower",
+  co_borrower: "Co-borrower",
+  insurance: "Insurance",
+  title: "Title",
+  escrow: "Escrow",
+  contractor: "Contractor",
+  property_manager: "Property manager",
+  cpa: "CPA",
+  realtor: "Realtor",
+  loan_officer: "Loan officer",
+  closing_attorney: "Closing attorney",
+  appraiser: "Appraiser",
+  lender: "Lender",
+  other: "Other",
+};
+
+export const PEOPLE_DIRECTORY_ORDER = [
+  "borrower",
+  "co_borrower",
+  "insurance",
+  "title",
+  "escrow",
+  "contractor",
+  "property_manager",
+  "cpa",
+  "realtor",
+  "loan_officer",
+] as const;
+
 export function contactTypeLabel(type: string): string {
-  return type.replaceAll("_", " ");
+  if (CONTACT_TYPE_LABELS[type]) {
+    return CONTACT_TYPE_LABELS[type];
+  }
+  return type
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

@@ -145,6 +145,12 @@ export type DocumentWorkspaceFilter =
   | "unlinked"
   | "rejected";
 
+export type DocumentInboxFilter =
+  | "needs_review"
+  | "issues"
+  | "complete"
+  | "all";
+
 export function filterDocumentsForWorkspace<
   T extends { status: string; linkedNeedIds: string[] },
 >(documents: T[], filter: DocumentWorkspaceFilter): T[] {
@@ -159,6 +165,25 @@ export function filterDocumentsForWorkspace<
       return documents.filter((doc) => doc.linkedNeedIds.length === 0);
     case "rejected":
       return documents.filter((doc) => doc.status === "rejected");
+    default:
+      return documents;
+  }
+}
+
+export function filterDocumentsForInbox<T extends { id: string; status: string }>(
+  documents: T[],
+  filter: DocumentInboxFilter,
+  issueIds: ReadonlySet<string> = new Set(),
+): T[] {
+  switch (filter) {
+    case "needs_review":
+      return documents.filter((doc) => isPendingDocumentStatus(doc.status));
+    case "issues":
+      return documents.filter(
+        (doc) => doc.status === "rejected" || issueIds.has(doc.id),
+      );
+    case "complete":
+      return documents.filter((doc) => doc.status === "approved");
     default:
       return documents;
   }

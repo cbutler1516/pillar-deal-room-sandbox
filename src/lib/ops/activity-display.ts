@@ -1,3 +1,5 @@
+import { formatStatusLabel } from "@/lib/format";
+
 export type ActivityDisplayInput = {
   eventType: string;
   actorType: string;
@@ -82,7 +84,7 @@ function targetFromMetadata(metadata: Record<string, string>): string | null {
     return null;
   }
   if (metadata.from && metadata.to && !metadata.document_type && !metadata.filename) {
-    return `${metadata.from.replaceAll("_", " ")} → ${metadata.to.replaceAll("_", " ")}`;
+    return `${formatStatusLabel(metadata.from)} → ${formatStatusLabel(metadata.to)}`;
   }
   return target;
 }

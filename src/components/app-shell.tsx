@@ -10,15 +10,9 @@ import { displayName, type InternalProfile } from "@/lib/auth/authorization";
 import { formatRoleLabel } from "@/lib/auth/roles";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", shortLabel: "Dashboard", icon: DashboardIcon },
-  { href: "/deals", label: "Deals", shortLabel: "Deals", icon: DealsIcon },
-  {
-    href: "/processor-queue",
-    label: "Processor Queue",
-    shortLabel: "Queue",
-    icon: QueueIcon,
-  },
-  { href: "/tasks", label: "Tasks", shortLabel: "Tasks", icon: TasksIcon },
+  { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
+  { href: "/deals", label: "Deals", icon: DealsIcon },
+  { href: "/processor-queue", label: "Queue", icon: QueueIcon },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -63,12 +57,8 @@ export function AppShell({
         aria-label="Application"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[10px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-card)]"
       >
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-            <PillarMark size={30} decorative className="shrink-0" />
-            <span aria-hidden className="h-6 w-px bg-line" />
-          </div>
-          <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-2 sm:gap-4">
+        <div className="flex items-center">
+          <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
@@ -85,8 +75,7 @@ export function AppShell({
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="max-w-full truncate text-[13px] font-medium">
-                    <span className="sm:hidden">{item.shortLabel}</span>
-                    <span className="hidden sm:inline">{item.label}</span>
+                    {item.label}
                   </span>
                 </Link>
               </li>
@@ -197,16 +186,3 @@ function QueueIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function TasksIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden {...props}>
-      <path
-        d="M4 5.5h12M4 10h7.5M4 14.5h12M13.2 9.2l1.5 1.5 3-3"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}

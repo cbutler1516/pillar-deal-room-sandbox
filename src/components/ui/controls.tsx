@@ -41,10 +41,10 @@ export function FilterChip({
   return (
     <Link
       href={href}
-      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium transition ${
+      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
         active
-          ? "bg-pillar-navy text-white"
-          : "border border-line bg-surface text-ink hover:bg-surface-muted"
+          ? "bg-pillar-teal text-white"
+          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
       }`}
     >
       {children}
@@ -65,10 +65,10 @@ export function FilterToggle({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium transition ${
+      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
         active
-          ? "bg-pillar-navy text-white"
-          : "border border-line bg-surface text-ink hover:bg-surface-muted"
+          ? "bg-pillar-teal text-white"
+          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
       }`}
     >
       {children}
@@ -89,7 +89,7 @@ export function SegmentedControl({
           href={option.href}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
             option.active
-              ? "bg-pillar-navy text-white"
+              ? "bg-pillar-teal text-white"
               : "text-ink-muted hover:text-ink"
           }`}
         >

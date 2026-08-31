@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  filterDocumentsForInbox,
   filterDocumentsForWorkspace,
   nextNeedStatusAfterDetach,
   nextNeedStatusAfterDocumentsAdded,
@@ -88,5 +89,28 @@ describe("Client Need document progress", () => {
     expect(filterDocumentsForWorkspace(docs, "approved").map((doc) => doc.id)).toEqual(["2"]);
     expect(filterDocumentsForWorkspace(docs, "needs_review").map((doc) => doc.id)).toEqual(["3"]);
     expect(filterDocumentsForWorkspace(docs, "rejected").map((doc) => doc.id)).toEqual(["4"]);
+  });
+
+  it("filters the documents inbox without dropping unlinked or rejected work", () => {
+    const docs = [
+      { id: "1", status: "received", linkedNeedIds: [] },
+      { id: "2", status: "approved", linkedNeedIds: ["need-1"] },
+      { id: "3", status: "needs_review", linkedNeedIds: ["need-1"] },
+      { id: "4", status: "rejected", linkedNeedIds: ["need-2"] },
+    ];
+    expect(filterDocumentsForInbox(docs, "needs_review").map((doc) => doc.id)).toEqual([
+      "1",
+      "3",
+    ]);
+    expect(filterDocumentsForInbox(docs, "complete").map((doc) => doc.id)).toEqual(["2"]);
+    expect(
+      filterDocumentsForInbox(docs, "issues", new Set(["1"])).map((doc) => doc.id),
+    ).toEqual(["1", "4"]);
+    expect(filterDocumentsForInbox(docs, "all").map((doc) => doc.id)).toEqual([
+      "1",
+      "2",
+      "3",
+      "4",
+    ]);
   });
 });

@@ -11,11 +11,35 @@ export function formatCurrency(amount: number | null): string {
   }).format(amount);
 }
 
-export function formatDealStatus(status: DealStatus | string): string {
+const STATUS_LABELS: Record<string, string> = {
+  new: "New",
+  collecting_documents: "Collecting documents",
+  processor_review: "In review",
+  ready_for_submission: "Ready to submit",
+  waiting: "Waiting",
+  replacement_needed: "Replacement needed",
+  needs_review: "Needs review",
+  in_progress: "In progress",
+  application_in_progress: "Application in progress",
+  missing_items: "Missing items",
+  required_now: "Required now",
+  required_later: "Required later",
+  ready_review: "Ready to review",
+  due_today: "Due today",
+};
+
+export function formatStatusLabel(status: string): string {
+  if (STATUS_LABELS[status]) {
+    return STATUS_LABELS[status];
+  }
   return status
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function formatDealStatus(status: DealStatus | string): string {
+  return formatStatusLabel(status);
 }
 
 export function formatProperty(
@@ -33,6 +57,18 @@ export function formatTimestamp(value: string | null): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+  }).format(new Date(value));
+}
+
+export function formatReceivedAt(value: string | null): string {
+  if (!value) {
+    return "—";
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 

@@ -9,6 +9,7 @@ import {
   updateNeedStatusAction,
   updateTaskStatusAction,
 } from "@/lib/workflow/actions";
+import { formatStatusLabel } from "@/lib/format";
 import {
   DEAL_STATUSES,
   DOCUMENT_STATUSES,
@@ -56,7 +57,7 @@ function StatusFields({
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {option.replaceAll("_", " ")}
+            {formatStatusLabel(option)}
           </option>
         ))}
       </select>

@@ -38,6 +38,7 @@ function action(partial: Partial<DecoratedAction> = {}): DecoratedAction {
     borrowerName: "Alex Rivera",
     entityName: "Rivera Holdings LLC",
     dealReference: "PDR-APP-1A606C84",
+    loanType: "dscr",
     propertyAddress: "100 Evaluation Ave",
     contactName: "Alex Rivera",
     contactCompany: null,
