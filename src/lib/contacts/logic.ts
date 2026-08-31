@@ -126,3 +126,24 @@ export function markTaskContactedPatch(input: {
     next_follow_up_at: next,
   };
 }
+
+export function markTaskWaitingPatch(input: {
+  nowIso: string;
+  followUpIntervalHours: number | null;
+  sourceType?: string | null;
+}): {
+  status: "waiting";
+  waiting_since: string;
+  next_follow_up_at: string;
+  completed_at: null;
+} {
+  return {
+    status: "waiting",
+    waiting_since: input.nowIso,
+    next_follow_up_at: nextFollowUpFromCadence(input.nowIso, {
+      followUpIntervalHours: input.followUpIntervalHours,
+      sourceType: input.sourceType,
+    }),
+    completed_at: null,
+  };
+}

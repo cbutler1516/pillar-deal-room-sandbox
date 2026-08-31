@@ -213,7 +213,7 @@ const CONTACT_SOURCE = new Set([
   "cpa",
 ]);
 
-const DOCUMENT_REVIEW_TYPES = new Set<OperationalWorkType>([
+export const DOCUMENT_REVIEW_TYPES = new Set<OperationalWorkType>([
   "replacement_received",
   "document_mismatch",
   "document_awaiting_review",
@@ -1045,6 +1045,16 @@ export function hasActionableOperationalWork(
   return items.length > 0;
 }
 
+export function isDocumentReviewWork(
+  row: Pick<OperationalWorkItem, "workType">,
+): boolean {
+  return DOCUMENT_REVIEW_TYPES.has(row.workType);
+}
+
+export function countDocumentReviewWork(items: OperationalWorkItem[]): number {
+  return items.filter(isDocumentReviewWork).length;
+}
+
 export function computeOperationalDashboardCounts(
   items: OperationalWorkItem[],
 ): OperationalDashboardCounts {
@@ -1052,9 +1062,7 @@ export function computeOperationalDashboardCounts(
     ATTENTION_SECTIONS.has(row.queueSection),
   );
   const waitingItems = items.filter((row) => row.queueSection === "waiting");
-  const reviewItems = items.filter((row) =>
-    DOCUMENT_REVIEW_TYPES.has(row.workType),
-  );
+  const reviewItems = items.filter(isDocumentReviewWork);
   const attentionDealIds = [...new Set(attentionItems.map((row) => row.dealId))];
   const readyDealIds = [
     ...new Set(
@@ -1093,7 +1101,7 @@ export function workItemMatchesFilter(
       return row.queueSection === "new" || row.workType === "new_application" || row.workType === "unassigned_file";
     case "review":
     case "needs_review":
-      return DOCUMENT_REVIEW_TYPES.has(row.workType);
+      return isDocumentReviewWork(row);
     case "missing_contact":
       return row.workType === "required_contact_missing";
     case "replacement":

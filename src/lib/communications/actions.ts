@@ -27,7 +27,7 @@ import { assertSandboxGuard } from "@/lib/sandbox";
 import {
   contactActionChannel,
   markTaskContactedPatch,
-  nextFollowUpFromCadence,
+  markTaskWaitingPatch,
 } from "@/lib/contacts/logic";
 import { logAuthorizedActivity } from "@/lib/workflow/activity";
 
@@ -418,15 +418,13 @@ export async function markTaskWaitingWithCadenceAction(
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("tasks")
-    .update({
-      status: "waiting",
-      waiting_since: now,
-      next_follow_up_at: nextFollowUpFromCadence(now, {
+    .update(
+      markTaskWaitingPatch({
+        nowIso: now,
         followUpIntervalHours: task.follow_up_interval_hours,
         sourceType: task.source_type,
       }),
-      completed_at: null,
-    })
+    )
     .eq("id", task.id);
   if (error) {
     return { error: "Unable to mark this task waiting." };

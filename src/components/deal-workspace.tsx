@@ -17,6 +17,7 @@ import {
 } from "@/lib/ops/next-action";
 import {
   collectOperationalWork,
+  countDocumentReviewWork,
   waitingCopyForDeal,
 } from "@/lib/ops/operational-work";
 import { documentCompletion } from "@/lib/ops/metrics";
@@ -158,7 +159,6 @@ export function DealOverview({
       status: need.status,
     })),
   );
-  const reviewCount = documents.filter((doc) => doc.status === "needs_review").length;
   const requiredNow = nextActions.filter((task) => task.timing === "required_now").length;
   const followUps = nextActions.filter((task) => task.followUpDue).length;
   const escalations = nextActions.filter((task) => task.escalationDue).length;
@@ -245,6 +245,7 @@ export function DealOverview({
     mismatches: mismatches.map((row) => ({ ...row, dealId: deal.id })),
   });
   const waitingOn = waitingCopyForDeal(dealWork);
+  const reviewCount = countDocumentReviewWork(dealWork);
 
   return (
     <div className="space-y-6">

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireInternalUser } from "@/lib/auth/session";
 import { insertCommunicationAttempt } from "@/lib/communications/data";
 import { buildContactedAttempt } from "@/lib/communications/records";
-import { contactActionChannel, markTaskContactedPatch, nextFollowUpFromCadence, pickContactForPlaybook } from "@/lib/contacts/logic";
+import { contactActionChannel, markTaskContactedPatch, markTaskWaitingPatch, pickContactForPlaybook } from "@/lib/contacts/logic";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
 import {
   canCreateProcessorTask,
@@ -471,15 +471,13 @@ export async function markTaskWaitingAction(
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("tasks")
-    .update({
-      status: "waiting",
-      waiting_since: now,
-      next_follow_up_at: nextFollowUpFromCadence(now, {
+    .update(
+      markTaskWaitingPatch({
+        nowIso: now,
         followUpIntervalHours: task.follow_up_interval_hours,
         sourceType: task.source_type,
       }),
-      completed_at: null,
-    })
+    )
     .eq("id", task.id);
   if (error) {
     return { error: "Unable to mark this task waiting." };

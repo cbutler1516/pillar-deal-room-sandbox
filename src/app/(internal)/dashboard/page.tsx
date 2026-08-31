@@ -9,9 +9,8 @@ import { getOperationalBoard } from "@/lib/data/dashboard";
 import {
   firstNameFromProfile,
   formatLongDate,
-  greetingForHour,
+  greetingForNow,
 } from "@/lib/ops/ops-board";
-import { staffHour } from "@/lib/format";
 import { workQueueRow } from "@/lib/ops/queue-today";
 import { waitingCopyForDeal, workItemMatchesFilter } from "@/lib/ops/operational-work";
 
@@ -33,7 +32,7 @@ export default async function DashboardPage() {
       <div>
         <p className="text-[11px] text-ink-muted">{formatLongDate(now)}</p>
         <h2 className={`mt-1 ${pageTitleClass}`}>
-          {greetingForHour(staffHour(now))}, {firstName}
+          {greetingForNow(now)}, {firstName}
         </h2>
         <p className={pageLeadClass}>
           {counts.needsAttention === 0

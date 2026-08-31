@@ -1,4 +1,4 @@
-import { formatInStaffZone } from "@/lib/format";
+import { formatInStaffZone, staffHour } from "@/lib/staff-clock";
 import type { RankedNextAction } from "@/lib/playbooks/logic";
 
 export const BOARD_COLUMNS = [
@@ -31,6 +31,10 @@ export function greetingForHour(hour: number): string {
     return "Good afternoon";
   }
   return "Good evening";
+}
+
+export function greetingForNow(now = new Date()): string {
+  return greetingForHour(staffHour(now));
 }
 
 export function firstNameFromProfile(input: {

@@ -4,6 +4,7 @@ import type { DecoratedAction } from "@/lib/playbooks/decorate";
 import {
   collectOperationalWork,
   computeOperationalDashboardCounts,
+  countDocumentReviewWork,
   groupOperationalWorkToday,
   hasActionableOperationalWork,
   inferDocumentMismatches,
@@ -346,6 +347,25 @@ describe("Casey evaluation file", () => {
     });
     expect(next?.action).toMatch(/replacement/i);
     expect(next?.target).toBe("documents");
+  });
+
+  it("counts received replacement and bank docs as review work, not only needs_review status", () => {
+    const input = caseyInput();
+    const items = collectOperationalWork({
+      ...input,
+      documents: input.documents.map((row) =>
+        row.id === "doc-photo" ? row : { ...row, status: "received" },
+      ),
+    });
+    expect(countDocumentReviewWork(items)).toBeGreaterThan(0);
+    expect(items.some((row) => row.workType === "replacement_received")).toBe(true);
+    expect(
+      items.some(
+        (row) =>
+          row.workType === "document_awaiting_review" ||
+          row.workType === "document_duplicate",
+      ),
+    ).toBe(true);
   });
 });
 
