@@ -40,4 +40,19 @@ describe("activity display formatting", () => {
     expect(display.didWhat).not.toMatch(/safe_metadata|event_type|\{/);
     expect(display.toWhat).not.toMatch(/contact_type=/);
   });
+
+  it("labels an AI rewrite suggestion without implying a send", () => {
+    const display = formatActivityDisplay({
+      eventType: "ai_assist_requested",
+      actorType: "user",
+      actorId: "user-1",
+      createdAt: "2026-08-31T18:00:00.000Z",
+      safeMetadata: {
+        capability: "rewrite_communication",
+        outbound_sent: "false",
+      },
+    });
+    expect(display.didWhat).toBe("Requested an AI rewrite suggestion");
+    expect(display.didWhat).not.toMatch(/sent|approved|completed/i);
+  });
 });
