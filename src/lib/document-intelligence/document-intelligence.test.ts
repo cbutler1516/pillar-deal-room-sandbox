@@ -361,6 +361,9 @@ describe("document intelligence evaluation scenarios", () => {
     expect(complete.processorDecisionRequired).toBe(true);
     const periods = result.documents.map((item) => item.period?.extractedPeriod);
     expect(periods).toEqual(expect.arrayContaining(["2026-07", "2026-08"]));
+    expect(result.documents.every((item) => item.duplicates.length === 0)).toBe(
+      true,
+    );
   });
 
   it("C. flags a duplicate without deleting anything", () => {

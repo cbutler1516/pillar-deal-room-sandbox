@@ -11,6 +11,17 @@ export function DocumentIntelligenceDetail({
 }: {
   result: DocumentIntelligenceDocumentResult;
 }) {
+  const linkedFit = result.needFit.find((item) => item.linked);
+  const fitLabel =
+    linkedFit?.status === "fit"
+      ? "Likely match"
+      : linkedFit?.status === "mismatch"
+        ? "Likely mismatch"
+        : linkedFit
+          ? "Needs review"
+          : result.needFit.some((item) => item.status === "candidate")
+            ? "Unlinked candidate"
+            : "Unlinked";
   const flags = [
     ...result.duplicates.map((flag) => flag.reasons[0]),
     ...(result.period ? [result.period.reasons[0]] : []),
@@ -32,6 +43,10 @@ export function DocumentIntelligenceDetail({
       </p>
       <p className="text-xs text-ink-muted">
         {result.classification.reasons[0]}
+      </p>
+      <p className="text-xs text-ink">
+        Need fit: {fitLabel}
+        {linkedFit ? ` · ${linkedFit.needDocumentType}` : ""}
       </p>
       <p className="text-sm font-medium text-ink">{result.recommendation.label}</p>
       {flags.length > 0 ? (

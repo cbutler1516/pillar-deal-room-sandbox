@@ -234,6 +234,9 @@ export function flagDuplicates(
       typesMatch(type, otherType ?? type) &&
       period === otherPeriod;
 
+    const distinctPeriods =
+      Boolean(period) && Boolean(otherPeriod) && period !== otherPeriod;
+
     if (sameName) {
       flags.push({
         documentId: document.id,
@@ -243,7 +246,11 @@ export function flagDuplicates(
         severity: "warning",
         reasons: [`Another file on this deal uses the same filename: ${other.fileName}.`],
       });
-    } else if (sameStem && (typesMatch(type, otherType) || !otherType)) {
+    } else if (
+      sameStem &&
+      !distinctPeriods &&
+      (typesMatch(type, otherType) || !otherType)
+    ) {
       flags.push({
         documentId: document.id,
         otherDocumentId: other.id,
