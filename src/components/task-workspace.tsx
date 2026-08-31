@@ -2,8 +2,11 @@
 
 import { useState, type ReactNode } from "react";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
+import { CommunicationPanel } from "@/components/communication-panel";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { StatusChip } from "@/components/status-chip";
+import type { CommunicationAttempt } from "@/lib/communications/types";
+import { communicationAging } from "@/lib/communications/aging";
 import { addContactLabel } from "@/lib/contacts/logic";
 import type { ClientNeedRow, DealContactRow, TaskRow } from "@/lib/data/deals";
 import {
@@ -18,9 +21,7 @@ import {
   dismissTaskAction,
   escalateTaskAction,
   generateBaselineTasksAction,
-  markTaskContactedAction,
   markTaskWaitingAction,
-  setTaskFollowUpAction,
   startTaskAction,
   updateTaskContactAction,
 } from "@/lib/playbooks/actions";
@@ -51,9 +52,6 @@ const GROUPS = [
 async function submitStart(formData: FormData) {
   await startTaskAction(formData);
 }
-async function submitContacted(formData: FormData) {
-  await markTaskContactedAction(formData);
-}
 async function submitWaiting(formData: FormData) {
   await markTaskWaitingAction(formData);
 }
@@ -65,9 +63,6 @@ async function submitDismiss(formData: FormData) {
 }
 async function submitContact(formData: FormData) {
   await updateTaskContactAction(formData);
-}
-async function submitFollowUp(formData: FormData) {
-  await setTaskFollowUpAction(formData);
 }
 async function submitEscalate(formData: FormData) {
   await escalateTaskAction(formData);
@@ -99,6 +94,9 @@ export function TaskWorkspace({
   playbooks,
   canMutate,
   canGenerateBaseline,
+  attempts = [],
+  staffNames = {},
+  replacementNeedIds = [],
 }: {
   dealId: string;
   loanType: string | null;
@@ -112,6 +110,9 @@ export function TaskWorkspace({
   >[];
   canMutate: boolean;
   canGenerateBaseline: boolean;
+  attempts?: CommunicationAttempt[];
+  staffNames?: Record<string, string>;
+  replacementNeedIds?: string[];
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -171,6 +172,10 @@ export function TaskWorkspace({
                   const open = openId === task.id;
                   const followUpDue = isFollowUpDue(task, now);
                   const escalationDue = isEscalationDue(task, now);
+                  const aging = communicationAging(task, now);
+                  const owner = task.assignedTo
+                    ? staffNames[task.assignedTo] ?? "Assigned processor"
+                    : "Unassigned";
                   const decorated = applyPlaybookContactRequirement({
                     ...task,
                     dealContactId: task.dealContactId,
@@ -198,7 +203,8 @@ export function TaskWorkspace({
                           <p className="mt-0.5 text-xs text-ink-muted">
                             {task.contactName || "No contact"}
                             {task.status === "waiting" ? " · Waiting" : ""}
-                            {task.assignedTo ? " · Assigned" : " · Unassigned"}
+                            {` · ${owner}`}
+                            {aging.followUpOverdue ? " · Follow-up overdue" : ""}
                           </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -214,7 +220,7 @@ export function TaskWorkspace({
                           ) : null}
                           {followUpDue ? (
                             <span className="text-[11px] font-medium text-warning">
-                              Follow-up due
+                              Follow-up overdue
                             </span>
                           ) : null}
                           {escalationDue ? (
@@ -222,9 +228,7 @@ export function TaskWorkspace({
                               {escalationLabel(task.escalationLevel, true)}
                             </span>
                           ) : null}
-                          <span className="text-xs text-ink-muted">
-                            {task.assignedTo ? "Assigned" : "Unassigned"}
-                          </span>
+                          <span className="text-xs text-ink-muted">{owner}</span>
                         </div>
                       </button>
                       {open ? (
@@ -235,6 +239,13 @@ export function TaskWorkspace({
                           dealContext={dealContext}
                           canMutate={canMutate}
                           now={now}
+                          attempts={attempts}
+                          staffNames={staffNames}
+                          replacementNeeded={
+                            task.clientNeedId
+                              ? replacementNeedIds.includes(task.clientNeedId)
+                              : false
+                          }
                         />
                       ) : null}
                     </li>
@@ -256,6 +267,9 @@ function TaskDetail({
   dealContext,
   canMutate,
   now,
+  attempts,
+  staffNames,
+  replacementNeeded,
 }: {
   task: TaskRow;
   needs: Pick<ClientNeedRow, "id" | "documentType" | "expectedDocumentCount">[];
@@ -263,6 +277,9 @@ function TaskDetail({
   dealContext: DealRequestContext;
   canMutate: boolean;
   now: Date;
+  attempts: CommunicationAttempt[];
+  staffNames: Record<string, string>;
+  replacementNeeded: boolean;
 }) {
   const linkedNeed = needs.find((need) => need.id === task.clientNeedId);
   const linkedContact = contacts.find((contact) => contact.id === task.dealContactId);
@@ -381,10 +398,28 @@ function TaskDetail({
         />
         <Item
           label="Owner"
-          value={task.assignedTo ? "Assigned processor" : "Unassigned"}
+          value={
+            task.assignedTo
+              ? staffNames[task.assignedTo] ?? "Assigned processor"
+              : "Unassigned"
+          }
         />
+        <Item label="Last response" value={formatTimestamp(task.lastResponseAt)} />
         <Item label="Linked Client Need" value={linkedNeed?.documentType ?? "None"} />
       </dl>
+
+      <CommunicationPanel
+        task={task}
+        dealContext={dealContext}
+        contact={linkedContact ?? null}
+        clientNeed={linkedNeed?.documentType ?? null}
+        attempts={attempts}
+        processorName={
+          task.assignedTo ? staffNames[task.assignedTo] ?? null : null
+        }
+        canMutate={canMutate}
+        replacementNeeded={replacementNeeded}
+      />
 
       {canMutate && active ? (
         <div className="space-y-3">
@@ -397,13 +432,6 @@ function TaskDetail({
                 </button>
               </form>
             ) : null}
-            <form action={submitContacted}>
-              <input type="hidden" name="taskId" value={task.id} />
-              <input type="hidden" name="markWaiting" value="true" />
-              <button type="submit" className={actionClass}>
-                Mark Contacted
-              </button>
-            </form>
             {task.status !== "waiting" ? (
               <form action={submitWaiting}>
                 <input type="hidden" name="taskId" value={task.id} />
@@ -458,21 +486,6 @@ function TaskDetail({
             </button>
           </form>
 
-          <form action={submitFollowUp} className="flex flex-wrap items-center gap-2">
-            <input type="hidden" name="taskId" value={task.id} />
-            <label className="text-xs text-ink-muted">
-              Set follow-up
-              <input
-                type="datetime-local"
-                name="nextFollowUpAt"
-                className={`${inputClass} ml-2`}
-                required
-              />
-            </label>
-            <button type="submit" className={actionClass}>
-              Set Follow-Up
-            </button>
-          </form>
         </div>
       ) : null}
     </div>

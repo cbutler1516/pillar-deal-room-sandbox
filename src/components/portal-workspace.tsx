@@ -123,6 +123,29 @@ export function PortalWorkspace({
         </p>
       </section>
 
+      {deal.messages.length > 0 ? (
+        <section className="space-y-3 rounded-[10px] border border-line bg-surface p-5">
+          <h2 className="text-sm font-semibold text-ink">Messages for you</h2>
+          <p className="text-xs text-ink-muted">
+            These are borrower-safe copies only. They are not live email or text
+            messages.
+          </p>
+          <ul className="space-y-3">
+            {deal.messages.map((message) => (
+              <li key={message.id} className="rounded-lg border border-line px-3 py-2">
+                <p className="text-sm font-medium text-ink">{message.subject}</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{message.body}</p>
+                {message.kind === "replacement" ? (
+                  <p className="mt-2 text-xs font-medium text-danger">
+                    Replacement needed
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {groups.map((group) => {
         const rows = deal.needs.filter((need) => need.timing === group.key);
         if (rows.length === 0) {

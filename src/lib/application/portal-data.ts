@@ -1,6 +1,11 @@
 import "server-only";
 
 import { readPortalToken } from "@/lib/application/token";
+import {
+  borrowerPortalMessages,
+  type PortalMessage,
+} from "@/lib/communications/portal";
+import type { CommunicationAttempt } from "@/lib/communications/types";
 import { assertSandboxGuard } from "@/lib/sandbox";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
@@ -35,6 +40,7 @@ export type PortalDeal = {
   documents: PortalDocument[];
   completeCount: number;
   requiredCount: number;
+  messages: PortalMessage[];
 };
 
 export async function loadPortalDeal(token: string): Promise<PortalDeal | null> {
@@ -55,7 +61,7 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
     return null;
   }
 
-  const [{ data: needs }, { data: documents }, { data: links }, { data: tasks }] =
+  const [{ data: needs }, { data: documents }, { data: links }, { data: tasks }, comms] =
     await Promise.all([
       admin
         .from("client_needs")
@@ -72,7 +78,31 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
         .from("tasks")
         .select("client_need_id, timing")
         .eq("deal_id", dealId),
+      admin
+        .from("communication_attempts")
+        .select(
+          "id, deal_id, task_id, client_need_id, deal_contact_id, direction, channel, status, subject, body_snapshot, attempted_at, created_by, outbound_sent, draft_type, audience, sandbox_simulated",
+        )
+        .eq("deal_id", dealId),
     ]);
+  const attempts: CommunicationAttempt[] = (comms.data ?? []).map((row) => ({
+    id: String(row.id),
+    dealId: String(row.deal_id),
+    taskId: row.task_id ?? null,
+    clientNeedId: row.client_need_id ?? null,
+    dealContactId: row.deal_contact_id ?? null,
+    direction: row.direction as CommunicationAttempt["direction"],
+    channel: row.channel as CommunicationAttempt["channel"],
+    status: row.status as CommunicationAttempt["status"],
+    subject: row.subject ?? null,
+    bodySnapshot: row.body_snapshot ?? "",
+    attemptedAt: String(row.attempted_at),
+    createdBy: row.created_by ?? null,
+    outboundSent: false,
+    draftType: (row.draft_type as CommunicationAttempt["draftType"]) ?? null,
+    audience: (row.audience as CommunicationAttempt["audience"]) ?? "internal",
+    sandboxSimulated: row.sandbox_simulated === true,
+  }));
 
   const linksFor = (needId: string) =>
     (links ?? []).filter((link) => link.client_need_id === needId);
@@ -127,5 +157,11 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
     documents: portalDocuments,
     completeCount: complete.length,
     requiredCount: required.length,
+    messages: borrowerPortalMessages({
+      attempts,
+      needs: portalNeeds,
+      borrowerName: deal.borrower_name,
+      dealReference: deal.deal_reference,
+    }),
   };
 }

@@ -111,7 +111,7 @@ describe("deal priority ranking", () => {
     ]);
     expect(ranked.label).toMatch(/High|Critical/);
     expect(reasons.join(" ")).toMatch(/replacement/i);
-    expect(reasons.join(" ")).toMatch(/Follow-up due/);
+    expect(reasons.join(" ")).toMatch(/Follow-up overdue/);
   });
 
   it("does not let seeded demo escalations bury a new evaluation file", () => {

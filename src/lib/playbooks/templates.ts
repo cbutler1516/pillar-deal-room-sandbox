@@ -7,6 +7,11 @@ export const REQUEST_TEMPLATE_VARS = [
   "contact_name",
   "expected_document_count",
   "expected_months",
+  "client_need",
+  "requested_items",
+  "due_context",
+  "follow_up_context",
+  "processor_name",
 ] as const;
 
 export type RequestTemplateVar = (typeof REQUEST_TEMPLATE_VARS)[number];
@@ -107,6 +112,11 @@ export function templateContextFromDeal(input: {
   dealReference?: string | null;
   contactName?: string | null;
   expectedDocumentCount?: number | null;
+  clientNeed?: string | null;
+  requestedItems?: string | null;
+  dueContext?: string | null;
+  followUpContext?: string | null;
+  processorName?: string | null;
 }): RequestTemplateContext {
   const address = [input.propertyAddress, input.propertyCity, input.propertyState]
     .filter(Boolean)
@@ -121,5 +131,10 @@ export function templateContextFromDeal(input: {
     contact_name: input.contactName,
     expected_document_count: count,
     expected_months: count,
+    client_need: input.clientNeed,
+    requested_items: input.requestedItems ?? input.clientNeed,
+    due_context: input.dueContext,
+    follow_up_context: input.followUpContext,
+    processor_name: input.processorName,
   };
 }

@@ -124,6 +124,7 @@ export function buildSeedRows() {
       playbook_key: task.playbookKey,
       instructions: task.instructions,
       last_contacted_at: task.lastContactedAt,
+      last_response_at: null,
       waiting_since: task.waitingSince,
       blocked_reason: task.blockedReason,
       deal_contact_id: task.dealContactId,

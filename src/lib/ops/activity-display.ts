@@ -36,6 +36,12 @@ const EVENT_ACTIONS: Record<string, string> = {
   contact_created: "Added contact",
   contact_updated: "Updated contact",
   contact_linked: "Linked contact",
+  contact_marked: "Marked contacted",
+  follow_up_scheduled: "Set follow-up",
+  escalation_triggered: "Escalated",
+  response_received: "Recorded a response",
+  communication_draft_copied: "Copied a communication draft",
+  portal_message_created: "Copied a portal message",
 };
 
 function titleCase(value: string): string {
@@ -107,8 +113,14 @@ export function formatActivityAction(
     const type = metadata.contact_type ?? metadata.type;
     return type ? `Linked ${titleCase(type)} contact` : "Linked contact";
   }
-  if (eventType === "task_contacted") {
+  if (eventType === "task_contacted" || eventType === "contact_marked") {
     return "Marked contacted";
+  }
+  if (eventType === "response_received") {
+    if (metadata.sandbox_simulated === "true") {
+      return "Recorded a sandbox simulated response";
+    }
+    return "Recorded a response";
   }
   if (eventType === "document_metadata_recorded") {
     return "Recorded uploaded document";

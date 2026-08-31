@@ -47,6 +47,7 @@ export type SnapshotTask = {
   dealContactId: string | null;
   nextFollowUpAt: string | null;
   lastContactedAt: string | null;
+  lastResponseAt: string | null;
   followUpIntervalHours: number | null;
   escalationAfterHours: number | null;
   escalationLevel: string | null;
@@ -76,7 +77,7 @@ export async function loadDealSnapshot(supabase: SupabaseClient): Promise<{
     supabase
       .from("tasks")
       .select(
-        "id, deal_id, priority, status, timing, task_kind, source_type, playbook_key, blocked_reason, deal_contact_id, client_need_id, next_follow_up_at, last_contacted_at, follow_up_interval_hours, escalation_after_hours, escalation_level, waiting_since, created_at, due_at",
+        "id, deal_id, priority, status, timing, task_kind, source_type, playbook_key, blocked_reason, deal_contact_id, client_need_id, next_follow_up_at, last_contacted_at, last_response_at, follow_up_interval_hours, escalation_after_hours, escalation_level, waiting_since, created_at, due_at",
       ),
   ]);
 
@@ -122,6 +123,7 @@ export async function loadDealSnapshot(supabase: SupabaseClient): Promise<{
       dealContactId: row.deal_contact_id ?? null,
       nextFollowUpAt: row.next_follow_up_at ?? null,
       lastContactedAt: row.last_contacted_at ?? null,
+      lastResponseAt: row.last_response_at ?? null,
       followUpIntervalHours: row.follow_up_interval_hours ?? null,
       escalationAfterHours: row.escalation_after_hours ?? null,
       escalationLevel: row.escalation_level ?? null,

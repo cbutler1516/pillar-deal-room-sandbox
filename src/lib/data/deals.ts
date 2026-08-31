@@ -88,6 +88,7 @@ export type TaskRow = {
   playbookKey: string | null;
   instructions: string | null;
   lastContactedAt: string | null;
+  lastResponseAt: string | null;
   waitingSince: string | null;
   blockedReason: string | null;
   createdAt: string | null;
@@ -286,7 +287,7 @@ export async function listDocuments(
 }
 
 const TASK_COLUMNS =
-  "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to, source_type, task_kind, timing, client_need_id, deal_contact_id, contact_name, contact_email, contact_phone, follow_up_interval_hours, next_follow_up_at, escalation_after_hours, escalation_level, completion_rule, playbook_key, instructions, last_contacted_at, waiting_since, blocked_reason, created_at";
+  "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to, source_type, task_kind, timing, client_need_id, deal_contact_id, contact_name, contact_email, contact_phone, follow_up_interval_hours, next_follow_up_at, escalation_after_hours, escalation_level, completion_rule, playbook_key, instructions, last_contacted_at, last_response_at, waiting_since, blocked_reason, created_at";
 
 const TASK_COLUMNS_LEGACY =
   "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to";
@@ -323,6 +324,7 @@ function mapTaskRow(row: Record<string, unknown>, fallbackDealId?: string): Task
     playbookKey: (row.playbook_key as string | null) ?? null,
     instructions: (row.instructions as string | null) ?? null,
     lastContactedAt: (row.last_contacted_at as string | null) ?? null,
+    lastResponseAt: (row.last_response_at as string | null) ?? null,
     waitingSince: (row.waiting_since as string | null) ?? null,
     blockedReason: (row.blocked_reason as string | null) ?? null,
     createdAt: (row.created_at as string | null) ?? null,

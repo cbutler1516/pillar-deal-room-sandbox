@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireInternalUser } from "@/lib/auth/session";
+import { insertCommunicationAttempt } from "@/lib/communications/data";
+import { buildContactedAttempt } from "@/lib/communications/records";
 import { contactActionChannel, markTaskContactedPatch, pickContactForPlaybook } from "@/lib/contacts/logic";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
 import {
@@ -38,6 +40,7 @@ function refreshDeal(dealId: string) {
   revalidatePath("/dashboard");
   revalidatePath("/deals");
   revalidatePath("/processor-queue");
+  revalidatePath("/tasks");
   revalidatePath(`/deals/${dealId}`);
 }
 
@@ -75,7 +78,7 @@ async function loadMutableTask(taskId: string) {
   const { data: task } = await supabase
     .from("tasks")
     .select(
-      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title",
+      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id",
     )
     .eq("id", taskId)
     .maybeSingle();
@@ -433,10 +436,21 @@ export async function markTaskContactedAction(
   if (error) {
     return { error: "Unable to mark this task contacted." };
   }
+  await insertCommunicationAttempt(
+    supabase,
+    buildContactedAttempt({
+      dealId: task.deal_id,
+      taskId: task.id,
+      clientNeedId: task.client_need_id,
+      dealContactId: task.deal_contact_id,
+      createdBy: user.id,
+      attemptedAt: now,
+    }),
+  );
   await logAuthorizedActivity({
     dealId: task.deal_id,
     actorId: user.id,
-    eventType: "task_contacted",
+    eventType: "contact_marked",
     metadata: {
       from: task.status,
       outbound_sent: String(channel.outboundSent),
@@ -581,7 +595,7 @@ export async function setTaskFollowUpAction(
   await logAuthorizedActivity({
     dealId: task.deal_id,
     actorId: user.id,
-    eventType: "task_follow_up_set",
+    eventType: "follow_up_scheduled",
     metadata: { next_follow_up_at: nextFollowUpAt },
   });
   refreshDeal(task.deal_id);
@@ -610,7 +624,7 @@ export async function escalateTaskAction(
   await logAuthorizedActivity({
     dealId: task.deal_id,
     actorId: user.id,
-    eventType: "task_escalated",
+    eventType: "escalation_triggered",
     metadata: { to: requested },
   });
   refreshDeal(task.deal_id);

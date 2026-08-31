@@ -52,19 +52,43 @@ export function deriveDealNextAction(input: {
     };
   }
 
+  const requestTask = (
+    task: (typeof nextActions)[number],
+  ) =>
+    !task.contactMissing &&
+    (task.sourceType === "borrower" ||
+      task.sourceType === "insurance" ||
+      task.sourceType === "title" ||
+      task.sourceType === "escrow" ||
+      task.taskKind === "contact_third_party");
+
+  const subjectFor = (task: (typeof nextActions)[number]) =>
+    needs.find((need) => need.id === task.clientNeedId)?.documentType ??
+    task.title.replace(/^Request\s+/i, "");
+
+  const escalate = nextActions.find(
+    (task) => task.escalationDue && requestTask(task),
+  );
+  if (escalate) {
+    const subject = subjectFor(escalate);
+    const who = escalate.contactName ?? escalate.sourceType?.replaceAll("_", " ");
+    return {
+      action: who
+        ? `Escalate ${subject.toLowerCase()} with ${who}`
+        : `Escalate follow-up for ${subject.toLowerCase()}`,
+      source: escalate.sourceType?.replaceAll("_", " ") ?? null,
+      contactName: escalate.contactName,
+      dueAt: escalate.nextFollowUpAt,
+      href: href("tasks"),
+      target: "tasks",
+    };
+  }
+
   const followUp = nextActions.find(
-    (task) =>
-      task.followUpDue &&
-      !task.contactMissing &&
-      (task.sourceType === "borrower" ||
-        task.sourceType === "insurance" ||
-        task.sourceType === "title" ||
-        task.taskKind === "contact_third_party"),
+    (task) => task.followUpDue && requestTask(task),
   );
   if (followUp) {
-    const subject =
-      needs.find((need) => need.id === followUp.clientNeedId)?.documentType ??
-      followUp.title.replace(/^Request\s+/i, "");
+    const subject = subjectFor(followUp);
     const who = followUp.contactName ?? followUp.sourceType?.replaceAll("_", " ");
     return {
       action: who
@@ -97,6 +121,26 @@ export function deriveDealNextAction(input: {
     };
   }
 
+  const reviewResponse = nextActions.find(
+    (task) => Boolean(task.lastResponseAt) && requestTask(task),
+  );
+  if (reviewResponse) {
+    const subject = subjectFor(reviewResponse);
+    const who =
+      reviewResponse.contactName ??
+      reviewResponse.sourceType?.replaceAll("_", " ");
+    return {
+      action: who
+        ? `Review response from ${who} for ${subject.toLowerCase()}`
+        : `Review response for ${subject.toLowerCase()}`,
+      source: reviewResponse.sourceType?.replaceAll("_", " ") ?? null,
+      contactName: reviewResponse.contactName,
+      dueAt: reviewResponse.nextFollowUpAt,
+      href: href("tasks"),
+      target: "tasks",
+    };
+  }
+
   const missingContact = nextActions.find((task) => task.contactMissing);
   if (missingContact) {
     return {
@@ -108,6 +152,24 @@ export function deriveDealNextAction(input: {
       dueAt: missingContact.nextFollowUpAt,
       href: href("contacts"),
       target: "contacts",
+    };
+  }
+
+  const initial = nextActions.find(
+    (task) => !task.lastContactedAt && requestTask(task),
+  );
+  if (initial) {
+    const subject = subjectFor(initial);
+    const who = initial.contactName ?? initial.sourceType?.replaceAll("_", " ");
+    return {
+      action: who
+        ? `Send initial request to ${who} for ${subject.toLowerCase()}`
+        : `Send initial request for ${subject.toLowerCase()}`,
+      source: initial.sourceType?.replaceAll("_", " ") ?? null,
+      contactName: initial.contactName,
+      dueAt: initial.nextFollowUpAt ?? initial.dueAt,
+      href: href("tasks"),
+      target: "tasks",
     };
   }
 

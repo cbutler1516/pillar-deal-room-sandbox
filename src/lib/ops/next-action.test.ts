@@ -17,6 +17,7 @@ function action(partial: Partial<DecoratedAction> = {}): DecoratedAction {
     dueAt: null,
     nextFollowUpAt: "2026-08-29T18:00:00.000Z",
     lastContactedAt: null,
+    lastResponseAt: null,
     waitingSince: null,
     followUpIntervalHours: 24,
     escalationAfterHours: 48,
@@ -94,6 +95,77 @@ describe("deterministic next action", () => {
     expect(next?.action).toMatch(/Follow up with Jordan Lee for insurance binder/i);
     expect(next?.contactName).toBe("Jordan Lee");
     expect(next?.dueAt).toBe("2026-08-29T18:00:00.000Z");
+  });
+
+  it("asks to send the initial request when nobody has been contacted", () => {
+    const next = deriveDealNextAction({
+      dealId: "deal-1",
+      needs: [
+        {
+          id: "need-1",
+          documentType: "Government-issued ID",
+          required: true,
+          status: "requested",
+        },
+      ],
+      documents: [],
+      nextActions: [action({ lastContactedAt: null, followUpDue: false })],
+    });
+    expect(next?.action).toMatch(
+      /Send initial request to Alex Rivera for government-issued id/i,
+    );
+  });
+
+  it("orients next action to escalation when the follow-up is overdue", () => {
+    const next = deriveDealNextAction({
+      dealId: "deal-1",
+      needs: [
+        {
+          id: "need-title",
+          documentType: "Title Commitment",
+          required: true,
+          status: "requested",
+        },
+      ],
+      documents: [],
+      nextActions: [
+        action({
+          id: "task-title",
+          clientNeedId: "need-title",
+          title: "Request title commitment",
+          sourceType: "title",
+          contactName: "Taylor Reed",
+          followUpDue: true,
+          escalationDue: true,
+        }),
+      ],
+    });
+    expect(next?.action).toMatch(/Escalate title commitment with Taylor Reed/i);
+  });
+
+  it("reviews a recorded response without completing the task", () => {
+    const next = deriveDealNextAction({
+      dealId: "deal-1",
+      needs: [
+        {
+          id: "need-1",
+          documentType: "Government-issued ID",
+          required: true,
+          status: "requested",
+        },
+      ],
+      documents: [],
+      nextActions: [
+        action({
+          status: "in_progress",
+          lastContactedAt: "2026-08-29T12:00:00.000Z",
+          lastResponseAt: "2026-08-29T16:00:00.000Z",
+          followUpDue: false,
+        }),
+      ],
+    });
+    expect(next?.action).toMatch(/Review response from Alex Rivera/i);
+    expect(next?.target).toBe("tasks");
   });
 
   it("reviews newly received documents", () => {
