@@ -1,3 +1,4 @@
+import { AIAssistPanel } from "@/components/ai-assist-panel";
 import { EmptyState } from "@/components/empty-state";
 import { ClientNeedsWorkspace } from "@/components/client-need-workspace";
 import { DocumentIntakePanel } from "@/components/document-intake-panel";
@@ -5,6 +6,9 @@ import { DocumentsWorkspace } from "@/components/documents-workspace";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
 import { CommunicationTimeline } from "@/components/communication-timeline";
 import { TaskWorkspace } from "@/components/task-workspace";
+import { canViewAIAssist } from "@/lib/ai/authorization";
+import { getAIProvider } from "@/lib/ai/factory";
+import { buildAIDealSnapshot } from "@/lib/ai/snapshot";
 import { listCommunications, listActiveStaff } from "@/lib/communications/data";
 import {
   DealOverview,
@@ -119,6 +123,19 @@ export default async function DealDetailPage({
         ? "Assigned processor"
         : "Unassigned";
   const sandboxMock = getDocumentStorageProviderName() === "sandbox_mock";
+  const assist = canViewAIAssist(profile.role)
+    ? await getAIProvider().summarize({
+        snapshot: buildAIDealSnapshot({
+          deal,
+          needs,
+          documents,
+          tasks,
+          nextActions,
+          communications: attempts,
+          activity,
+        }),
+      })
+    : null;
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
@@ -153,20 +170,23 @@ export default async function DealDetailPage({
       </div>
 
       {tab === "overview" ? (
-        <DealOverview
-          deal={deal}
-          needs={needs}
-          documents={documents}
-          tasks={tasks}
-          nextActions={nextActions}
-          attempts={attempts}
-          intake={
-            deal.applicationIntake ??
-            activity.find((event) => event.eventType === "application_received")
-              ?.safeMetadata ??
-            null
-          }
-        />
+        <>
+          {assist ? <AIAssistPanel result={assist} /> : null}
+          <DealOverview
+            deal={deal}
+            needs={needs}
+            documents={documents}
+            tasks={tasks}
+            nextActions={nextActions}
+            attempts={attempts}
+            intake={
+              deal.applicationIntake ??
+              activity.find((event) => event.eventType === "application_received")
+                ?.safeMetadata ??
+              null
+            }
+          />
+        </>
       ) : null}
 
       {tab === "tasks" ? (

@@ -1,8 +1,10 @@
 "use client";
 
+import { AIRewriteControls } from "@/components/ai-rewrite-controls";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
 import { buttonClass } from "@/components/ui/button";
+import type { AIDraftRewriteIntent } from "@/lib/ai/types";
 import { communicationAging, formatHoursCompact } from "@/lib/communications/aging";
 import {
   markResponseReceivedAction,
@@ -18,7 +20,11 @@ import {
 } from "@/lib/communications/drafts";
 import { historyItemsFromAttempts } from "@/lib/communications/history";
 import { recommendedDraftForTask } from "@/lib/communications/sequence";
-import type { CommunicationAttempt, CommunicationChannel } from "@/lib/communications/types";
+import type {
+  CommunicationAttempt,
+  CommunicationChannel,
+  DraftType,
+} from "@/lib/communications/types";
 import type { DealContactRow, TaskRow } from "@/lib/data/deals";
 import { escalateTaskAction } from "@/lib/playbooks/actions";
 import { getPlaybook } from "@/lib/playbooks/registry";
@@ -106,6 +112,7 @@ export function CommunicationPanel({
     attempts.filter((item) => item.taskId === task.id),
   );
   const email = draftTextForChannel(draft, "email");
+  const rewriteIntent = rewriteIntentFromDraft(draft.draftType);
   const active =
     task.status === "open" ||
     task.status === "in_progress" ||
@@ -229,6 +236,14 @@ export function CommunicationPanel({
               onCopied={() => void copyChannel("portal")}
             />
           ) : null}
+          <AIRewriteControls
+            dealId={task.dealId}
+            taskId={task.id}
+            channel="email"
+            subject={email.subject}
+            body={email.body}
+            intent={rewriteIntent}
+          />
         </div>
       ) : null}
 
@@ -276,4 +291,18 @@ export function CommunicationPanel({
       ) : null}
     </section>
   );
+}
+
+function rewriteIntentFromDraft(draftType: DraftType): AIDraftRewriteIntent {
+  if (draftType === "replacement") {
+    return "replacement";
+  }
+  if (
+    draftType === "follow_up" ||
+    draftType === "second_follow_up" ||
+    draftType === "escalation"
+  ) {
+    return "follow_up";
+  }
+  return "clarify";
 }

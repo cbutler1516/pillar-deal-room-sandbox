@@ -42,6 +42,7 @@ const EVENT_ACTIONS: Record<string, string> = {
   response_received: "Recorded a response",
   communication_draft_copied: "Copied a communication draft",
   portal_message_created: "Copied a portal message",
+  ai_assist_requested: "Requested AI assist",
 };
 
 function titleCase(value: string): string {
@@ -124,6 +125,12 @@ export function formatActivityAction(
   }
   if (eventType === "document_metadata_recorded") {
     return "Recorded uploaded document";
+  }
+  if (eventType === "ai_assist_requested") {
+    if (metadata.capability === "rewrite_communication") {
+      return "Requested an AI rewrite suggestion";
+    }
+    return "Requested AI assist";
   }
   return EVENT_ACTIONS[eventType] ?? titleCase(eventType);
 }
