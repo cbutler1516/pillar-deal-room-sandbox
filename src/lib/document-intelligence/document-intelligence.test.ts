@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { analyzeDocumentIntelligence, extractPeriodFromFileName } from "./analyze";
+import {
+  analyzeDocumentIntelligence,
+  extractPeriodFromFileName,
+  needIntelligenceHints,
+} from "./analyze";
 import { getDocumentIntelligenceProviderName } from "./config";
 import { getDocumentIntelligenceProvider } from "./factory";
 import { buildDocumentIntelligenceSnapshot } from "./snapshot";
@@ -304,6 +308,158 @@ describe("document intelligence snapshot", () => {
     expect(built.deal.transaction).toBe("purchase");
     expect(built.documents[0]?.sizeBytes).toBeNull();
     expect(built.requests[0]?.requestedType).toBe("Purchase Agreement");
+  });
+});
+
+describe("document intelligence evaluation scenarios", () => {
+  function doc(
+    id: string,
+    fileName: string,
+    linkedNeedIds: string[],
+    status = "received",
+  ) {
+    return {
+      id,
+      fileName,
+      mimeType: fileName.endsWith(".jpg") ? "image/jpeg" : "application/pdf",
+      sizeBytes: null,
+      uploadedAt: "2026-08-21T00:00:00.000Z",
+      documentType: null,
+      status,
+      provider: "sandbox_mock",
+      linkedNeedIds,
+    };
+  }
+
+  it("A. matches a correctly linked bank statement from filename", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        documents: [doc("doc-july", "july-2026-bank-statement.pdf", ["need-bank"])],
+      }),
+    );
+    const item = result.documents[0];
+    expect(item.classification.suggestedType).toMatch(/Bank Statement/i);
+    expect(item.needFit.some((fit) => fit.status === "fit")).toBe(true);
+    expect(item.classification.confidence).toBeGreaterThan(0.5);
+    expect(item.recommendation.executable).toBe(false);
+    expect(item.recommendation.action).not.toMatch(/approve|waive/i);
+  });
+
+  it("B. treats a second month as distinct and still requiring review", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        documents: [
+          doc("doc-july", "july-2026-bank-statement.pdf", ["need-bank"]),
+          doc("doc-aug", "august-2026-bank-statement.pdf", ["need-bank"]),
+        ],
+      }),
+    );
+    const complete = result.completeness[0];
+    expect(complete.linkedCount).toBe(2);
+    expect(complete.expectedCount).toBe(2);
+    expect(complete.countMet).toBe(true);
+    expect(complete.processorDecisionRequired).toBe(true);
+    const periods = result.documents.map((item) => item.period?.extractedPeriod);
+    expect(periods).toEqual(expect.arrayContaining(["2026-07", "2026-08"]));
+  });
+
+  it("C. flags a duplicate without deleting anything", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        documents: [
+          doc("doc-a", "july-2026-bank-statement.pdf", ["need-bank"]),
+          doc("doc-b", "july-2026-bank-statement.pdf", ["need-bank"]),
+        ],
+      }),
+    );
+    expect(result.documents[0].duplicates.length).toBeGreaterThan(0);
+    expect(result.usedBytes).toBe(false);
+    expect(result.canMutateWorkflow).toBe(false);
+  });
+
+  it("D. flags an insurance binder linked to Government-issued ID", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        needs: [
+          {
+            id: "need-id",
+            documentType: "Government-issued ID",
+            category: "Identity",
+            required: true,
+            status: "requested",
+            expectedDocumentCount: 1,
+            expectedMonths: null,
+            timing: "required_now",
+            playbookKey: "request_government_id",
+            description: null,
+          },
+        ],
+        documents: [doc("doc-ins", "insurance-binder.pdf", ["need-id"])],
+        requests: [],
+      }),
+    );
+    const item = result.documents[0];
+    expect(item.classification.suggestedType).toBe("Insurance");
+    expect(item.needFit.some((fit) => fit.status === "mismatch")).toBe(true);
+    expect(item.recommendation.action).toBe("review_mismatch");
+    expect(item.recommendation.label).toMatch(/mismatched/i);
+    expect(result.canMutateWorkflow).toBe(false);
+  });
+
+  it("E. recommends reviewing a replacement while keeping the rejected file", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        needs: [
+          {
+            id: "need-id",
+            documentType: "Government-issued ID",
+            category: "Identity",
+            required: true,
+            status: "rejected",
+            expectedDocumentCount: 1,
+            expectedMonths: null,
+            timing: "required_now",
+            playbookKey: "request_government_id",
+            description: null,
+          },
+        ],
+        documents: [
+          {
+            ...doc("doc-old", "blurry-id.pdf", ["need-id"], "rejected"),
+            documentType: "Government-issued ID",
+          },
+          doc("doc-new", "passport-alex.pdf", [], "received"),
+        ],
+        requests: [
+          {
+            clientNeedId: "need-id",
+            draftType: "replacement",
+            requestedType: "Government-issued ID",
+          },
+        ],
+      }),
+    );
+    const replacement = result.documents.find((item) => item.documentId === "doc-new");
+    const rejected = result.documents.find((item) => item.documentId === "doc-old");
+    expect(replacement?.recommendation.action).toBe("review_replacement");
+    expect(replacement?.recommendation.label).toBe("Review replacement");
+    expect(rejected?.documentId).toBe("doc-old");
+    expect(needIntelligenceHints(result).some((hint) => hint.replacementCandidate)).toBe(
+      true,
+    );
+  });
+
+  it("F. leaves an unlinked photo unassociated", () => {
+    const result = analyzeDocumentIntelligence(
+      snapshot({
+        documents: [doc("doc-photo", "misc-property-photo.jpg", [])],
+      }),
+    );
+    const item = result.documents[0];
+    expect(item.classification.suggestedType).toBeNull();
+    expect(item.needFit.every((fit) => fit.status !== "fit")).toBe(true);
+    expect(item.recommendation.action).toBe("review_unclassified");
+    expect(item.recommendation.label).not.toMatch(/link to/i);
   });
 });
 

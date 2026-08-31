@@ -4,6 +4,7 @@ import { ClientNeedsWorkspace } from "@/components/client-need-workspace";
 import { DocumentIntelligencePanel } from "@/components/document-intelligence-panel";
 import { DocumentIntakePanel } from "@/components/document-intake-panel";
 import { DocumentsWorkspace } from "@/components/documents-workspace";
+import { needIntelligenceHints } from "@/lib/document-intelligence/analyze";
 import { canViewDocumentIntelligence } from "@/lib/document-intelligence/authorization";
 import { getDocumentIntelligenceProvider } from "@/lib/document-intelligence/factory";
 import { buildDocumentIntelligenceSnapshot } from "@/lib/document-intelligence/snapshot";
@@ -127,18 +128,33 @@ export default async function DealDetailPage({
         ? "Assigned processor"
         : "Unassigned";
   const sandboxMock = getDocumentStorageProviderName() === "sandbox_mock";
-  const documentIntelligence =
-    tab === "documents" && canViewDocumentIntelligence(profile.role)
-      ? await getDocumentIntelligenceProvider().analyze(
-          buildDocumentIntelligenceSnapshot({
-            deal,
-            documents,
-            needs,
-            tasks,
-            communications: attempts,
-          }),
-        )
-      : null;
+  const documentIntelligence = canViewDocumentIntelligence(profile.role)
+    ? await getDocumentIntelligenceProvider().analyze(
+        buildDocumentIntelligenceSnapshot({
+          deal,
+          documents,
+          needs,
+          tasks,
+          communications: attempts,
+        }),
+      )
+    : null;
+  const intelligenceHints = documentIntelligence
+    ? needIntelligenceHints(documentIntelligence)
+    : [];
+  const documentMismatches =
+    documentIntelligence?.documents.flatMap((doc) =>
+      doc.needFit
+        .filter((item) => item.status === "mismatch")
+        .map((item) => ({
+          documentId: doc.documentId,
+          needId: item.needId,
+          fileName:
+            documents.find((row) => row.id === doc.documentId)?.fileName ??
+            doc.documentId,
+          needDocumentType: item.needDocumentType,
+        })),
+    ) ?? [];
   const assist = canViewAIAssist(profile.role)
     ? await getAIProvider().summarize({
         snapshot: buildAIDealSnapshot({
@@ -195,6 +211,7 @@ export default async function DealDetailPage({
             tasks={tasks}
             nextActions={nextActions}
             attempts={attempts}
+            mismatches={documentMismatches}
             intake={
               deal.applicationIntake ??
               activity.find((event) => event.eventType === "application_received")
@@ -258,12 +275,16 @@ export default async function DealDetailPage({
             needOps={needs.map((need) => {
               const task = tasks.find((item) => item.clientNeedId === need.id);
               const action = nextActions.find((item) => item.id === task?.id);
+              const hint = intelligenceHints.find((item) => item.needId === need.id);
               return {
                 needId: need.id,
                 timing: task?.timing ?? null,
                 sourceType: task?.sourceType ?? null,
                 nextAction: task?.title ?? null,
                 contactMissing: Boolean(action?.contactMissing),
+                mismatch: hint?.mismatch,
+                replacementCandidate: hint?.replacementCandidate,
+                reviewNeeded: hint?.reviewNeeded,
               };
             })}
           />

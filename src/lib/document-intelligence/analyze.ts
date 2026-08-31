@@ -17,6 +17,7 @@ import {
   type DocumentPeriodFlag,
   type DocumentReviewRecommendation,
   type DocumentSetCompleteness,
+  type NeedIntelligenceHint,
 } from "@/lib/document-intelligence/types";
 
 const BLOCKED_CONTENT_KEYS = new Set([
@@ -394,11 +395,27 @@ function recommend(
   let label = "Review this file when you have time.";
   let priority = 40;
 
+  const replacementFit = fit.find((item) => {
+    const need = snapshot.needs.find((entry) => entry.id === item.needId);
+    return (
+      need?.status === "rejected" &&
+      document.status !== "rejected" &&
+      (item.status === "fit" || item.status === "candidate")
+    );
+  });
+
   if (mismatch) {
     action = "review_mismatch";
     label = `Review mismatched link to ${mismatch.needDocumentType}`;
     reasons.push(...mismatch.reasons);
     priority = 10;
+  } else if (replacementFit) {
+    action = "review_replacement";
+    label = "Review replacement";
+    reasons.push(
+      `${replacementFit.needDocumentType} is still replacement needed. This file is a candidate. The rejected file stays on the ledger.`,
+    );
+    priority = 12;
   } else if (duplicates.length > 0) {
     action = "review_duplicate";
     label = `Review possible duplicate of ${duplicates[0].otherFileName}`;
@@ -502,5 +519,31 @@ export function analyzeDocumentIntelligence(
     reviewQueue,
     disclaimer: DOCUMENT_INTELLIGENCE_DISCLAIMER,
   };
+}
+
+export function needIntelligenceHints(
+  result: DocumentIntelligenceResult,
+): NeedIntelligenceHint[] {
+  const needIds = new Set(result.completeness.map((item) => item.needId));
+  return [...needIds].map((needId) => {
+    const completeness = result.completeness.find((item) => item.needId === needId);
+    const fits = result.documents.flatMap((doc) =>
+      doc.needFit.filter((item) => item.needId === needId),
+    );
+    return {
+      needId,
+      mismatch: fits.some((item) => item.status === "mismatch"),
+      replacementCandidate: result.documents.some(
+        (doc) =>
+          doc.recommendation.action === "review_replacement" &&
+          doc.needFit.some(
+            (item) =>
+              item.needId === needId &&
+              (item.status === "fit" || item.status === "candidate"),
+          ),
+      ),
+      reviewNeeded: Boolean(completeness?.processorDecisionRequired),
+    };
+  });
 }
 

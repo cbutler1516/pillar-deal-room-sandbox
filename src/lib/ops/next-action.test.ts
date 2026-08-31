@@ -50,7 +50,7 @@ function action(partial: Partial<DecoratedAction> = {}): DecoratedAction {
 }
 
 describe("deterministic next action", () => {
-  it("asks for a required replacement first", () => {
+  it("asks for a required replacement after critical escalation", () => {
     const next = deriveDealNextAction({
       dealId: "deal-1",
       needs: [
@@ -166,6 +166,52 @@ describe("deterministic next action", () => {
     });
     expect(next?.action).toMatch(/Review response from Alex Rivera/i);
     expect(next?.target).toBe("tasks");
+  });
+
+  it("reviews a required document mismatch before overdue follow-up", () => {
+    const next = deriveDealNextAction({
+      dealId: "deal-1",
+      needs: [
+        {
+          id: "need-id",
+          documentType: "Government-issued ID",
+          required: true,
+          status: "requested",
+        },
+      ],
+      documents: [
+        { id: "doc-1", documentType: "Insurance", status: "received" },
+      ],
+      nextActions: [action({ followUpDue: true })],
+      mismatches: [
+        {
+          documentId: "doc-1",
+          needId: "need-id",
+          fileName: "insurance-binder.pdf",
+          needDocumentType: "Government-issued ID",
+        },
+      ],
+    });
+    expect(next?.action).toMatch(/mismatched insurance-binder\.pdf/i);
+    expect(next?.target).toBe("documents");
+  });
+
+  it("collects a missing required document before a normal workflow task", () => {
+    const next = deriveDealNextAction({
+      dealId: "deal-1",
+      needs: [
+        {
+          id: "need-bank",
+          documentType: "Bank Statements",
+          required: true,
+          status: "missing",
+        },
+      ],
+      documents: [],
+      nextActions: [action({ clientNeedId: "need-bank", lastContactedAt: "2026-08-29T12:00:00.000Z" })],
+    });
+    expect(next?.action).toMatch(/Collect missing required Bank Statements/);
+    expect(next?.target).toBe("needs");
   });
 
   it("reviews newly received documents", () => {

@@ -11,7 +11,10 @@ import { CommunicationTimeline } from "@/components/communication-timeline";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ClientNeedRow, DealDetail, DocumentRow, TaskRow } from "@/lib/data/deals";
 import { formatCurrency, formatFollowUpAt, formatProperty } from "@/lib/format";
-import { deriveDealNextAction } from "@/lib/ops/next-action";
+import {
+  deriveDealNextAction,
+  type NextActionMismatch,
+} from "@/lib/ops/next-action";
 import { documentCompletion } from "@/lib/ops/metrics";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
@@ -135,6 +138,7 @@ export function DealOverview({
   nextActions,
   intake = null,
   attempts = [],
+  mismatches = [],
 }: {
   deal: DealDetail;
   needs: ClientNeedRow[];
@@ -143,6 +147,7 @@ export function DealOverview({
   nextActions: DecoratedAction[];
   intake?: unknown;
   attempts?: CommunicationAttempt[];
+  mismatches?: NextActionMismatch[];
 }) {
   const docs = documentCompletion(
     deal.id,
@@ -188,6 +193,7 @@ export function DealOverview({
     needs,
     documents,
     nextActions,
+    mismatches,
   });
   const resolvedIntake = intake ?? deal.applicationIntake;
 

@@ -71,8 +71,16 @@ export type DocumentReviewAction =
   | "review_duplicate"
   | "review_period"
   | "review_mismatch"
+  | "review_replacement"
   | "review_unclassified"
   | "processor_decision";
+
+export type NeedIntelligenceHint = {
+  needId: string;
+  mismatch: boolean;
+  replacementCandidate: boolean;
+  reviewNeeded: boolean;
+};
 
 export type DocumentReviewRecommendation = {
   documentId: string;
