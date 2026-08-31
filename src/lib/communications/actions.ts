@@ -21,11 +21,14 @@ import {
   isDraftType,
 } from "@/lib/communications/types";
 import { canMutateProcessorTask } from "@/lib/playbooks/authorization";
-import { nextFollowUpAtFrom } from "@/lib/playbooks/logic";
 import { getPlaybook } from "@/lib/playbooks/registry";
 import { templateContextFromDeal } from "@/lib/playbooks/templates";
 import { assertSandboxGuard } from "@/lib/sandbox";
-import { contactActionChannel, markTaskContactedPatch } from "@/lib/contacts/logic";
+import {
+  contactActionChannel,
+  markTaskContactedPatch,
+  nextFollowUpFromCadence,
+} from "@/lib/contacts/logic";
 import { logAuthorizedActivity } from "@/lib/workflow/activity";
 
 export type CommunicationActionResult = {
@@ -193,6 +196,7 @@ export async function markTaskContactedWithCommunicationAction(
   const patch = markTaskContactedPatch({
     nowIso: now,
     followUpIntervalHours: task.follow_up_interval_hours,
+    sourceType: task.source_type,
     markWaiting,
   });
   const channelStub = contactActionChannel();
@@ -417,7 +421,10 @@ export async function markTaskWaitingWithCadenceAction(
     .update({
       status: "waiting",
       waiting_since: now,
-      next_follow_up_at: nextFollowUpAtFrom(now, task.follow_up_interval_hours),
+      next_follow_up_at: nextFollowUpFromCadence(now, {
+        followUpIntervalHours: task.follow_up_interval_hours,
+        sourceType: task.source_type,
+      }),
       completed_at: null,
     })
     .eq("id", task.id);

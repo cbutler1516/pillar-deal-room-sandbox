@@ -1,6 +1,16 @@
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
+import {
+  collectOperationalWork,
+  topWorkItemForDeal,
+  type NextActionTarget,
+  type OperationalDeal,
+  type OperationalDocument,
+  type OperationalNeed,
+  type OperationalTask,
+  type OperationalWorkItem,
+} from "@/lib/ops/operational-work";
 
-export type NextActionTarget = "tasks" | "needs" | "documents" | "contacts";
+export type { NextActionTarget };
 
 export type DealNextAction = {
   action: string;
@@ -22,6 +32,9 @@ type NextActionDocument = {
   id: string;
   documentType: string | null;
   status: string;
+  fileName?: string | null;
+  mimeType?: string | null;
+  linkedNeedIds?: string[];
 };
 
 export type NextActionMismatch = {
@@ -31,192 +44,237 @@ export type NextActionMismatch = {
   needDocumentType: string;
 };
 
+function taskToOperational(task: DecoratedAction): OperationalTask {
+  return {
+    id: task.id,
+    dealId: task.dealId,
+    title: task.title,
+    status: task.status,
+    priority: task.priority,
+    timing: task.timing,
+    taskKind: task.taskKind,
+    sourceType: task.sourceType,
+    playbookKey: task.playbookKey,
+    blockedReason: task.blockedReason,
+    dealContactId: task.dealContactId,
+    clientNeedId: task.clientNeedId,
+    contactName: task.contactName,
+    nextFollowUpAt: task.nextFollowUpAt,
+    lastContactedAt: task.lastContactedAt,
+    lastResponseAt: task.lastResponseAt,
+    waitingSince: task.waitingSince,
+    followUpIntervalHours: task.followUpIntervalHours,
+    escalationAfterHours: task.escalationAfterHours,
+    escalationLevel: task.escalationLevel,
+    createdAt: task.createdAt,
+    dueAt: task.dueAt,
+    requiresContact: task.requiresContact,
+    expectedContactType: task.expectedContactType,
+  };
+}
+
+export function nextActionFromWorkItem(
+  row: OperationalWorkItem,
+  tasks: DecoratedAction[] = [],
+): DealNextAction {
+  const task = tasks.find((item) => item.id === row.sourceId);
+  const who = task?.contactName ?? task?.sourceType?.replaceAll("_", " ") ?? null;
+  const subject = row.title;
+  const href = row.href;
+  const target = row.target;
+
+  switch (row.workType) {
+    case "escalated_task":
+    case "escalation_due":
+      return {
+        action: who
+          ? `Escalate ${subject.toLowerCase()} with ${who}`
+          : `Escalate follow-up for ${subject.toLowerCase()}`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? row.loanType,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    case "replacement_needed":
+      return {
+        action: `Request replacement ${subject} from ${
+          task?.sourceType === "borrower" || !task?.sourceType
+            ? "borrower"
+            : task.sourceType.replaceAll("_", " ")
+        }`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? "borrower",
+        contactName: task?.contactName ?? null,
+        dueAt: task?.nextFollowUpAt ?? row.dueAt,
+        href,
+        target,
+      };
+    case "replacement_received":
+      return {
+        action: `Review replacement ${subject}`,
+        source: "internal",
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
+    case "document_mismatch":
+      return {
+        action: `Review mismatched ${row.reason.replace(/^Likely mismatch:\s*/i, "")} on ${subject}`,
+        source: "internal",
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
+    case "follow_up_overdue":
+    case "follow_up_due_today":
+    case "waiting_beyond_cadence":
+      return {
+        action: who
+          ? `Follow up with ${who} for ${subject.toLowerCase()}`
+          : `Follow up for ${subject.toLowerCase()}`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? null,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    case "response_received":
+      return {
+        action: who
+          ? `Review response from ${who} for ${subject.toLowerCase()}`
+          : `Review response for ${subject.toLowerCase()}`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? null,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    case "document_awaiting_review":
+    case "document_duplicate":
+      return {
+        action: `Review newly received ${subject.toLowerCase()}`,
+        source: "internal",
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
+    case "required_contact_missing": {
+      const contactType =
+        task?.expectedContactType ??
+        subject.replace(/ contact$/i, "").toLowerCase().replaceAll(" ", "_");
+      return {
+        action: `Add ${contactType.replaceAll("_", " ")} contact for ${
+          task?.title.toLowerCase() ?? "this file"
+        }`,
+        source: contactType,
+        contactName: null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    }
+    case "no_initial_contact":
+      return {
+        action: who
+          ? `Send initial request to ${who} for ${subject.toLowerCase()}`
+          : `Send initial request for ${subject.toLowerCase()}`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? null,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    case "required_need_missing":
+      return {
+        action: `Collect missing required ${subject}`,
+        source: "internal",
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
+    case "new_application":
+    case "unassigned_file":
+      return {
+        action: row.assignedProcessorId
+          ? "Start collecting documents on this new file"
+          : "Claim this unassigned application",
+        source: "internal",
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
+    default:
+      return {
+        action: row.reason,
+        source: task?.sourceType?.replaceAll("_", " ") ?? row.loanType,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+  }
+}
+
 export function deriveDealNextAction(input: {
   dealId: string;
   needs: NextActionNeed[];
   documents: NextActionDocument[];
   nextActions: DecoratedAction[];
   mismatches?: NextActionMismatch[];
+  deal?: Partial<OperationalDeal>;
+  now?: Date;
 }): DealNextAction | null {
   const { dealId, needs, documents, nextActions } = input;
-  const href = (tab: NextActionTarget) => `/deals/${dealId}?tab=${tab}`;
-
-  const requestTask = (
-    task: (typeof nextActions)[number],
-  ) =>
-    !task.contactMissing &&
-    (task.sourceType === "borrower" ||
-      task.sourceType === "insurance" ||
-      task.sourceType === "title" ||
-      task.sourceType === "escrow" ||
-      task.taskKind === "contact_third_party");
-
-  const subjectFor = (task: (typeof nextActions)[number]) =>
-    needs.find((need) => need.id === task.clientNeedId)?.documentType ??
-    task.title.replace(/^Request\s+/i, "");
-
-  const escalate = nextActions.find(
-    (task) => task.escalationDue && requestTask(task),
-  );
-  if (escalate) {
-    const subject = subjectFor(escalate);
-    const who = escalate.contactName ?? escalate.sourceType?.replaceAll("_", " ");
-    return {
-      action: who
-        ? `Escalate ${subject.toLowerCase()} with ${who}`
-        : `Escalate follow-up for ${subject.toLowerCase()}`,
-      source: escalate.sourceType?.replaceAll("_", " ") ?? null,
-      contactName: escalate.contactName,
-      dueAt: escalate.nextFollowUpAt,
-      href: href("tasks"),
-      target: "tasks",
-    };
-  }
-
-  const replacement = needs.find(
-    (need) => need.required && need.status === "rejected",
-  );
-  if (replacement) {
-    const task = nextActions.find((item) => item.clientNeedId === replacement.id);
-    return {
-      action: `Request replacement ${replacement.documentType} from ${
-        task?.sourceType === "borrower" || !task?.sourceType
-          ? "borrower"
-          : task.sourceType.replaceAll("_", " ")
-      }`,
-      source: task?.sourceType?.replaceAll("_", " ") ?? "borrower",
-      contactName: task?.contactName ?? null,
-      dueAt: task?.nextFollowUpAt ?? task?.dueAt ?? null,
-      href: href("needs"),
-      target: "needs",
-    };
-  }
-
-  const mismatch = input.mismatches?.[0];
-  if (mismatch) {
-    return {
-      action: `Review mismatched ${mismatch.fileName} on ${mismatch.needDocumentType}`,
-      source: "internal",
-      contactName: null,
-      dueAt: null,
-      href: href("documents"),
-      target: "documents",
-    };
-  }
-
-  const followUp = nextActions.find(
-    (task) => task.followUpDue && requestTask(task),
-  );
-  if (followUp) {
-    const subject = subjectFor(followUp);
-    const who = followUp.contactName ?? followUp.sourceType?.replaceAll("_", " ");
-    return {
-      action: who
-        ? `Follow up with ${who} for ${subject.toLowerCase()}`
-        : `Follow up for ${subject.toLowerCase()}`,
-      source: followUp.sourceType?.replaceAll("_", " ") ?? null,
-      contactName: followUp.contactName,
-      dueAt: followUp.nextFollowUpAt,
-      href: href("tasks"),
-      target: "tasks",
-    };
-  }
-
-  const reviewDoc = documents.find((doc) => doc.status === "needs_review");
-  const receivedNeed = needs.find(
-    (need) => need.status === "received" || need.status === "needs_review",
-  );
-  if (reviewDoc || receivedNeed) {
-    const label =
-      reviewDoc?.documentType ??
-      receivedNeed?.documentType ??
-      "received documents";
-    return {
-      action: `Review newly received ${label.toLowerCase()}`,
-      source: "internal",
-      contactName: null,
-      dueAt: null,
-      href: href("documents"),
-      target: "documents",
-    };
-  }
-
-  const missingRequired = needs.find(
-    (need) => need.required && need.status === "missing",
-  );
-  if (missingRequired) {
-    return {
-      action: `Collect missing required ${missingRequired.documentType}`,
-      source: "internal",
-      contactName: null,
-      dueAt: null,
-      href: href("needs"),
-      target: "needs",
-    };
-  }
-
-  const reviewResponse = nextActions.find(
-    (task) => Boolean(task.lastResponseAt) && requestTask(task),
-  );
-  if (reviewResponse) {
-    const subject = subjectFor(reviewResponse);
-    const who =
-      reviewResponse.contactName ??
-      reviewResponse.sourceType?.replaceAll("_", " ");
-    return {
-      action: who
-        ? `Review response from ${who} for ${subject.toLowerCase()}`
-        : `Review response for ${subject.toLowerCase()}`,
-      source: reviewResponse.sourceType?.replaceAll("_", " ") ?? null,
-      contactName: reviewResponse.contactName,
-      dueAt: reviewResponse.nextFollowUpAt,
-      href: href("tasks"),
-      target: "tasks",
-    };
-  }
-
-  const missingContact = nextActions.find((task) => task.contactMissing);
-  if (missingContact) {
-    return {
-      action: `Add ${
-        missingContact.expectedContactType?.replaceAll("_", " ") ?? "required"
-      } contact for ${missingContact.title.toLowerCase()}`,
-      source: missingContact.expectedContactType ?? missingContact.sourceType,
-      contactName: null,
-      dueAt: missingContact.nextFollowUpAt,
-      href: href("contacts"),
-      target: "contacts",
-    };
-  }
-
-  const initial = nextActions.find(
-    (task) => !task.lastContactedAt && requestTask(task),
-  );
-  if (initial) {
-    const subject = subjectFor(initial);
-    const who = initial.contactName ?? initial.sourceType?.replaceAll("_", " ");
-    return {
-      action: who
-        ? `Send initial request to ${who} for ${subject.toLowerCase()}`
-        : `Send initial request for ${subject.toLowerCase()}`,
-      source: initial.sourceType?.replaceAll("_", " ") ?? null,
-      contactName: initial.contactName,
-      dueAt: initial.nextFollowUpAt ?? initial.dueAt,
-      href: href("tasks"),
-      target: "tasks",
-    };
-  }
-
   const first = nextActions[0];
-  if (!first) {
+  const deal: OperationalDeal = {
+    id: dealId,
+    dealReference: input.deal?.dealReference ?? first?.dealReference ?? "",
+    borrowerName: input.deal?.borrowerName ?? first?.borrowerName ?? "Unknown",
+    entityName: input.deal?.entityName ?? first?.entityName ?? null,
+    loanType: input.deal?.loanType ?? first?.loanType ?? null,
+    status: input.deal?.status ?? "collecting_documents",
+    assignedProcessorId:
+      input.deal?.assignedProcessorId ?? first?.assignedTo ?? "assigned",
+  };
+
+  const work = collectOperationalWork({
+    deals: [deal],
+    needs: needs.map(
+      (need): OperationalNeed => ({
+        id: need.id,
+        dealId,
+        documentType: need.documentType,
+        required: need.required,
+        status: need.status,
+      }),
+    ),
+    documents: documents.map(
+      (doc): OperationalDocument => ({
+        id: doc.id,
+        dealId,
+        documentType: doc.documentType,
+        status: doc.status,
+        fileName: doc.fileName,
+        mimeType: doc.mimeType,
+        linkedNeedIds: doc.linkedNeedIds,
+      }),
+    ),
+    tasks: nextActions.map(taskToOperational),
+    mismatches: (input.mismatches ?? []).map((row) => ({
+      ...row,
+      dealId,
+    })),
+    now: input.now,
+  });
+
+  const top = topWorkItemForDeal(work, dealId);
+  if (!top) {
     return null;
   }
-  return {
-    action: first.suggestedRequest || first.title,
-    source: first.sourceType?.replaceAll("_", " ") ?? null,
-    contactName: first.contactName,
-    dueAt: first.nextFollowUpAt ?? first.dueAt,
-    href: href("tasks"),
-    target: "tasks",
-  };
+  return nextActionFromWorkItem(top, nextActions);
 }

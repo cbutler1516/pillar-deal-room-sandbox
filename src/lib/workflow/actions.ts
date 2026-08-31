@@ -13,7 +13,7 @@ import {
   canUnclaimDeal,
   evaluateSubmissionReadiness,
 } from "@/lib/ops/workflow";
-import { nextFollowUpAtFrom } from "@/lib/playbooks/logic";
+import { nextFollowUpFromCadence } from "@/lib/contacts/logic";
 import { assertSandboxGuard } from "@/lib/sandbox";
 import { logAuthorizedActivity } from "@/lib/workflow/activity";
 
@@ -344,7 +344,7 @@ export async function updateTaskStatusAction(
 
   const { data: task } = await supabase
     .from("tasks")
-    .select("id, deal_id, status, follow_up_interval_hours")
+    .select("id, deal_id, status, follow_up_interval_hours, source_type, last_contacted_at")
     .eq("id", taskId)
     .maybeSingle();
   if (!task) {
@@ -358,11 +358,10 @@ export async function updateTaskStatusAction(
   };
   if (status === "waiting") {
     patch.waiting_since = now;
-    patch.last_contacted_at = now;
-    patch.next_follow_up_at = nextFollowUpAtFrom(
-      now,
-      task.follow_up_interval_hours,
-    );
+    patch.next_follow_up_at = nextFollowUpFromCadence(now, {
+      followUpIntervalHours: task.follow_up_interval_hours,
+      sourceType: task.source_type,
+    });
   }
   if (status === "in_progress") {
     patch.completed_at = null;

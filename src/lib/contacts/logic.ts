@@ -3,6 +3,8 @@ import {
   contactTypeLabel,
   type ContactType,
 } from "@/lib/contacts/types";
+import { resolveFollowUpRule } from "@/lib/communications/sequence";
+import { nextFollowUpAtFrom } from "@/lib/playbooks/logic";
 import type { PlaybookDefinition } from "@/lib/playbooks/types";
 
 export function isSameDealContact(
@@ -82,23 +84,35 @@ export function contactActionChannel(): {
   return { outboundSent: false, channel: null };
 }
 
+export function nextFollowUpFromCadence(
+  nowIso: string,
+  task: {
+    followUpIntervalHours?: number | null;
+    sourceType?: string | null;
+  },
+): string {
+  const rule = resolveFollowUpRule(task);
+  return (
+    nextFollowUpAtFrom(nowIso, rule.followUpHours) ??
+    new Date(new Date(nowIso).getTime() + rule.followUpHours * 3_600_000).toISOString()
+  );
+}
+
 export function markTaskContactedPatch(input: {
   nowIso: string;
   followUpIntervalHours: number | null;
+  sourceType?: string | null;
   markWaiting: boolean;
 }): {
   last_contacted_at: string;
-  next_follow_up_at: string | null;
+  next_follow_up_at: string;
   status?: "waiting";
   waiting_since?: string;
 } {
-  const next =
-    input.followUpIntervalHours && input.followUpIntervalHours > 0
-      ? new Date(
-          new Date(input.nowIso).getTime() +
-            input.followUpIntervalHours * 3_600_000,
-        ).toISOString()
-      : null;
+  const next = nextFollowUpFromCadence(input.nowIso, {
+    followUpIntervalHours: input.followUpIntervalHours,
+    sourceType: input.sourceType,
+  });
   if (input.markWaiting) {
     return {
       last_contacted_at: input.nowIso,

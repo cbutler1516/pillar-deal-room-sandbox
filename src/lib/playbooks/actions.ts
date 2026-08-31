@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireInternalUser } from "@/lib/auth/session";
 import { insertCommunicationAttempt } from "@/lib/communications/data";
 import { buildContactedAttempt } from "@/lib/communications/records";
-import { contactActionChannel, markTaskContactedPatch, pickContactForPlaybook } from "@/lib/contacts/logic";
+import { contactActionChannel, markTaskContactedPatch, nextFollowUpFromCadence, pickContactForPlaybook } from "@/lib/contacts/logic";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
 import {
   canCreateProcessorTask,
@@ -16,7 +16,6 @@ import {
   dealAlreadyHasPlaybookTask,
   instantiatePlaybook,
   isEscalationLevelValue,
-  nextFollowUpAtFrom,
   resolveClientNeedForPlaybook,
 } from "@/lib/playbooks/logic";
 import {
@@ -78,7 +77,7 @@ async function loadMutableTask(taskId: string) {
   const { data: task } = await supabase
     .from("tasks")
     .select(
-      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id",
+      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id, source_type, last_contacted_at",
     )
     .eq("id", taskId)
     .maybeSingle();
@@ -429,6 +428,7 @@ export async function markTaskContactedAction(
   const patch = markTaskContactedPatch({
     nowIso: now,
     followUpIntervalHours: task.follow_up_interval_hours,
+    sourceType: task.source_type,
     markWaiting,
   });
   const channel = contactActionChannel();
@@ -474,8 +474,10 @@ export async function markTaskWaitingAction(
     .update({
       status: "waiting",
       waiting_since: now,
-      last_contacted_at: now,
-      next_follow_up_at: nextFollowUpAtFrom(now, task.follow_up_interval_hours),
+      next_follow_up_at: nextFollowUpFromCadence(now, {
+        followUpIntervalHours: task.follow_up_interval_hours,
+        sourceType: task.source_type,
+      }),
       completed_at: null,
     })
     .eq("id", task.id);

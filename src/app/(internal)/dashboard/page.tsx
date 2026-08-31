@@ -5,54 +5,28 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import { linkClass, pageLeadClass, pageTitleClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
-import { listQueueContacts, listQueueTasks, listReviewDocuments } from "@/lib/data/deals";
-import { getDashboardCounts } from "@/lib/data/dashboard";
-import { loadDealSnapshot } from "@/lib/data/snapshot";
+import { getOperationalBoard } from "@/lib/data/dashboard";
 import {
   firstNameFromProfile,
   formatLongDate,
   greetingForHour,
-  waitingBucket,
-  waitingCounts,
 } from "@/lib/ops/ops-board";
 import { staffHour } from "@/lib/format";
-import { decorateRankedActions } from "@/lib/playbooks/decorate";
-
-const WAITING_LABELS = [
-  { key: "borrower", label: "Borrower" },
-  { key: "title", label: "Title" },
-  { key: "insurance", label: "Insurance" },
-  { key: "other", label: "Other" },
-] as const;
+import { workQueueRow } from "@/lib/ops/queue-today";
+import { waitingCopyForDeal, workItemMatchesFilter } from "@/lib/ops/operational-work";
 
 export default async function DashboardPage() {
   const { supabase, profile } = await requireInternalUser();
   const now = new Date();
-  const [counts, snapshot, queueTasks, queueContacts, reviewDocs] = await Promise.all([
-    getDashboardCounts(supabase),
-    loadDealSnapshot(supabase),
-    listQueueTasks(supabase),
-    listQueueContacts(supabase),
-    listReviewDocuments(supabase),
-  ]);
-  const nextActions = decorateRankedActions(
-    queueTasks,
-    snapshot.deals,
-    queueContacts,
-    snapshot.needs,
-    now,
-  );
-  const attentionFiles = new Set(nextActions.map((row) => row.dealId)).size;
-  const waiting = waitingCounts(nextActions);
-  const waitingTotal = waiting.borrower + waiting.title + waiting.insurance + waiting.other;
-  const waitingRows = nextActions
-    .filter((row) => row.status === "waiting")
-    .slice(0, 6);
+  const { snapshot, items, counts } = await getOperationalBoard(supabase, now);
+  const attentionRows = items.filter((row) => workItemMatchesFilter(row, "attention"));
+  const waitingRows = items.filter((row) => row.queueSection === "waiting").slice(0, 6);
   const readyDeals = snapshot.deals
-    .filter((deal) => deal.status === "ready_for_submission")
+    .filter((deal) => counts.readyDealIds.includes(deal.id))
     .slice(0, 6);
   const firstName = firstNameFromProfile(profile);
-  const fileWord = attentionFiles === 1 ? "file" : "files";
+  const fileWord = counts.needsAttention === 1 ? "file" : "files";
+  const waitingCopy = waitingCopyForDeal(items);
 
   return (
     <div className={`${pageWidthClass} space-y-8`}>
@@ -62,23 +36,39 @@ export default async function DashboardPage() {
           {greetingForHour(staffHour(now))}, {firstName}
         </h2>
         <p className={pageLeadClass}>
-          {attentionFiles === 0
+          {counts.needsAttention === 0
             ? "Nothing needs your attention right now."
-            : `${attentionFiles} ${fileWord} need your attention today.`}
+            : `${counts.needsAttention} ${fileWord} need your attention today.`}
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Needs attention" value={attentionFiles} />
-        <MetricCard label="Waiting" value={waitingTotal} />
-        <MetricCard label="Docs to review" value={counts.documentsToReview} />
-        <MetricCard label="Ready" value={counts.readyForSubmission} />
+        <MetricCard
+          label="Needs attention"
+          value={counts.needsAttention}
+          href="/processor-queue?work=attention"
+        />
+        <MetricCard
+          label="Waiting"
+          value={counts.waiting}
+          href="/processor-queue?work=waiting"
+        />
+        <MetricCard
+          label="Docs to review"
+          value={counts.docsToReview}
+          href="/processor-queue?work=review"
+        />
+        <MetricCard
+          label="Ready"
+          value={counts.ready}
+          href="/processor-queue?work=ready"
+        />
       </div>
 
       <NextActionsQueue
-        rows={nextActions.slice(0, 7)}
+        rows={attentionRows.slice(0, 7).map(workQueueRow)}
         title="Needs attention"
-        description="Highest-priority files. Open a row to work it."
+        description="Highest-priority work. Open a row to work it."
         empty="You’re clear for now."
         compact
       />
@@ -87,20 +77,17 @@ export default async function DashboardPage() {
         <SurfaceCard>
           <CardHeader title="Waiting on others" />
           {waitingRows.length === 0 ? (
-            <p className="text-sm text-ink-muted">Nobody is waiting on a reply.</p>
+            <p className="text-sm text-ink-muted">{waitingCopy.empty}</p>
           ) : (
             <ul>
               {waitingRows.map((row) => (
                 <li key={row.id} className="border-t border-line py-2.5 first:border-0">
-                  <Link href={`/deals/${row.dealId}`} className={linkClass}>
+                  <Link href={row.href} className={linkClass}>
                     {row.borrowerName}
                   </Link>
                   <p className="text-xs text-ink-muted">
-                    {WAITING_LABELS.find((item) => item.key === waitingBucket(row.sourceType))
-                      ?.label ?? "Other"}
-                    {row.contactName ? ` · ${row.contactName}` : ""}
-                    {" · "}
-                    {row.title}
+                    {row.reason}
+                    {` · ${row.title}`}
                   </p>
                 </li>
               ))}
@@ -136,16 +123,6 @@ export default async function DashboardPage() {
           )}
         </SurfaceCard>
       </div>
-
-      {reviewDocs.length > 0 ? (
-        <p className="text-xs text-ink-muted">
-          {reviewDocs.length} document{reviewDocs.length === 1 ? "" : "s"} waiting in{" "}
-          <Link href="/processor-queue" className={linkClass}>
-            Queue
-          </Link>
-          .
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -12,6 +12,11 @@ import {
   priorityScore,
   type DashboardCounts,
 } from "@/lib/ops/metrics";
+import {
+  collectOperationalWork,
+  computeOperationalDashboardCounts,
+  type OperationalWorkItem,
+} from "@/lib/ops/operational-work";
 
 export type { DashboardCounts };
 
@@ -21,6 +26,30 @@ export type PriorityQueueRow = SnapshotDeal & {
   exceptionCount: number;
   ageDays: number;
 };
+
+export function operationalWorkFromSnapshot(
+  snapshot: Awaited<ReturnType<typeof loadDealSnapshot>>,
+  now = new Date(),
+): OperationalWorkItem[] {
+  return collectOperationalWork({
+    deals: snapshot.deals,
+    needs: snapshot.needs,
+    documents: snapshot.documents,
+    tasks: snapshot.tasks,
+    contacts: snapshot.contacts,
+    now,
+  });
+}
+
+export async function getOperationalBoard(supabase: SupabaseClient, now = new Date()) {
+  const snapshot = await loadDealSnapshot(supabase);
+  const items = operationalWorkFromSnapshot(snapshot, now);
+  return {
+    snapshot,
+    items,
+    counts: computeOperationalDashboardCounts(items),
+  };
+}
 
 export async function getDashboardCounts(
   supabase: SupabaseClient,

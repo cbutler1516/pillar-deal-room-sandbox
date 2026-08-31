@@ -102,6 +102,17 @@ describe("mark contacted", () => {
     expect(patch.status).toBe("waiting");
     expect(contactActionChannel()).toEqual({ outboundSent: false, channel: null });
   });
+
+  it("uses the source-type cadence when the task has no interval", () => {
+    const patch = markTaskContactedPatch({
+      nowIso: "2026-08-28T18:00:00.000Z",
+      followUpIntervalHours: null,
+      sourceType: "insurance",
+      markWaiting: true,
+    });
+    expect(patch.next_follow_up_at).toBe("2026-08-29T18:00:00.000Z");
+    expect(patch.last_contacted_at).toBe("2026-08-28T18:00:00.000Z");
+  });
 });
 
 describe("activity and sandbox", () => {
