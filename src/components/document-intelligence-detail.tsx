@@ -1,27 +1,20 @@
+import {
+  documentIntelligenceHeadline,
+  documentNeedFitLabel,
+  shouldShowConfidence,
+} from "@/lib/document-intelligence/presentation";
 import type { DocumentIntelligenceDocumentResult } from "@/lib/document-intelligence/types";
 import { DOCUMENT_INTELLIGENCE_DISCLAIMER } from "@/lib/document-intelligence/types";
-
-function formatConfidence(value: number): string {
-  if (!value) return "—";
-  return `${Math.round(value * 100)}% metadata confidence`;
-}
 
 export function DocumentIntelligenceDetail({
   result,
 }: {
   result: DocumentIntelligenceDocumentResult;
 }) {
+  const headline = documentIntelligenceHeadline(result);
+  const fitLabel = documentNeedFitLabel(result);
   const linkedFit = result.needFit.find((item) => item.linked);
-  const fitLabel =
-    linkedFit?.status === "fit"
-      ? "Likely match"
-      : linkedFit?.status === "mismatch"
-        ? "Likely mismatch"
-        : linkedFit
-          ? "Needs review"
-          : result.needFit.some((item) => item.status === "candidate")
-            ? "Unlinked candidate"
-            : "Unlinked";
+  const showConfidence = shouldShowConfidence(result.classification.confidence);
   const flags = [
     ...result.duplicates.map((flag) => flag.reasons[0]),
     ...(result.period ? [result.period.reasons[0]] : []),
@@ -31,34 +24,45 @@ export function DocumentIntelligenceDetail({
   ].filter(Boolean);
 
   return (
-    <div className="space-y-2 rounded-lg border border-line bg-surface-muted/50 px-3 py-2">
-      <p className="text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
-        Intelligence suggestion
+    <div className="space-y-3">
+      <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+        Intelligence
       </p>
-      <p className="text-sm text-ink">
-        {result.classification.suggestedType ?? "No suggested type"}
-        <span className="ml-2 text-xs text-ink-muted">
-          {formatConfidence(result.classification.confidence)}
-        </span>
+      <p className="text-sm font-medium leading-6 text-ink">{headline}</p>
+      <p className="text-sm leading-6 text-ink">
+        Suggested type: {result.classification.suggestedType ?? "None yet"}
+        {showConfidence
+          ? ` · metadata is only a partial match`
+          : ""}
       </p>
-      <p className="text-xs text-ink-muted">
-        {result.classification.reasons[0]}
-      </p>
-      <p className="text-xs text-ink">
+      <p className="text-sm leading-6 text-ink">
         Need fit: {fitLabel}
         {linkedFit ? ` · ${linkedFit.needDocumentType}` : ""}
       </p>
-      <p className="text-sm font-medium text-ink">{result.recommendation.label}</p>
+      {result.period?.extractedPeriod ? (
+        <p className="text-sm leading-6 text-ink-muted">
+          Period hint: {result.period.extractedPeriod}
+        </p>
+      ) : null}
+      <p className="text-sm leading-6 text-ink">{result.recommendation.label}</p>
       {flags.length > 0 ? (
         <ul className="space-y-1">
           {flags.slice(0, 4).map((flag) => (
-            <li key={flag} className="text-xs text-warning">
+            <li key={flag} className="text-sm leading-6 text-warning">
               {flag}
             </li>
           ))}
         </ul>
-      ) : null}
-      <p className="text-[11px] text-ink-muted">{DOCUMENT_INTELLIGENCE_DISCLAIMER}</p>
+      ) : (
+        <p className="text-sm leading-6 text-ink-muted">
+          {headline === "Looks consistent with the requested item"
+            ? "Looks consistent with the requested item. Processor review required."
+            : "Processor review required."}
+        </p>
+      )}
+      <p className="text-xs leading-5 text-ink-muted">
+        {DOCUMENT_INTELLIGENCE_DISCLAIMER}
+      </p>
     </div>
   );
 }

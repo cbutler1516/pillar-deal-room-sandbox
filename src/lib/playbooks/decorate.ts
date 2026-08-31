@@ -34,6 +34,7 @@ export type DecoratedAction = RankedNextAction & {
   borrowerName: string;
   entityName: string | null;
   dealReference: string;
+  loanType: string | null;
   propertyAddress: string | null;
   contactName: string | null;
   contactCompany: string | null;
@@ -121,6 +122,7 @@ export function decorateRankedAction(
     borrowerName: deal?.borrowerName ?? "Unknown deal",
     entityName: deal?.entityName ?? null,
     dealReference: deal?.dealReference ?? "",
+    loanType: deal?.loanType ?? null,
     propertyAddress: deal?.propertyAddress ?? null,
     contactName: contact?.name ?? task.contactName ?? null,
     contactCompany: contact?.company ?? null,

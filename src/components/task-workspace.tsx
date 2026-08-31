@@ -5,6 +5,9 @@ import { ContactsWorkspace } from "@/components/contacts-workspace";
 import { CommunicationPanel } from "@/components/communication-panel";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { StatusChip } from "@/components/status-chip";
+import { OverflowMenu } from "@/components/ui/overflow-menu";
+import { buttonClass } from "@/components/ui/button";
+import { taskPrimaryActionLabel } from "@/lib/ops/queue-today";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import { communicationAging } from "@/lib/communications/aging";
 import { addContactLabel } from "@/lib/contacts/logic";
@@ -12,7 +15,7 @@ import type { ClientNeedRow, DealContactRow, TaskRow } from "@/lib/data/deals";
 import {
   formatCadenceHours,
   formatFollowUpAt,
-  formatTimestamp,
+  formatStatusLabel,
   formatWaitingAge,
 } from "@/lib/format";
 import {
@@ -27,7 +30,6 @@ import {
 } from "@/lib/playbooks/actions";
 import {
   applyPlaybookContactRequirement,
-  escalationLabel,
   isContactMissing,
   isEscalationDue,
   isFollowUpDue,
@@ -97,6 +99,7 @@ export function TaskWorkspace({
   attempts = [],
   staffNames = {},
   replacementNeedIds = [],
+  nowIso,
 }: {
   dealId: string;
   loanType: string | null;
@@ -113,10 +116,11 @@ export function TaskWorkspace({
   attempts?: CommunicationAttempt[];
   staffNames?: Record<string, string>;
   replacementNeedIds?: string[];
+  nowIso: string;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const now = new Date();
+  const now = new Date(nowIso);
 
   return (
     <div className="space-y-4">
@@ -125,7 +129,7 @@ export function TaskWorkspace({
           <button
             type="button"
             onClick={() => setShowAdd((value) => !value)}
-            className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-navy-soft"
+            className={buttonClass("ghost", "sm")}
           >
             Add Task
           </button>
@@ -153,8 +157,8 @@ export function TaskWorkspace({
       ) : null}
 
       {tasks.length === 0 ? (
-        <p className="text-sm text-ink-muted">
-          No processor actions are on this file yet.
+        <p className="text-sm leading-6 text-ink-muted">
+          Nothing needs your attention.
         </p>
       ) : (
         GROUPS.map((group) => {
@@ -167,70 +171,68 @@ export function TaskWorkspace({
               <h4 className="mb-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
                 {group.label}
               </h4>
-              <ul className="space-y-2">
+              <ul className="divide-y divide-line border-y border-line">
                 {rows.map((task) => {
                   const open = openId === task.id;
                   const followUpDue = isFollowUpDue(task, now);
                   const escalationDue = isEscalationDue(task, now);
                   const aging = communicationAging(task, now);
-                  const owner = task.assignedTo
-                    ? staffNames[task.assignedTo] ?? "Assigned processor"
-                    : "Unassigned";
                   const decorated = applyPlaybookContactRequirement({
                     ...task,
                     dealContactId: task.dealContactId,
                     blockedReason: task.blockedReason,
                   });
                   const missing = isContactMissing(decorated);
+                  const primary = taskPrimaryActionLabel({
+                    contactMissing: missing,
+                    followUpDue,
+                    escalationDue,
+                    lastResponseAt: task.lastResponseAt,
+                    status: task.status,
+                  });
+                  const dueState = followUpDue
+                    ? "Follow-up overdue"
+                    : aging.followUpOverdue
+                      ? "Follow-up overdue"
+                      : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
-                    <li key={task.id} className="rounded-xl border border-line bg-surface-muted/40">
+                    <li key={task.id}>
+                      <div className="flex flex-wrap items-start justify-between gap-3 py-3.5">
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : task.id)}
-                        className="flex w-full flex-wrap items-center justify-between gap-3 px-3 py-2 text-left"
+                        className="min-w-0 flex-1 text-left"
                       >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-ink">
-                            {task.title}
-                          </p>
-                          <p
-                            className={`mt-1 text-xs font-medium ${
-                              followUpDue ? "text-warning" : "text-ink"
-                            }`}
-                          >
-                            Next follow-up {formatFollowUpAt(task.nextFollowUpAt)}
-                          </p>
-                          <p className="mt-0.5 text-xs text-ink-muted">
-                            {task.contactName || "No contact"}
-                            {task.status === "waiting" ? " · Waiting" : ""}
-                            {` · ${owner}`}
-                            {aging.followUpOverdue ? " · Follow-up overdue" : ""}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {task.sourceType ? (
-                            <StatusChip status={task.sourceType} />
-                          ) : null}
-                          <StatusChip status={task.status} />
-                          <StatusChip status={task.priority} />
-                          {missing ? (
-                            <span className="text-[11px] font-medium text-danger">
-                              Blocked — contact missing
-                            </span>
-                          ) : null}
-                          {followUpDue ? (
-                            <span className="text-[11px] font-medium text-warning">
-                              Follow-up overdue
-                            </span>
-                          ) : null}
-                          {escalationDue ? (
-                            <span className="text-[11px] font-medium text-danger">
-                              {escalationLabel(task.escalationLevel, true)}
-                            </span>
-                          ) : null}
-                          <span className="text-xs text-ink-muted">{owner}</span>
-                        </div>
+                        <p className="text-sm font-semibold text-ink">
+                          {task.title}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-ink-muted">
+                          {[
+                            dealContext.borrowerName,
+                            task.contactName,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ") || "No contact"}
+                        </p>
+                        <p
+                          className={`mt-0.5 text-sm leading-6 ${
+                            followUpDue ? "text-warning" : "text-ink-muted"
+                          }`}
+                        >
+                          {dueState}
+                        </p>
                       </button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <StatusChip status={task.status} />
+                          <button
+                            type="button"
+                            className={buttonClass("accent", "sm")}
+                            onClick={() => setOpenId(task.id)}
+                          >
+                            {primary}
+                          </button>
+                        </div>
+                      </div>
                       {open ? (
                         <TaskDetail
                           task={task}
@@ -373,40 +375,13 @@ function TaskDetail({
         {task.completionRule ??
           "Processor marks accepted. No underwriting conclusion."}
       </Section>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        <Item label="Last contacted" value={formatTimestamp(task.lastContactedAt)} />
-        <Item label="Next follow-up" value={formatFollowUpAt(task.nextFollowUpAt, now)} />
-        <Item
-          label="Follow-up cadence"
-          value={formatCadenceHours(task.followUpIntervalHours)}
-        />
-        <Item
-          label="Escalation timing"
-          value={
-            task.escalationAfterHours
-              ? `Escalate after ${task.escalationAfterHours}h · ${escalationLabel(task.escalationLevel, isEscalationDue(task, now))}`
-              : escalationLabel(task.escalationLevel, isEscalationDue(task, now))
-          }
-        />
-        <Item
-          label="Waiting status"
-          value={
-            task.status === "waiting"
-              ? `Waiting ${formatWaitingAge(waitingAgeHours(task, now))}`
-              : task.status.replaceAll("_", " ")
-          }
-        />
-        <Item
-          label="Owner"
-          value={
-            task.assignedTo
-              ? staffNames[task.assignedTo] ?? "Assigned processor"
-              : "Unassigned"
-          }
-        />
-        <Item label="Last response" value={formatTimestamp(task.lastResponseAt)} />
-        <Item label="Linked Client Need" value={linkedNeed?.documentType ?? "None"} />
-      </dl>
+      <Section title="Follow-up / escalation">
+        {`${formatFollowUpAt(task.nextFollowUpAt, now)} · ${formatCadenceHours(task.followUpIntervalHours)} · ${
+          task.status === "waiting"
+            ? `Waiting ${formatWaitingAge(waitingAgeHours(task, now))}`
+            : formatStatusLabel(task.status)
+        }`}
+      </Section>
 
       <CommunicationPanel
         task={task}
@@ -419,49 +394,71 @@ function TaskDetail({
         }
         canMutate={canMutate}
         replacementNeeded={replacementNeeded}
+        now={now}
       />
 
       {canMutate && active ? (
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {task.status !== "in_progress" ? (
-              <form action={submitStart}>
-                <input type="hidden" name="taskId" value={task.id} />
-                <button type="submit" className={actionClass}>
-                  Start
-                </button>
-              </form>
-            ) : null}
-            {task.status !== "waiting" ? (
-              <form action={submitWaiting}>
-                <input type="hidden" name="taskId" value={task.id} />
-                <button type="submit" className={actionClass}>
-                  Mark Waiting
-                </button>
-              </form>
-            ) : null}
-            <form action={submitComplete}>
-              <input type="hidden" name="taskId" value={task.id} />
-              <button type="submit" className={actionClass}>
-                Complete
-              </button>
-            </form>
-            <form action={submitDismiss}>
-              <input type="hidden" name="taskId" value={task.id} />
-              <button type="submit" className={actionClass}>
-                Dismiss
-              </button>
-            </form>
-            <form action={submitEscalate}>
-              <input type="hidden" name="taskId" value={task.id} />
-              <input type="hidden" name="escalationLevel" value="loan_officer" />
-              <button type="submit" className={actionClass}>
-                Escalate
-              </button>
-            </form>
-          </div>
-
-          <form action={submitContact} className="grid gap-2 sm:grid-cols-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={submitComplete}>
+            <input type="hidden" name="taskId" value={task.id} />
+            <button type="submit" className={buttonClass("accent", "sm")}>
+              Complete
+            </button>
+          </form>
+          <OverflowMenu
+            items={[
+              ...(task.status !== "in_progress"
+                ? [
+                    {
+                      label: "Start",
+                      onClick: () => {
+                        const data = new FormData();
+                        data.set("taskId", task.id);
+                        void submitStart(data);
+                      },
+                    },
+                  ]
+                : []),
+              ...(task.status !== "waiting"
+                ? [
+                    {
+                      label: "Mark waiting",
+                      onClick: () => {
+                        const data = new FormData();
+                        data.set("taskId", task.id);
+                        void submitWaiting(data);
+                      },
+                    },
+                  ]
+                : []),
+              {
+                label: "Escalate",
+                onClick: () => {
+                  const data = new FormData();
+                  data.set("taskId", task.id);
+                  data.set("escalationLevel", "loan_officer");
+                  void submitEscalate(data);
+                },
+              },
+              {
+                label: "Dismiss",
+                tone: "danger" as const,
+                onClick: () => {
+                  const data = new FormData();
+                  data.set("taskId", task.id);
+                  void submitDismiss(data);
+                },
+              },
+            ]}
+          />
+        </div>
+      ) : null}
+      {canMutate && active ? (
+        <details>
+          <summary className="cursor-pointer text-sm text-ink-muted">
+            Update contact fields
+          </summary>
+          <form action={submitContact} className="mt-2 grid gap-2 sm:grid-cols-4">
             <input type="hidden" name="taskId" value={task.id} />
             <input
               name="contactName"
@@ -481,12 +478,11 @@ function TaskDetail({
               placeholder="Contact phone"
               className={inputClass}
             />
-            <button type="submit" className={actionClass}>
+            <button type="submit" className={buttonClass("secondary", "sm")}>
               Update contact
             </button>
           </form>
-
-        </div>
+        </details>
       ) : null}
     </div>
   );
@@ -577,15 +573,6 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     <div>
       <h5 className="text-xs font-semibold text-ink-muted uppercase">{title}</h5>
       <p className="mt-1 text-sm text-ink">{children}</p>
-    </div>
-  );
-}
-
-function Item({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-ink">{value}</dd>
     </div>
   );
 }

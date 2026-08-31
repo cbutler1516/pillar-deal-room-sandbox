@@ -10,7 +10,7 @@ import {
   pickContactForPlaybook,
   taskIsContactBlocked,
 } from "@/lib/contacts/logic";
-import { CONTACT_MISSING } from "@/lib/contacts/types";
+import { CONTACT_MISSING, contactTypeLabel } from "@/lib/contacts/types";
 import { getPlaybook } from "@/lib/playbooks/registry";
 
 describe("contact creation and primary behavior", () => {
@@ -78,7 +78,9 @@ describe("missing-contact workflow", () => {
         blockedReason: CONTACT_MISSING,
       }),
     ).toBe(false);
-    expect(addContactLabel("insurance")).toBe("Add insurance contact");
+    expect(addContactLabel("insurance")).toBe("Add Insurance");
+    expect(contactTypeLabel("co_borrower")).toBe("Co-borrower");
+    expect(contactTypeLabel("property_manager")).toBe("Property manager");
   });
 
   it("does not require a contact for internal review", () => {

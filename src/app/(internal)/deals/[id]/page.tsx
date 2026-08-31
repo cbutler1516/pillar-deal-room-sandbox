@@ -9,7 +9,7 @@ import { canViewDocumentIntelligence } from "@/lib/document-intelligence/authori
 import { getDocumentIntelligenceProvider } from "@/lib/document-intelligence/factory";
 import { buildDocumentIntelligenceSnapshot } from "@/lib/document-intelligence/snapshot";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
-import { CommunicationTimeline } from "@/components/communication-timeline";
+import { DealTimeline } from "@/components/deal-timeline";
 import { TaskWorkspace } from "@/components/task-workspace";
 import { canViewAIAssist } from "@/lib/ai/authorization";
 import { getAIProvider } from "@/lib/ai/factory";
@@ -27,7 +27,6 @@ import {
   DealStatusControl,
   UnclaimButton,
 } from "@/components/workflow-controls";
-import { StatusChip } from "@/components/status-chip";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
@@ -48,7 +47,6 @@ import {
   staffDisplayName,
 } from "@/lib/data/deals";
 import { getDocumentStorageProviderName } from "@/lib/documents/config";
-import { formatActivityDisplay } from "@/lib/ops/activity-display";
 import { canMutateWorkflow, canClaimDeal, canUnclaimDeal, isDealOwnedByUser } from "@/lib/ops/workflow";
 import { decorateRankedActions } from "@/lib/playbooks/decorate";
 
@@ -62,6 +60,7 @@ export default async function DealDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const tab = parseDealTab(typeof query.tab === "string" ? query.tab : undefined);
+  const nowIso = new Date().toISOString();
   const { supabase, user, profile } = await requireInternalUser();
   const deal = await getDealById(supabase, id);
 
@@ -171,39 +170,35 @@ export default async function DealDetailPage({
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
-      <div className="sticky top-14 z-10 space-y-4 bg-workspace/95 pb-1 backdrop-blur">
-        <DealWorkspaceHeader
-          deal={deal}
-          processorLabel={processorLabel}
-          actions={
-            <>
-              <StatusChip status={deal.status} />
-              {canMutate &&
-              canClaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
-                <ClaimButton dealId={deal.id} />
-              ) : null}
-              {ownedByCurrentUser ? (
-                <span className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink">
-                  Assigned to you
-                </span>
-              ) : null}
-              {canMutate &&
-              canUnclaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
-                <UnclaimButton dealId={deal.id} />
-              ) : null}
-              {canMutate ? (
-                <DealStatusControl dealId={deal.id} status={deal.status} />
-              ) : null}
-            </>
-          }
-        />
+      <DealWorkspaceHeader
+        deal={deal}
+        processorLabel={processorLabel}
+        actions={
+          <>
+            {canMutate &&
+            canClaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
+              <ClaimButton dealId={deal.id} />
+            ) : null}
+            {canMutate &&
+            canUnclaimDeal(deal.assignedProcessorId, user.id, profile.role) ? (
+              <UnclaimButton dealId={deal.id} />
+            ) : null}
+            {canMutate ? (
+              <DealStatusControl dealId={deal.id} status={deal.status} />
+            ) : null}
+          </>
+        }
+      />
 
-        <DealTabNav dealId={deal.id} tab={tab} />
+      <div className="pointer-events-none sticky top-14 z-10 -mx-3 bg-workspace px-3 sm:-mx-5 sm:px-5">
+        <div className="pointer-events-auto">
+          <DealTabNav dealId={deal.id} tab={tab} />
+        </div>
       </div>
 
+      <div className="relative z-0">
       {tab === "overview" ? (
         <>
-          {assist ? <AIAssistPanel result={assist} /> : null}
           <DealOverview
             deal={deal}
             needs={needs}
@@ -219,6 +214,16 @@ export default async function DealDetailPage({
               null
             }
           />
+          {assist ? (
+            <details className="px-1 py-2">
+              <summary className="cursor-pointer text-sm font-medium text-ink-muted">
+                Processor assist
+              </summary>
+              <div className="mt-4">
+                <AIAssistPanel result={assist} />
+              </div>
+            </details>
+          ) : null}
         </>
       ) : null}
 
@@ -260,6 +265,7 @@ export default async function DealDetailPage({
             replacementNeedIds={needs
               .filter((need) => need.required && need.status === "rejected")
               .map((need) => need.id)}
+            nowIso={nowIso}
           />
         </SurfaceCard>
       ) : null}
@@ -341,38 +347,17 @@ export default async function DealDetailPage({
       ) : null}
 
       {tab === "activity" ? (
-        <div className="space-y-4">
-          <SurfaceCard>
-            <CommunicationTimeline attempts={attempts} />
-          </SurfaceCard>
-          <SurfaceCard>
-            {activity.length === 0 ? (
-              <p className="text-sm text-ink-muted">
-                No operational events on this file yet.
-              </p>
-            ) : (
-              <ol>
-                {activity.map((event) => {
-                  const display = formatActivityDisplay(event, staffNames);
-                  return (
-                    <li
-                      key={event.id}
-                      className="border-t border-line py-2.5 first:border-0"
-                    >
-                      <p className="text-sm font-medium text-ink">{display.who}</p>
-                      <p className="text-sm text-ink">
-                        {display.didWhat}
-                        {display.toWhat ? ` ${display.toWhat}` : ""}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-ink-muted">{display.when}</p>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </SurfaceCard>
-        </div>
+        <SurfaceCard>
+          <DealTimeline
+            activity={activity}
+            attempts={attempts}
+            contacts={contacts}
+            staffNames={staffNames}
+            nowIso={nowIso}
+          />
+        </SurfaceCard>
       ) : null}
+      </div>
     </div>
   );
 }

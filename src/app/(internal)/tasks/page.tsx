@@ -3,7 +3,6 @@ import { TaskBoard } from "@/components/task-board";
 import { buttonClass } from "@/components/ui/button";
 import { SearchField, SegmentedControl, SelectField } from "@/components/ui/controls";
 import { PageHeader } from "@/components/ui/page-header";
-import { SurfaceCard } from "@/components/ui/surface-card";
 import { pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
 import { listQueueContacts, listWorkspaceTasks } from "@/lib/data/deals";
@@ -95,10 +94,13 @@ export default async function TasksPage({
     <div className={`${pageWidthClass} space-y-6`}>
       <PageHeader
         title="Tasks"
-        description="Operational work across deals. Same ranking and board rules as the processor queue."
+        description="Full task filters. Daily work lives in Queue."
       />
-      <SurfaceCard>
-        <form className="grid gap-2 lg:grid-cols-6">
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-ink-muted">
+          Filter
+        </summary>
+        <form className="mt-3 grid gap-2 lg:grid-cols-6">
           <SearchField
             name="q"
             defaultValue={query}
@@ -176,7 +178,7 @@ export default async function TasksPage({
             />
           </div>
         </form>
-      </SurfaceCard>
+      </details>
       {view === "board" ? (
         <TaskBoard rows={filtered} />
       ) : (

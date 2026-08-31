@@ -17,7 +17,7 @@ import { loadDealSnapshot } from "@/lib/data/snapshot";
 import { filterDeals, parseDealFilters } from "@/lib/ops/filters";
 import { documentCompletion } from "@/lib/ops/metrics";
 import { DEAL_STATUSES } from "@/lib/ops/workflow";
-import { formatCurrency, formatProperty, formatTimestamp } from "@/lib/format";
+import { formatCurrency, formatProperty, formatStatusLabel, formatTimestamp } from "@/lib/format";
 
 export default async function DealsPage({
   searchParams,
@@ -35,7 +35,7 @@ export default async function DealsPage({
     <div className={`${pageWidthClass} space-y-6`}>
       <PageHeader
         title="Deals"
-        description="RLS-backed inventory. Filters run on the server after authorized reads."
+        description="Find a file by borrower, status, or loan type."
       />
 
       <SurfaceCard>
@@ -49,7 +49,7 @@ export default async function DealsPage({
             <option value="">All statuses</option>
             {DEAL_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {status.replaceAll("_", " ")}
+                {formatStatusLabel(status)}
               </option>
             ))}
           </SelectField>

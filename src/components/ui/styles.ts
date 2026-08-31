@@ -5,11 +5,11 @@ export const cardPadClass = "px-5 py-4";
 
 export const pageWidthClass = "mx-auto w-full max-w-[1600px]";
 
-export const pageTitleClass = "text-2xl font-semibold tracking-tight text-ink";
+export const pageTitleClass = "text-[1.75rem] font-semibold tracking-tight text-ink";
 
-export const pageLeadClass = "mt-1.5 max-w-2xl text-sm leading-6 text-ink-muted";
+export const pageLeadClass = "mt-2 max-w-2xl text-sm leading-7 text-ink-muted";
 
-export const sectionTitleClass = "text-sm font-semibold text-ink";
+export const sectionTitleClass = "text-base font-semibold tracking-tight text-ink";
 
 export const sectionMetaClass = "text-[11px] tabular-nums text-ink-muted";
 

@@ -4,7 +4,7 @@ import { StatusChip } from "@/components/status-chip";
 import { TaskBoard } from "@/components/task-board";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchField, SegmentedControl, SelectField } from "@/components/ui/controls";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
+import { CardHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
@@ -23,15 +23,16 @@ import {
   matchesTaskQuery,
   taskSearchHaystack,
 } from "@/lib/ops/ops-board";
+import { QUEUE_TODAY_SECTIONS, groupQueueToday } from "@/lib/ops/queue-today";
 import { formatAgeDays, formatCurrency, formatProperty } from "@/lib/format";
 import { decorateBoardTasks, decorateRankedActions } from "@/lib/playbooks/decorate";
 
 const SECTIONS = [
   { key: "unassigned", label: "Unassigned" },
-  { key: "missingItems", label: "Missing Items" },
-  { key: "documentsToReview", label: "Documents To Review" },
+  { key: "missingItems", label: "Missing items" },
+  { key: "documentsToReview", label: "Documents to review" },
   { key: "exceptions", label: "Exceptions" },
-  { key: "readyForSubmission", label: "Ready For Submission" },
+  { key: "readyForSubmission", label: "Ready to submit" },
 ] as const;
 
 export default async function ProcessorQueuePage({
@@ -43,13 +44,13 @@ export default async function ProcessorQueuePage({
   const urgency = typeof params.urgency === "string" ? params.urgency : "all";
   const assignment =
     typeof params.assignment === "string" ? params.assignment : "all";
-  const view = typeof params.view === "string" ? params.view : "priority";
+  const view = typeof params.view === "string" ? params.view : "today";
   const query = typeof params.q === "string" ? params.q : "";
   const queryState = {
     q: query || undefined,
     assignment: assignment === "all" ? undefined : assignment,
     urgency: urgency === "all" ? undefined : urgency,
-    view: view === "priority" ? undefined : view,
+    view: view === "today" ? undefined : view,
   };
 
   const { supabase } = await requireInternalUser();
@@ -102,6 +103,7 @@ export default async function ProcessorQueuePage({
     snapshot.documents,
     snapshot.tasks,
   );
+  const today = groupQueueToday(nextActions);
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);
@@ -135,14 +137,42 @@ export default async function ProcessorQueuePage({
   };
 
   return (
-    <div className={`${pageWidthClass} space-y-6`}>
+    <div className={`${pageWidthClass} space-y-8`}>
       <PageHeader
-        title="Processor Queue"
-        description="Work the ranked queue, or scan the board by status."
+        title="Queue"
+        description="Today’s work, in the order it should be handled."
       />
 
-      <SurfaceCard>
-        <form className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SegmentedControl
+          options={[
+            {
+              label: "Today",
+              href: hrefWithQuery("/processor-queue", queryState, { view: undefined }),
+              active: view !== "files" && view !== "board",
+            },
+            {
+              label: "Files",
+              href: hrefWithQuery("/processor-queue", queryState, { view: "files" }),
+              active: view === "files",
+            },
+            {
+              label: "Board",
+              href: hrefWithQuery("/processor-queue", queryState, { view: "board" }),
+              active: view === "board",
+            },
+          ]}
+        />
+        <Link href="/tasks" className={`text-sm ${linkClass}`}>
+          Tasks
+        </Link>
+      </div>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-ink-muted">
+          Filter
+        </summary>
+        <form className="mt-3 flex flex-wrap items-center gap-2">
           <SearchField
             name="q"
             defaultValue={query}
@@ -158,125 +188,113 @@ export default async function ProcessorQueuePage({
             <option value="exceptions">Exceptions first</option>
             <option value="aging">Aging 7+ days</option>
           </SelectField>
-          {view !== "priority" ? <input type="hidden" name="view" value={view} /> : null}
-          <button type="submit" className={buttonClass("primary", "sm")}>
+          {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
+          <button type="submit" className={buttonClass("accent", "sm")}>
             Apply
           </button>
-          <SegmentedControl
-            options={[
-              {
-                label: "Priority",
-                href: hrefWithQuery("/processor-queue", queryState, { view: undefined }),
-                active: view !== "board",
-              },
-              {
-                label: "Board",
-                href: hrefWithQuery("/processor-queue", queryState, { view: "board" }),
-                active: view === "board",
-              },
-            ]}
-          />
         </form>
-      </SurfaceCard>
+      </details>
 
       {view === "board" ? (
         <TaskBoard rows={boardRows} />
-      ) : (
-        <>
-          <NextActionsQueue rows={nextActions} />
-          <div className="space-y-4">
-            {SECTIONS.map((section) => {
-              let rows = sections[section.key]
-                .map(decorate)
-                .filter((row) => row != null);
+      ) : view === "files" ? (
+        <div className="space-y-8">
+          {SECTIONS.map((section) => {
+            let rows = sections[section.key]
+              .map(decorate)
+              .filter((row) => row != null);
 
-              if (assignment === "unassigned") {
-                rows = rows.filter((row) => !row.assignedProcessorId);
-              }
-              if (urgency === "exceptions") {
-                rows = rows.filter((row) => row.exceptions > 0);
-              }
-              if (urgency === "aging") {
-                rows = rows.filter((row) => row.ageDays >= 7);
-              }
-              if (query) {
-                rows = rows.filter((row) =>
-                  matchesTaskQuery(
-                    taskSearchHaystack({
-                      borrowerName: row.borrowerName,
-                      entityName: row.entityName,
-                      dealReference: row.dealReference,
-                      propertyAddress: row.propertyAddress,
-                    }),
-                    query,
-                  ),
-                );
-              }
-              rows.sort((a, b) => compareDealPriority(a.priority, b.priority));
-
-              return (
-                <SurfaceCard key={section.key} padded={false}>
-                  <div className="px-5 py-4">
-                    <CardHeader title={section.label} meta={rows.length} />
-                  </div>
-                  {rows.length === 0 ? (
-                    <p className="px-5 pb-4 text-sm text-ink-muted">
-                      Nothing in this queue lane.
-                    </p>
-                  ) : (
-                    <ul>
-                      {rows.map((deal) => (
-                        <li
-                          key={`${section.key}-${deal.id}`}
-                          className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3.5"
-                        >
-                          <div>
-                            <Link href={`/deals/${deal.id}`} className={`text-sm ${linkClass}`}>
-                              {deal.borrowerName}
-                            </Link>
-                            <p className="text-xs text-ink-muted">
-                              {deal.loanType} · {formatCurrency(deal.loanAmount)} ·{" "}
-                              {formatProperty(deal.propertyCity, deal.propertyState)}
-                            </p>
-                            <p className="mt-1 text-xs text-ink">
-                              Priority: {deal.priority.label}
-                            </p>
-                            <p className="text-[11px] text-ink-muted">
-                              Why: {deal.priority.reasons.slice(0, 2).join(" · ")}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs">
-                            <StatusChip status={deal.status} />
-                            <span className="text-ink-muted">
-                              Docs {deal.docs.complete}/{deal.docs.required}
-                            </span>
-                            <span
-                              className={
-                                deal.exceptions > 0
-                                  ? "font-medium text-danger"
-                                  : "text-ink-muted"
-                              }
-                            >
-                              {deal.exceptions} exc
-                            </span>
-                            <span className="text-ink-muted">
-                              {formatAgeDays(deal.ageDays)}
-                            </span>
-                            <span className="text-ink-muted">
-                              {deal.assignedProcessorId
-                                ? staffNames[deal.assignedProcessorId] ?? "Assigned"
-                                : "Unassigned"}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </SurfaceCard>
+            if (assignment === "unassigned") {
+              rows = rows.filter((row) => !row.assignedProcessorId);
+            }
+            if (urgency === "exceptions") {
+              rows = rows.filter((row) => row.exceptions > 0);
+            }
+            if (urgency === "aging") {
+              rows = rows.filter((row) => row.ageDays >= 7);
+            }
+            if (query) {
+              rows = rows.filter((row) =>
+                matchesTaskQuery(
+                  taskSearchHaystack({
+                    borrowerName: row.borrowerName,
+                    entityName: row.entityName,
+                    dealReference: row.dealReference,
+                    propertyAddress: row.propertyAddress,
+                  }),
+                  query,
+                ),
               );
-            })}
-          </div>
-        </>
+            }
+            rows.sort((a, b) => compareDealPriority(a.priority, b.priority));
+
+            return (
+              <section key={section.key}>
+                <CardHeader title={section.label} meta={rows.length} />
+                {rows.length === 0 ? (
+                  <p className="text-sm leading-6 text-ink-muted">
+                    Nothing in this lane.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-line border-y border-line">
+                    {rows.map((deal) => (
+                      <li
+                        key={`${section.key}-${deal.id}`}
+                        className="flex flex-wrap items-center justify-between gap-3 py-4"
+                      >
+                        <div>
+                          <Link href={`/deals/${deal.id}`} className={`text-sm ${linkClass}`}>
+                            {deal.borrowerName}
+                          </Link>
+                          <p className="text-sm leading-6 text-ink-muted">
+                            {deal.loanType} · {formatCurrency(deal.loanAmount)} ·{" "}
+                            {formatProperty(deal.propertyCity, deal.propertyState)}
+                          </p>
+                          <p className="text-xs text-ink-muted">
+                            {deal.priority.label}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <StatusChip status={deal.status} />
+                          <span className="text-ink-muted">
+                            {deal.assignedProcessorId
+                              ? staffNames[deal.assignedProcessorId] ?? "Assigned"
+                              : "Unassigned"}
+                          </span>
+                          <span className="text-ink-muted">
+                            {formatAgeDays(deal.ageDays)}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {QUEUE_TODAY_SECTIONS.map((section) => {
+            const rows = today[section.key];
+            return (
+              <NextActionsQueue
+                key={section.key}
+                rows={rows}
+                title={section.label}
+                empty={
+                  section.key === "urgent"
+                    ? "Nothing needs your attention."
+                    : section.key === "waiting"
+                      ? "Nobody is waiting on a reply."
+                      : section.key === "ready_to_review"
+                        ? "Nothing is ready to review."
+                        : "Nothing is due today."
+                }
+              />
+            );
+          })}
+        </div>
       )}
     </div>
   );

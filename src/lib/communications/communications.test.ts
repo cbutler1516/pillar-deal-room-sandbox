@@ -294,6 +294,7 @@ describe("next action, priority, portal, and workload", () => {
           borrowerName: "Alex Rivera",
           entityName: null,
           dealReference: "PDR-APP-1",
+          loanType: "dscr",
           propertyAddress: null,
           contactName: "Taylor Reed",
           contactCompany: null,

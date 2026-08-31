@@ -1,5 +1,40 @@
 import type { DealStatus } from "@/lib/data/types";
 
+/** Staff clocks stay in one zone so server HTML and the browser hydrate the same text. */
+export const STAFF_TIME_ZONE = "America/Los_Angeles";
+
+export function formatInStaffZone(
+  value: Date,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: STAFF_TIME_ZONE,
+    ...options,
+  })
+    .format(value)
+    .replace(/[\u00a0\u202f]/g, " ");
+}
+
+export function staffCalendarDate(value: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: STAFF_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
+export function staffHour(value: Date): number {
+  const hour = new Intl.DateTimeFormat("en-US", {
+    timeZone: STAFF_TIME_ZONE,
+    hour: "numeric",
+    hourCycle: "h23",
+  })
+    .formatToParts(value)
+    .find((part) => part.type === "hour")?.value;
+  return Number(hour);
+}
+
 export function formatCurrency(amount: number | null): string {
   if (amount == null) {
     return "—";
@@ -11,11 +46,35 @@ export function formatCurrency(amount: number | null): string {
   }).format(amount);
 }
 
-export function formatDealStatus(status: DealStatus | string): string {
+const STATUS_LABELS: Record<string, string> = {
+  new: "New",
+  collecting_documents: "Collecting documents",
+  processor_review: "In review",
+  ready_for_submission: "Ready to submit",
+  waiting: "Waiting",
+  replacement_needed: "Replacement needed",
+  needs_review: "Needs review",
+  in_progress: "In progress",
+  application_in_progress: "Application in progress",
+  missing_items: "Missing items",
+  required_now: "Required now",
+  required_later: "Required later",
+  ready_review: "Ready to review",
+  due_today: "Due today",
+};
+
+export function formatStatusLabel(status: string): string {
+  if (STATUS_LABELS[status]) {
+    return STATUS_LABELS[status];
+  }
   return status
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function formatDealStatus(status: DealStatus | string): string {
+  return formatStatusLabel(status);
 }
 
 export function formatProperty(
@@ -29,11 +88,23 @@ export function formatTimestamp(value: string | null): string {
   if (!value) {
     return "—";
   }
-  return new Intl.DateTimeFormat("en-US", {
+  return formatInStaffZone(new Date(value), {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  });
+}
+
+export function formatReceivedAt(value: string | null): string {
+  if (!value) {
+    return "—";
+  }
+  return formatInStaffZone(new Date(value), {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export function formatFollowUpAt(value: string | null, now = new Date()): string {
@@ -42,12 +113,12 @@ export function formatFollowUpAt(value: string | null, now = new Date()): string
   }
   const date = new Date(value);
   const due = date.getTime() <= now.getTime();
-  const label = new Intl.DateTimeFormat("en-US", {
+  const label = formatInStaffZone(date, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(date);
+  });
   return due ? `Due ${label}` : label;
 }
 

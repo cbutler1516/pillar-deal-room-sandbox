@@ -8,6 +8,10 @@ import { FilterToggle } from "@/components/ui/controls";
 import { buttonClass } from "@/components/ui/button";
 import { DocumentStatusControl } from "@/components/workflow-controls";
 import type { ClientNeedRow, DocumentRow } from "@/lib/data/deals";
+import {
+  documentHasMaterialIssue,
+  materialDocumentFlags,
+} from "@/lib/document-intelligence/presentation";
 import type {
   DocumentIntelligenceDocumentResult,
   DocumentIntelligenceResult,
@@ -15,17 +19,16 @@ import type {
 import { attachExistingAction } from "@/lib/documents/link-actions";
 import { classifyDocumentAction } from "@/lib/workflow/actions";
 import {
-  filterDocumentsForWorkspace,
-  type DocumentWorkspaceFilter,
+  filterDocumentsForInbox,
+  type DocumentInboxFilter,
 } from "@/lib/documents/need-progress";
-import { formatPercent, formatTimestamp } from "@/lib/format";
+import { formatReceivedAt } from "@/lib/format";
 
-const FILTERS: { id: DocumentWorkspaceFilter; label: string }[] = [
+const FILTERS: { id: DocumentInboxFilter; label: string }[] = [
+  { id: "needs_review", label: "Needs review" },
+  { id: "issues", label: "Issues" },
+  { id: "complete", label: "Complete" },
   { id: "all", label: "All" },
-  { id: "needs_review", label: "Needs Review" },
-  { id: "approved", label: "Approved" },
-  { id: "unlinked", label: "Unlinked" },
-  { id: "rejected", label: "Rejected" },
 ];
 
 export function DocumentsWorkspace({
@@ -43,11 +46,27 @@ export function DocumentsWorkspace({
   canIntake: boolean;
   intelligence?: DocumentIntelligenceResult | null;
 }) {
-  const [filter, setFilter] = useState<DocumentWorkspaceFilter>("all");
+  const [filter, setFilter] = useState<DocumentInboxFilter>("needs_review");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const intelById = useMemo(() => {
+    const map = new Map<string, DocumentIntelligenceDocumentResult>();
+    for (const item of intelligence?.documents ?? []) {
+      map.set(item.documentId, item);
+    }
+    return map;
+  }, [intelligence]);
+  const issueIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const doc of documents) {
+      if (documentHasMaterialIssue(intelById.get(doc.id))) {
+        ids.add(doc.id);
+      }
+    }
+    return ids;
+  }, [documents, intelById]);
   const visible = useMemo(
-    () => filterDocumentsForWorkspace(documents, filter),
-    [documents, filter],
+    () => filterDocumentsForInbox(documents, filter, issueIds),
+    [documents, filter, issueIds],
   );
   const selected =
     visible.find((doc) => doc.id === selectedId) ?? visible[0] ?? null;
@@ -56,7 +75,7 @@ export function DocumentsWorkspace({
     needs.find((need) => need.id === needId)?.documentType ?? "Client Need";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((item) => (
           <FilterToggle
@@ -69,71 +88,59 @@ export function DocumentsWorkspace({
         ))}
       </div>
       {visible.length === 0 ? (
-        <p className="text-sm text-ink-muted">
-          No documents match this review filter.
+        <p className="text-sm leading-6 text-ink-muted">
+          {filter === "needs_review"
+            ? "Nothing needs your attention."
+            : filter === "complete"
+              ? "All required documents are reviewed."
+              : filter === "issues"
+                ? "No document issues are flagged."
+                : "No documents are on this file yet."}
         </p>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="text-[11px] text-ink-muted">
-                <tr>
-                  <th className="px-0 py-2 font-medium">Filename</th>
-                  <th className="px-3 py-2 font-medium">Type</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Linked Client Needs</th>
-                  <th className="px-3 py-2 font-medium">Uploaded</th>
-                  <th className="px-3 py-2 font-medium">AI class</th>
-                  <th className="px-3 py-2 font-medium">Confidence</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((doc) => {
-                  const active = doc.id === selected?.id;
-                  return (
-                    <tr
-                      key={doc.id}
-                      className={`cursor-pointer border-t border-line ${
-                        active ? "bg-surface-muted" : "hover:bg-surface-muted/70"
-                      }`}
-                      onClick={() => setSelectedId(doc.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedId(doc.id);
-                        }
-                      }}
-                      tabIndex={0}
-                    >
-                      <td className="px-3 py-2 font-medium text-ink">{doc.fileName}</td>
-                      <td className="px-3 py-2 text-xs text-ink-muted">
-                        {doc.documentType ?? "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <StatusChip status={doc.status} />
-                      </td>
-                      <td className="px-3 py-2 text-xs text-ink-muted">
-                        {doc.linkedNeedIds.length === 0 ? (
-                          <span className="font-medium text-warning">Unlinked</span>
-                        ) : (
-                          doc.linkedNeedIds.map(needLabel).join(" · ")
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-ink-muted">
-                        {formatTimestamp(doc.uploadedAt)}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-ink-muted">
-                        {doc.aiClassification ?? "—"}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-ink-muted">
-                        {formatPercent(doc.aiConfidence)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
+          <ul className="divide-y divide-line border-y border-line">
+            {visible.map((doc) => {
+              const active = doc.id === selected?.id;
+              const intel = intelById.get(doc.id);
+              const flags = materialDocumentFlags(intel);
+              return (
+                <li key={doc.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(doc.id)}
+                    className={`flex min-h-14 w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3.5 text-left ${
+                      active ? "text-ink" : "hover:text-ink"
+                    }`}
+                    aria-current={active ? "true" : undefined}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">{doc.fileName}</p>
+                      <p className="mt-1 text-xs leading-5 text-ink-muted">
+                        {[
+                          doc.documentType ?? "Unclassified",
+                          doc.linkedNeedIds.length === 0
+                            ? "Unlinked"
+                            : doc.linkedNeedIds.map(needLabel).join(" · "),
+                        ].join(" · ")}
+                      </p>
+                      {flags.length > 0 ? (
+                        <p className="mt-1 text-xs font-medium text-warning">
+                          {flags.join(" · ")}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <StatusChip status={doc.status} />
+                      <p className="mt-1 text-xs text-ink-muted">
+                        {formatReceivedAt(doc.uploadedAt)}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
           {selected ? (
             <DocumentDetailPanel
               key={selected.id}
@@ -143,11 +150,7 @@ export function DocumentsWorkspace({
               canMutate={canMutate}
               canIntake={canIntake}
               needLabel={needLabel}
-              intelligence={
-                intelligence?.documents.find(
-                  (item) => item.documentId === selected.id,
-                ) ?? null
-              }
+              intelligence={intelById.get(selected.id) ?? null}
             />
           ) : null}
         </div>
@@ -198,73 +201,65 @@ function DocumentDetailPanel({
   }
 
   return (
-                    <aside className="space-y-4 border-t border-line pt-4 xl:border-t-0 xl:border-l xl:pl-6 xl:pt-0">
+    <aside className="space-y-5 xl:border-l xl:border-line xl:pl-8">
       <div>
-        <p className="text-[11px] text-ink-muted">Selected document</p>
-        <h4 className="mt-1 text-sm font-semibold text-ink">{document.fileName}</h4>
+        <p className="text-xs text-ink-muted">Selected document</p>
+        <h4 className="mt-1 text-base font-semibold text-ink">{document.fileName}</h4>
+        <p className="mt-1 text-sm leading-6 text-ink-muted">
+          {document.documentType ?? "Unclassified"}
+          {" · "}
+          {document.linkedNeedIds.length === 0
+            ? "Unlinked"
+            : document.linkedNeedIds.map(needLabel).join(" · ")}
+        </p>
+        <div className="mt-2">
+          <StatusChip status={document.status} />
+        </div>
       </div>
-      <dl className="grid gap-3 text-xs">
-        <Detail label="Document type" value={document.documentType} />
-        <div>
-          <dt className="text-ink-muted">Status</dt>
-          <dd className="mt-1">
-            <StatusChip status={document.status} />
-          </dd>
-        </div>
-        <Detail label="Uploaded" value={formatTimestamp(document.uploadedAt)} />
-        <div>
-          <dt className="text-ink-muted">Linked needs</dt>
-          <dd className="mt-1 text-ink">
-            {document.linkedNeedIds.length === 0
-              ? "Unlinked"
-              : document.linkedNeedIds.map(needLabel).join(" · ")}
-          </dd>
-        </div>
-        <Detail label="AI classification" value={document.aiClassification} />
-        <Detail label="Confidence" value={formatPercent(document.aiConfidence)} />
-      </dl>
       {intelligence ? <DocumentIntelligenceDetail result={intelligence} /> : null}
       {canIntake ? (
         <div>
-          <p className="mb-1 text-[11px] text-ink-muted">Temporary secure access</p>
+          <p className="mb-1 text-xs text-ink-muted">Temporary secure access</p>
           <TemporaryAccessControl dealId={dealId} documentId={document.id} />
         </div>
       ) : null}
       {canMutate ? (
-        <div className="space-y-2">
-          <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
-            Attach to Need
-          </p>
-          {attachable.length === 0 ? (
-            <p className="text-xs text-ink-muted">
-              This document is already linked to every Client Need on the deal.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <select
-                value={needId}
-                onChange={(event) => setNeedId(event.target.value)}
-                className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink"
-              >
-                <option value="">Select a Client Need</option>
-                {attachable.map((need) => (
-                  <option key={need.id} value={need.id}>
-                    {need.documentType}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                disabled={!needId}
-                onClick={() => void attach()}
-                className={buttonClass("primary", "sm")}
-              >
-                Attach to Need
-              </button>
-            </div>
-          )}
+        <div className="space-y-4">
           <div>
-            <p className="mb-1 text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+            <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
+              Attach to Need
+            </p>
+            {attachable.length === 0 ? (
+              <p className="mt-1 text-sm leading-6 text-ink-muted">
+                This document is already linked to every Client Need on the deal.
+              </p>
+            ) : (
+              <div className="mt-2 flex flex-col gap-2">
+                <select
+                  value={needId}
+                  onChange={(event) => setNeedId(event.target.value)}
+                  className="min-h-10 rounded-lg border border-line bg-surface px-2.5 py-2 text-sm text-ink"
+                >
+                  <option value="">Select a Client Need</option>
+                  {attachable.map((need) => (
+                    <option key={need.id} value={need.id}>
+                      {need.documentType}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={!needId}
+                  onClick={() => void attach()}
+                  className={buttonClass("accent", "sm")}
+                >
+                  Attach to Need
+                </button>
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-medium tracking-wide text-ink-muted uppercase">
               Status update
             </p>
             <DocumentStatusControl documentId={document.id} status={document.status} />
@@ -281,14 +276,14 @@ function DocumentDetailPanel({
             }}
             className="space-y-2"
           >
-            <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+            <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
               Classify manually
             </p>
             <input
               name="documentType"
               value={classification}
               onChange={(event) => setClassification(event.target.value)}
-              className="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink"
+              className="min-h-10 w-full rounded-lg border border-line bg-surface px-2.5 py-2 text-sm text-ink"
             />
             {intelligence?.classification.suggestedType ? (
               <button
@@ -307,23 +302,8 @@ function DocumentDetailPanel({
           </form>
         </div>
       ) : null}
-      {message ? <p className="text-xs text-pillar-teal">{message}</p> : null}
-      {error ? <p className="text-xs text-danger">{error}</p> : null}
+      {message ? <p className="text-sm text-pillar-teal">{message}</p> : null}
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
     </aside>
-  );
-}
-
-function Detail({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null | undefined;
-}) {
-  return (
-    <div>
-      <dt className="text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-ink">{value || "—"}</dd>
-    </div>
   );
 }

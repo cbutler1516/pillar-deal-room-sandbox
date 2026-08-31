@@ -1,3 +1,5 @@
+import { formatInStaffZone, formatStatusLabel, staffCalendarDate } from "@/lib/format";
+
 export type ActivityDisplayInput = {
   eventType: string;
   actorType: string;
@@ -82,7 +84,7 @@ function targetFromMetadata(metadata: Record<string, string>): string | null {
     return null;
   }
   if (metadata.from && metadata.to && !metadata.document_type && !metadata.filename) {
-    return `${metadata.from.replaceAll("_", " ")} → ${metadata.to.replaceAll("_", " ")}`;
+    return `${formatStatusLabel(metadata.from)} → ${formatStatusLabel(metadata.to)}`;
   }
   return target;
 }
@@ -137,15 +139,12 @@ export function formatActivityAction(
 
 export function formatActivityClock(iso: string, now = new Date()): string {
   const date = new Date(iso);
-  const sameDay =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
-  return new Intl.DateTimeFormat("en-US", {
+  const sameDay = staffCalendarDate(date) === staffCalendarDate(now);
+  return formatInStaffZone(date, {
     hour: "numeric",
     minute: "2-digit",
     ...(sameDay ? {} : { month: "short", day: "numeric" }),
-  }).format(date);
+  });
 }
 
 export function formatActivityDisplay(
