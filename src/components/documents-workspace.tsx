@@ -1,12 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DocumentIntelligenceDetail } from "@/components/document-intelligence-detail";
 import { TemporaryAccessControl } from "@/components/document-intake-panel";
 import { StatusChip } from "@/components/status-chip";
 import { FilterToggle } from "@/components/ui/controls";
 import { buttonClass } from "@/components/ui/button";
 import { DocumentStatusControl } from "@/components/workflow-controls";
 import type { ClientNeedRow, DocumentRow } from "@/lib/data/deals";
+import type {
+  DocumentIntelligenceDocumentResult,
+  DocumentIntelligenceResult,
+} from "@/lib/document-intelligence/types";
 import { attachExistingAction } from "@/lib/documents/link-actions";
 import { classifyDocumentAction } from "@/lib/workflow/actions";
 import {
@@ -29,12 +34,14 @@ export function DocumentsWorkspace({
   needs,
   canMutate,
   canIntake,
+  intelligence = null,
 }: {
   dealId: string;
   documents: DocumentRow[];
   needs: ClientNeedRow[];
   canMutate: boolean;
   canIntake: boolean;
+  intelligence?: DocumentIntelligenceResult | null;
 }) {
   const [filter, setFilter] = useState<DocumentWorkspaceFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -136,6 +143,11 @@ export function DocumentsWorkspace({
               canMutate={canMutate}
               canIntake={canIntake}
               needLabel={needLabel}
+              intelligence={
+                intelligence?.documents.find(
+                  (item) => item.documentId === selected.id,
+                ) ?? null
+              }
             />
           ) : null}
         </div>
@@ -151,6 +163,7 @@ function DocumentDetailPanel({
   canMutate,
   canIntake,
   needLabel,
+  intelligence,
 }: {
   dealId: string;
   document: DocumentRow;
@@ -158,6 +171,7 @@ function DocumentDetailPanel({
   canMutate: boolean;
   canIntake: boolean;
   needLabel: (needId: string) => string;
+  intelligence: DocumentIntelligenceDocumentResult | null;
 }) {
   const [needId, setNeedId] = useState("");
   const [classification, setClassification] = useState(document.documentType ?? "");
@@ -209,6 +223,7 @@ function DocumentDetailPanel({
         <Detail label="AI classification" value={document.aiClassification} />
         <Detail label="Confidence" value={formatPercent(document.aiConfidence)} />
       </dl>
+      {intelligence ? <DocumentIntelligenceDetail result={intelligence} /> : null}
       {canIntake ? (
         <div>
           <p className="mb-1 text-[11px] text-ink-muted">Temporary secure access</p>
@@ -275,6 +290,17 @@ function DocumentDetailPanel({
               onChange={(event) => setClassification(event.target.value)}
               className="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink"
             />
+            {intelligence?.classification.suggestedType ? (
+              <button
+                type="button"
+                className={buttonClass("ghost", "sm")}
+                onClick={() =>
+                  setClassification(intelligence.classification.suggestedType ?? "")
+                }
+              >
+                Use suggested type
+              </button>
+            ) : null}
             <button type="submit" className={buttonClass("secondary", "sm")}>
               Save classification
             </button>

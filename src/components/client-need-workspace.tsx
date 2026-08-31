@@ -44,6 +44,9 @@ export function ClientNeedsWorkspace({
     sourceType: string | null;
     nextAction: string | null;
     contactMissing: boolean;
+    mismatch?: boolean;
+    replacementCandidate?: boolean;
+    reviewNeeded?: boolean;
   }[];
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -111,6 +114,11 @@ export function ClientNeedsWorkspace({
                   ) : null}
                   {ops?.nextAction ? <p>Next: {ops.nextAction}</p> : null}
                   {ops?.contactMissing ? <p>Contact missing</p> : null}
+                  {ops?.mismatch ? <p>Metadata mismatch — Need status is unchanged</p> : null}
+                  {ops?.replacementCandidate ? (
+                    <p>Replacement candidate — processor review required</p>
+                  ) : null}
+                  {ops?.reviewNeeded ? <p>Review needed</p> : null}
                 </button>
                 <div className="flex items-center justify-end gap-2">
                   <StatusChip

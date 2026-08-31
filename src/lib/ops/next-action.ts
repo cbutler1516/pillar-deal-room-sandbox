@@ -24,33 +24,22 @@ type NextActionDocument = {
   status: string;
 };
 
+export type NextActionMismatch = {
+  documentId: string;
+  needId: string;
+  fileName: string;
+  needDocumentType: string;
+};
+
 export function deriveDealNextAction(input: {
   dealId: string;
   needs: NextActionNeed[];
   documents: NextActionDocument[];
   nextActions: DecoratedAction[];
+  mismatches?: NextActionMismatch[];
 }): DealNextAction | null {
   const { dealId, needs, documents, nextActions } = input;
   const href = (tab: NextActionTarget) => `/deals/${dealId}?tab=${tab}`;
-
-  const replacement = needs.find(
-    (need) => need.required && need.status === "rejected",
-  );
-  if (replacement) {
-    const task = nextActions.find((item) => item.clientNeedId === replacement.id);
-    return {
-      action: `Request replacement ${replacement.documentType} from ${
-        task?.sourceType === "borrower" || !task?.sourceType
-          ? "borrower"
-          : task.sourceType.replaceAll("_", " ")
-      }`,
-      source: task?.sourceType?.replaceAll("_", " ") ?? "borrower",
-      contactName: task?.contactName ?? null,
-      dueAt: task?.nextFollowUpAt ?? task?.dueAt ?? null,
-      href: href("needs"),
-      target: "needs",
-    };
-  }
 
   const requestTask = (
     task: (typeof nextActions)[number],
@@ -81,6 +70,37 @@ export function deriveDealNextAction(input: {
       dueAt: escalate.nextFollowUpAt,
       href: href("tasks"),
       target: "tasks",
+    };
+  }
+
+  const replacement = needs.find(
+    (need) => need.required && need.status === "rejected",
+  );
+  if (replacement) {
+    const task = nextActions.find((item) => item.clientNeedId === replacement.id);
+    return {
+      action: `Request replacement ${replacement.documentType} from ${
+        task?.sourceType === "borrower" || !task?.sourceType
+          ? "borrower"
+          : task.sourceType.replaceAll("_", " ")
+      }`,
+      source: task?.sourceType?.replaceAll("_", " ") ?? "borrower",
+      contactName: task?.contactName ?? null,
+      dueAt: task?.nextFollowUpAt ?? task?.dueAt ?? null,
+      href: href("needs"),
+      target: "needs",
+    };
+  }
+
+  const mismatch = input.mismatches?.[0];
+  if (mismatch) {
+    return {
+      action: `Review mismatched ${mismatch.fileName} on ${mismatch.needDocumentType}`,
+      source: "internal",
+      contactName: null,
+      dueAt: null,
+      href: href("documents"),
+      target: "documents",
     };
   }
 
@@ -118,6 +138,20 @@ export function deriveDealNextAction(input: {
       dueAt: null,
       href: href("documents"),
       target: "documents",
+    };
+  }
+
+  const missingRequired = needs.find(
+    (need) => need.required && need.status === "missing",
+  );
+  if (missingRequired) {
+    return {
+      action: `Collect missing required ${missingRequired.documentType}`,
+      source: "internal",
+      contactName: null,
+      dueAt: null,
+      href: href("needs"),
+      target: "needs",
     };
   }
 
