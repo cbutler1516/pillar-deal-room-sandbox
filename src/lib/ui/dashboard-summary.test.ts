@@ -13,6 +13,7 @@ describe("dashboard summary copy", () => {
       attention: "8 files need your attention today",
       review: "12 documents ready for review",
       ready: "1 ready to submit",
+      line: "8 files need attention · 12 documents to review · 1 ready to submit",
     });
     expect(
       formatDashboardSummary({
@@ -24,6 +25,7 @@ describe("dashboard summary copy", () => {
       attention: "1 file needs your attention today",
       review: "1 document ready for review",
       ready: "0 ready to submit",
+      line: "1 file needs attention · 1 document to review · 0 ready to submit",
     });
   });
 });

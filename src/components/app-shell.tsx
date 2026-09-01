@@ -42,6 +42,30 @@ export function AppShell({
             </p>
             <SandboxBadge />
           </div>
+          <nav aria-label="Application" className="hidden lg:block">
+            <ul className="flex items-center gap-1">
+              {NAV.map((item) => {
+                const active = isActive(pathname, item.href);
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 ${
+                        active
+                          ? "bg-pillar-teal-soft text-pillar-teal"
+                          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
           <div className="flex min-w-0 items-center gap-2">
             <StaffAvatar name={name} size={32} />
             <div className="hidden min-w-0 text-right sm:block">
@@ -53,11 +77,11 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="px-3 pb-[var(--app-bottom-nav-space)] pt-5 sm:px-5 sm:pt-6">{children}</main>
+      <main className="px-3 pb-[var(--app-bottom-nav-space)] pt-4 sm:px-5 sm:pt-5">{children}</main>
 
       <nav
         aria-label="Application"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)]"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)] lg:hidden"
       >
         <div className="flex items-center">
           <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">

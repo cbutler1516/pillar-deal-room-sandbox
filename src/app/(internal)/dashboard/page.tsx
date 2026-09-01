@@ -4,7 +4,7 @@ import { StatusChip } from "@/components/status-chip";
 import { MetricCard } from "@/components/ui/metric-card";
 import { StaffPresence } from "@/components/ui/staff-avatar";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
-import { linkClass, pageLeadClass, pageTitleClass, pageWidthClass } from "@/components/ui/styles";
+import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
 import { listActiveStaff } from "@/lib/communications/data";
 import { getOperationalBoard } from "@/lib/data/dashboard";
@@ -46,16 +46,16 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className={`${pageWidthClass} space-y-8`}>
-      <div className="rounded-[14px] border border-pillar-teal/15 bg-gradient-to-r from-pillar-teal-soft/80 via-surface to-info-soft/60 px-5 py-5">
-        <p className="text-[11px] text-ink-muted">{formatLongDate(now)}</p>
-        <h2 className={`mt-1 ${pageTitleClass}`}>
-          {greetingForNow(now)}, {firstName}
-        </h2>
-        <div className={`${pageLeadClass} space-y-0.5`}>
-          <p>{summary.attention}</p>
-          <p>{summary.review}</p>
-          <p>{summary.ready}</p>
+    <div className={`${pageWidthClass} space-y-5`}>
+      <div className="rounded-[12px] border border-pillar-teal/15 bg-gradient-to-r from-pillar-teal-soft/70 via-surface to-info-soft/50 px-4 py-2.5">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+          <div className="min-w-0">
+            <p className="text-[11px] leading-4 text-ink-muted">{formatLongDate(now)}</p>
+            <h2 className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-ink">
+              {greetingForNow(now)}, {firstName}
+            </h2>
+          </div>
+          <p className="max-w-xl text-sm leading-5 text-ink-muted">{summary.line}</p>
         </div>
       </div>
 
@@ -87,18 +87,18 @@ export default async function DashboardPage() {
       </div>
 
       <NextActionsQueue
-        rows={attentionRows.slice(0, 7).map((row) =>
+        rows={attentionRows.slice(0, 10).map((row) =>
           workQueueRow(row, { location: locationByDeal[row.dealId] }),
         )}
         staffNames={staffNames}
         title="Files needing attention"
-        description="Highest-priority work. Open a card to work it."
+        description="Highest-priority work"
         empty="You’re clear for now."
         compact
         accent="urgent"
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <SurfaceCard tone="elevated">
           <CardHeader title="Waiting on others" />
           {waitingRows.length === 0 ? (
@@ -106,7 +106,7 @@ export default async function DashboardPage() {
           ) : (
             <ul>
               {waitingRows.map((row) => (
-                <li key={row.id} className="border-t border-line py-3 first:border-0">
+                <li key={row.id} className="border-t border-line py-2 first:border-0">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <Link href={row.href} className={linkClass}>
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
               {readyDeals.map((deal) => (
                 <li
                   key={deal.id}
-                  className="flex items-center justify-between gap-3 border-t border-line py-3 first:border-0"
+                  className="flex items-center justify-between gap-3 border-t border-line py-2 first:border-0"
                 >
                   <div className="min-w-0">
                     <Link href={`/deals/${deal.id}`} className={linkClass}>

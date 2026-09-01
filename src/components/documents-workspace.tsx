@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { DocumentIntelligenceDetail } from "@/components/document-intelligence-detail";
-import { TemporaryAccessControl } from "@/components/document-intake-panel";
+import { DocumentPreview } from "@/components/document-preview";
 import { FilterToggle } from "@/components/ui/controls";
 import { buttonClass } from "@/components/ui/button";
 import { DocumentStatusControl } from "@/components/workflow-controls";
@@ -38,14 +38,12 @@ export function DocumentsWorkspace({
   documents,
   needs,
   canMutate,
-  canIntake,
   intelligence = null,
 }: {
   dealId: string;
   documents: DocumentRow[];
   needs: ClientNeedRow[];
   canMutate: boolean;
-  canIntake: boolean;
   intelligence?: DocumentIntelligenceResult | null;
 }) {
   const [filter, setFilter] = useState<DocumentInboxFilter>("needs_review");
@@ -191,7 +189,7 @@ export function DocumentsWorkspace({
           </ul>
           {selected ? (
             <div
-              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-card)]`}
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-surface px-4 py-4 shadow-[var(--shadow-card)]`}
             >
               <button
                 type="button"
@@ -206,7 +204,6 @@ export function DocumentsWorkspace({
                 document={selected}
                 needs={needs}
                 canMutate={canMutate}
-                canIntake={canIntake}
                 needLabel={needLabel}
                 intelligence={intelById.get(selected.id) ?? null}
               />
@@ -223,7 +220,6 @@ function DocumentDetailPanel({
   document,
   needs,
   canMutate,
-  canIntake,
   needLabel,
   intelligence,
 }: {
@@ -231,7 +227,6 @@ function DocumentDetailPanel({
   document: DocumentRow;
   needs: ClientNeedRow[];
   canMutate: boolean;
-  canIntake: boolean;
   needLabel: (needId: string) => string;
   intelligence: DocumentIntelligenceDocumentResult | null;
 }) {
@@ -266,17 +261,17 @@ function DocumentDetailPanel({
   }
 
   return (
-    <aside className="space-y-6">
+    <aside className="space-y-4">
       <div>
-        <h4 className="text-xl font-semibold tracking-tight break-all text-ink">
+        <h4 className="text-lg font-semibold tracking-tight break-all text-ink">
           {document.fileName}
         </h4>
         {intelligence ? (
-          <div className="mt-3">
+          <div className="mt-2">
             <DocumentIntelligenceDetail result={intelligence} />
           </div>
         ) : (
-          <p className="mt-2 text-sm leading-6 text-ink-muted">
+          <p className="mt-1.5 text-sm leading-6 text-ink-muted">
             {document.documentType ?? "Unclassified"}
             {" · "}
             {document.linkedNeedIds.length === 0
@@ -285,6 +280,14 @@ function DocumentDetailPanel({
           </p>
         )}
       </div>
+
+      <DocumentPreview
+        key={document.id}
+        dealId={dealId}
+        documentId={document.id}
+        fileName={document.fileName}
+        mimeType={document.mimeType}
+      />
 
       {canMutate ? (
         <div className="space-y-5">
@@ -385,13 +388,6 @@ function DocumentDetailPanel({
             ) : null}
             <DocumentStatusControl documentId={document.id} status={document.status} />
           </div>
-        </div>
-      ) : null}
-
-      {canIntake ? (
-        <div>
-          <p className="mb-1 text-xs font-medium text-ink-muted">Temporary access</p>
-          <TemporaryAccessControl dealId={dealId} documentId={document.id} />
         </div>
       ) : null}
 

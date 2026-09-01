@@ -36,6 +36,12 @@
   --app-bottom-nav-space: 8rem;
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --app-bottom-nav-space: 1.5rem;
+  }
+}
+
 @theme inline {
   --color-background: var(--workspace);
   --color-foreground: var(--ink);

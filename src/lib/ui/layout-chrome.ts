@@ -1,11 +1,13 @@
 /**
  * App chrome tokens. Values must match :root in globals.css.
  * Inspector sticks below header + deal tabs and stops above the bottom nav.
+ * On lg+ the primary nav moves into the header, so bottom reserve shrinks.
  */
 export const APP_HEADER_HEIGHT = "3.5rem";
 export const DEAL_TABS_HEIGHT = "2.75rem";
 export const CHROME_GAP = "0.25rem";
 export const APP_BOTTOM_NAV_SPACE = "8rem";
+export const APP_BOTTOM_NAV_SPACE_DESKTOP = "1.5rem";
 
 export const inspectorStickyClass = [
   "lg:sticky",

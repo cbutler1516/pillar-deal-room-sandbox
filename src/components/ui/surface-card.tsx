@@ -39,19 +39,29 @@ export function CardHeader({
   meta,
   actions,
   accent,
+  compact = false,
 }: {
   title: string;
   description?: string;
   meta?: ReactNode;
   actions?: ReactNode;
   accent?: QueueCardAccent;
+  compact?: boolean;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <div
+      className={`flex flex-wrap items-start justify-between gap-2 ${
+        compact ? "mb-2" : "mb-4"
+      }`}
+    >
       <div>
-        <h3 className={sectionTitleClass}>{title}</h3>
+        <h3 className={compact ? "text-sm font-semibold tracking-tight text-ink" : sectionTitleClass}>
+          {title}
+        </h3>
         {description ? (
-          <p className="mt-0.5 text-xs leading-5 text-ink-muted">{description}</p>
+          <p className={`text-xs text-ink-muted ${compact ? "mt-0 leading-4" : "mt-0.5 leading-5"}`}>
+            {description}
+          </p>
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2">

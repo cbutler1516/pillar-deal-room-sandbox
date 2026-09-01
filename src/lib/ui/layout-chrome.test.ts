@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   APP_BOTTOM_NAV_SPACE,
+  APP_BOTTOM_NAV_SPACE_DESKTOP,
   APP_HEADER_HEIGHT,
   DEAL_TABS_HEIGHT,
   dealTabsStickyClass,
@@ -20,6 +21,7 @@ describe("layout chrome", () => {
 
   it("reserves bottom nav space so inspector actions stay reachable", () => {
     expect(APP_BOTTOM_NAV_SPACE).toBe("8rem");
+    expect(APP_BOTTOM_NAV_SPACE_DESKTOP).toBe("1.5rem");
     expect(inspectorStickyClass).toContain(
       "lg:max-h-[calc(100vh-var(--inspector-sticky-top)-var(--app-bottom-nav-space))]",
     );

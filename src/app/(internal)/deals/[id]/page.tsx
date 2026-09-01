@@ -322,7 +322,6 @@ export default async function DealDetailPage({
             documents={documents}
             needs={needs}
             canMutate={canMutate}
-            canIntake={canIntake}
             intelligence={documentIntelligence}
           />
         </div>

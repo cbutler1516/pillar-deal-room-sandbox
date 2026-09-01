@@ -33,22 +33,22 @@ export function MetricCard({
 }) {
   const body = (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-[2rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[1.5rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
           {value}
         </p>
         <span
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${ACCENT[accent]}`}
+          className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${ACCENT[accent]}`}
           aria-hidden
         >
-          <MetricIcon accent={accent} className="h-4 w-4" />
+          <MetricIcon accent={accent} className="h-3.5 w-3.5" />
         </span>
       </div>
-      <p className={`mt-3 ${labelClass}`}>{label}</p>
-      {hint ? <p className="mt-1 text-[11px] text-ink-muted">{hint}</p> : null}
+      <p className={`mt-1.5 leading-4 ${labelClass}`}>{label}</p>
+      {hint ? <p className="mt-0.5 text-[11px] leading-4 text-ink-muted">{hint}</p> : null}
     </>
   );
-  const frame = `${surfaceClass("elevated", Boolean(href))} ${TOP[accent]} block px-5 py-4`;
+  const frame = `${surfaceClass("elevated", Boolean(href))} ${TOP[accent]} block px-3.5 py-2.5`;
   if (href) {
     return (
       <Link href={href} className={frame}>
