@@ -24,6 +24,7 @@ import {
   type DocumentInboxFilter,
 } from "@/lib/documents/need-progress";
 import { formatReceivedAt, formatStatusLabel } from "@/lib/format";
+import { previewKindFromFile } from "@/lib/documents/preview";
 import { inspectorStickyClass } from "@/lib/ui/layout-chrome";
 
 const FILTERS: { id: DocumentInboxFilter; label: string }[] = [
@@ -153,12 +154,17 @@ export function DocumentsWorkspace({
                         focusRow(visible[index - 1].id);
                       }
                     }}
-                    className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[14px] border-l-2 px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                    className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[14px] border-l-[3px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                       active
-                        ? "border-l-pillar-teal bg-pillar-teal-soft/80 shadow-[var(--shadow-card)]"
+                        ? "border-l-pillar-teal bg-[linear-gradient(180deg,rgb(231_244_242/0.8)_0%,rgb(234_240_246/0.4)_100%)] shadow-[var(--shadow-elevated)]"
                         : "border-l-transparent hover:bg-surface-muted/80"
                     }`}
                   >
+                    <div className="flex min-w-0 items-start gap-3">
+                    <DocumentKindWell
+                      fileName={doc.fileName}
+                      mimeType={doc.mimeType}
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-ink">
                         {doc.fileName}
@@ -179,6 +185,7 @@ export function DocumentsWorkspace({
                         {signal}
                       </p>
                     </div>
+                    </div>
                     <time className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-muted">
                       {formatReceivedAt(doc.uploadedAt)}
                     </time>
@@ -189,7 +196,7 @@ export function DocumentsWorkspace({
           </ul>
           {selected ? (
             <div
-              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-surface px-4 py-4 shadow-[var(--shadow-card)]`}
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_70%,rgb(231_244_242/0.35)_100%)] px-4 py-4 shadow-[var(--shadow-elevated)]`}
             >
               <button
                 type="button"
@@ -394,5 +401,65 @@ function DocumentDetailPanel({
       {message ? <p className="text-sm text-pillar-teal">{message}</p> : null}
       {error ? <p className="text-sm text-danger">{error}</p> : null}
     </aside>
+  );
+}
+
+function DocumentKindWell({
+  fileName,
+  mimeType,
+}: {
+  fileName: string;
+  mimeType: string | null;
+}) {
+  const kind = previewKindFromFile({ fileName, mimeType });
+  const tone =
+    kind === "pdf"
+      ? "bg-danger-soft text-danger"
+      : kind === "image"
+        ? "bg-aqua-soft text-aqua"
+        : "bg-slate-soft text-slate";
+  return (
+    <span
+      className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] ${tone}`}
+      aria-hidden
+    >
+      {kind === "image" ? <ImageMark /> : <PageMark />}
+    </span>
+  );
+}
+
+function PageMark() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+      <path
+        d="M5 2.5h4.2L12 5.3V13.5H5z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M9.2 2.5V5.3H12" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function ImageMark() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+      <rect
+        x="2.5"
+        y="3.5"
+        width="11"
+        height="9"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="m3.4 10.4 2.6-2.6 2.1 2.1 1.5-1.5 3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

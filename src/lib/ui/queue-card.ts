@@ -24,7 +24,7 @@ export function queueCardAccent(
 export const QUEUE_ACCENT_EDGE: Record<QueueCardAccent, string> = {
   urgent: "border-l-danger",
   review: "border-l-pillar-teal",
-  waiting: "border-l-warning",
+  waiting: "border-l-amber",
   ready: "border-l-success",
   new: "border-l-pillar-navy",
   due: "border-l-info",

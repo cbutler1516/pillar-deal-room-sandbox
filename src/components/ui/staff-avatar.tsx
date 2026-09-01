@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import {
   STAFF_AVATAR_TONES,
@@ -16,6 +17,9 @@ const SIZE_CLASS: Record<StaffAvatarSize, string> = {
   40: "h-10 w-10 text-sm",
   48: "h-12 w-12 text-base",
 };
+
+const DEPTH =
+  "shadow-[0_1px_3px_rgb(11_31_58/0.16)] ring-2 ring-offset-2 ring-offset-workspace";
 
 export function StaffAvatar({
   name,
@@ -52,6 +56,20 @@ export function StaffAvatar({
   }
 
   if (resolved && !failed) {
+    const photoClass = `${frame} object-cover ${DEPTH} ring-pillar-teal/40`;
+    if (resolved.startsWith("/")) {
+      return (
+        <Image
+          src={resolved}
+          alt={title}
+          title={title}
+          width={size}
+          height={size}
+          onError={() => setFailed(true)}
+          className={photoClass}
+        />
+      );
+    }
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -59,18 +77,20 @@ export function StaffAvatar({
         alt={title}
         title={title}
         onError={() => setFailed(true)}
-        className={`${frame} object-cover ring-2 ring-pillar-teal/45 ring-offset-1 ring-offset-workspace`}
+        className={photoClass}
       />
     );
   }
 
   const tone =
     kind === "external"
-      ? { bg: "bg-surface-muted", fg: "text-pillar-navy" }
+      ? { bg: "bg-slate-soft", fg: "text-slate" }
       : STAFF_AVATAR_TONES[staffAvatarToneIndex(display)];
   return (
     <span
-      className={`${frame} ${tone.bg} ${tone.fg}`}
+      className={`${frame} ${tone.bg} ${tone.fg} ${DEPTH} ${
+        kind === "staff" ? "ring-pillar-teal/25" : "ring-line"
+      }`}
       title={title}
       aria-label={title}
     >

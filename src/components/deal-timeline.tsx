@@ -84,10 +84,10 @@ export function DealTimeline({
       ) : (
         days.map((day) => (
           <section key={day.key}>
-            <h3 className="mb-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            <h3 className="mb-3 text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
               {day.label}
             </h3>
-            <ol className="relative space-y-1 border-l border-line pl-5">
+            <ol className="relative space-y-2 border-l-2 border-line/80 pl-6">
               {day.entries.map((entry) => {
                 const open = openId === entry.id;
                 const system = entry.actor === "System";
@@ -97,18 +97,26 @@ export function DealTimeline({
                   <li key={entry.id} className="relative">
                     <span
                       aria-hidden
-                      className="absolute top-4 -left-[23px] h-2 w-2 rounded-full border border-line bg-surface"
+                      className={`absolute top-4 -left-[29px] h-2.5 w-2.5 rounded-full border ${
+                        system
+                          ? "border-line bg-surface-muted"
+                          : "border-pillar-teal/40 bg-pillar-teal-soft"
+                      }`}
                     />
                     <button
                       type="button"
                       onClick={() =>
                         setOpenId(open || !entry.detail ? null : entry.id)
                       }
-                      className="flex w-full items-start gap-3 rounded-[14px] px-2 py-2.5 text-left transition duration-200 hover:bg-surface-muted/70 motion-reduce:transition-none"
+                      className={`flex w-full items-start gap-3 rounded-[14px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                        system
+                          ? "hover:bg-surface-muted/60"
+                          : "border border-transparent bg-surface/70 shadow-[var(--shadow-card)] hover:-translate-y-px hover:shadow-[var(--shadow-elevated)] motion-reduce:hover:translate-y-0"
+                      }`}
                     >
                       <StaffAvatar
-                        name={actorName}
-                        size={28}
+                        name={system ? "System" : actorName}
+                        size={32}
                         label={entry.actor}
                         kind={isStaff ? "staff" : "external"}
                       />

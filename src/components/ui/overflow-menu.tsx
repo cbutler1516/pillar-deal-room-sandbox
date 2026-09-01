@@ -55,7 +55,7 @@ export function OverflowMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-1 min-w-44 rounded-[14px] border border-line bg-surface p-1 shadow-[var(--shadow-elevated)]"
+          className="absolute right-0 z-20 mt-1 min-w-44 rounded-[14px] border border-line bg-surface p-1 shadow-[var(--shadow-float)]"
         >
           {items.map((item) => (
             <button

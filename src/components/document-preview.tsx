@@ -148,7 +148,7 @@ function PreviewCanvas({
   onMediaError: () => void;
 }) {
   const frame =
-    "overflow-hidden rounded-[12px] border border-line bg-workspace shadow-[var(--shadow-card)]";
+    "overflow-hidden rounded-[12px] border border-line bg-[linear-gradient(180deg,#e8edf3_0%,#eef2f6_100%)] shadow-[inset_0_1px_0_rgb(255_255_255/0.55),var(--shadow-card)]";
 
   if (display.mode === "loading") {
     return (
@@ -194,26 +194,26 @@ function PreviewCanvas({
 
   if (display.mode === "pdf") {
     return (
-      <div className={`${frame} bg-workspace`}>
+      <div className={`${frame} p-2`}>
         <iframe
           title={`Preview of ${display.fileName}`}
           src={display.url}
           onError={onMediaError}
-          className="h-64 w-full bg-surface"
+          className="h-64 w-full rounded-[8px] border border-line bg-surface shadow-[var(--shadow-page)]"
         />
       </div>
     );
   }
 
   return (
-    <div className={`${frame} flex min-h-40 items-center justify-center bg-workspace p-3`}>
+    <div className={`${frame} flex min-h-40 items-center justify-center p-4`}>
       {/* Provider URLs are short-lived and unknown at build time. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={display.url}
         alt={display.fileName}
         onError={onMediaError}
-        className="max-h-64 w-full object-contain"
+        className="max-h-64 w-full rounded-[8px] bg-surface object-contain shadow-[var(--shadow-page)]"
       />
     </div>
   );

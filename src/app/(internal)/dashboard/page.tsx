@@ -2,7 +2,8 @@ import Link from "next/link";
 import { NextActionsQueue } from "@/components/next-actions-queue";
 import { StatusChip } from "@/components/status-chip";
 import { MetricCard } from "@/components/ui/metric-card";
-import { StaffPresence } from "@/components/ui/staff-avatar";
+import { StaffAvatar, StaffPresence } from "@/components/ui/staff-avatar";
+import { displayName } from "@/lib/auth/authorization";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
@@ -47,13 +48,16 @@ export default async function DashboardPage() {
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
-      <div className="rounded-[12px] border border-pillar-teal/15 bg-gradient-to-r from-pillar-teal-soft/70 via-surface to-info-soft/50 px-4 py-2.5">
-        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-          <div className="min-w-0">
-            <p className="text-[11px] leading-4 text-ink-muted">{formatLongDate(now)}</p>
-            <h2 className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-ink">
-              {greetingForNow(now)}, {firstName}
-            </h2>
+      <div className="rounded-[14px] border border-pillar-teal/20 bg-[linear-gradient(105deg,var(--pillar-teal-soft)_0%,#ffffff_46%,var(--info-soft)_100%)] px-4 py-2.5 shadow-[var(--shadow-card)]">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <StaffAvatar name={displayName(profile)} size={40} />
+            <div className="min-w-0">
+              <p className="text-[11px] leading-4 text-ink-muted">{formatLongDate(now)}</p>
+              <h2 className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-ink">
+                {greetingForNow(now)}, {firstName}
+              </h2>
+            </div>
           </div>
           <p className="max-w-xl text-sm leading-5 text-ink-muted">{summary.line}</p>
         </div>

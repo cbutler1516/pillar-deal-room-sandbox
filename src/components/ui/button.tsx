@@ -5,11 +5,11 @@ export type ButtonSize = "sm" | "md";
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary:
-    "bg-pillar-navy text-white hover:bg-pillar-navy-soft disabled:opacity-60",
+    "bg-pillar-navy text-white shadow-[0_1px_2px_rgb(11_31_58/0.2)] hover:-translate-y-px hover:bg-pillar-navy-soft hover:shadow-[0_4px_10px_rgb(11_31_58/0.18)] disabled:opacity-60 motion-reduce:hover:translate-y-0",
   secondary:
-    "border border-line bg-surface text-ink hover:bg-surface-muted disabled:opacity-60",
+    "border border-line bg-surface text-ink shadow-[var(--shadow-card)] hover:-translate-y-px hover:bg-surface-muted hover:shadow-[var(--shadow-elevated)] disabled:opacity-60 motion-reduce:hover:translate-y-0",
   accent:
-    "bg-pillar-teal text-white hover:bg-pillar-teal/90 disabled:opacity-60",
+    "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)] hover:-translate-y-px hover:bg-pillar-teal/90 hover:shadow-[0_4px_12px_rgb(27_122_114/0.22)] disabled:opacity-60 motion-reduce:hover:translate-y-0",
   danger:
     "border border-danger/20 bg-danger-soft text-danger hover:bg-danger/10 disabled:opacity-60",
   ghost: "text-ink hover:bg-surface-muted disabled:opacity-60",

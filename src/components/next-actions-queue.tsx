@@ -63,7 +63,9 @@ export function NextActionsQueue({
       />
       </div>
       {rows.length === 0 ? (
-        <p className="text-sm leading-6 text-ink-muted">{empty}</p>
+        <p className="rounded-[14px] border border-dashed border-line bg-surface-muted/50 px-3 py-5 text-sm leading-6 text-ink-muted">
+          {empty}
+        </p>
       ) : (
         <ul
           className={
@@ -136,7 +138,7 @@ function WorkCard({
           actionLabel: row.actionLabel,
           ownerName: owner,
         })}
-        className={`${surfaceClass("elevated", true)} block h-full border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 py-3`}
+        className={`${surfaceClass("elevated", true)} block h-full border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/35 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 py-3`}
       >
         <div aria-hidden className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
           <p className="truncate text-[13px] font-semibold leading-4 tracking-[0.04em] text-ink uppercase">
@@ -155,8 +157,8 @@ function WorkCard({
               {reason}
             </p>
           ) : null}
-          <div className="mt-auto flex items-center justify-between gap-3 border-t border-line/80 pt-2">
-            <StaffPresence name={owner} unassigned={!owner} size={24} />
+          <div className="mt-auto flex items-center justify-between gap-3 border-t border-line/80 pt-2.5">
+            <StaffPresence name={owner} unassigned={!owner} size={28} />
             <span className="shrink-0 text-xs font-medium leading-4 text-pillar-teal">
               {row.actionLabel} →
             </span>

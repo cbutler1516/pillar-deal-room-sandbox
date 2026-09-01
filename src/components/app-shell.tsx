@@ -34,7 +34,7 @@ export function AppShell({
   const role = formatRoleLabel(profile.role);
 
   return (
-    <div className="min-h-full bg-workspace">
+    <div className="min-h-full bg-transparent">
       <header className="sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
         <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3.5">
@@ -54,9 +54,9 @@ export function AppShell({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 ${
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 motion-reduce:transition-none ${
                         active
-                          ? "bg-pillar-teal-soft text-pillar-teal"
+                          ? "bg-pillar-teal-soft text-pillar-teal shadow-[var(--shadow-card)] ring-1 ring-pillar-teal/20"
                           : "text-ink-muted hover:bg-surface-muted hover:text-ink"
                       }`}
                     >
@@ -160,7 +160,7 @@ function AccountMenu({ name, role }: { name: string; role: string }) {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-1 min-w-48 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-card)]"
+          className="absolute right-0 z-30 mt-1 min-w-48 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-float)]"
         >
           <div className="border-b border-line px-2.5 py-2 sm:hidden">
             <p className="text-xs font-medium text-ink">{name}</p>

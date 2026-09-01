@@ -5,10 +5,14 @@ import { labelClass, surfaceClass } from "@/components/ui/styles";
 export type MetricAccent = "attention" | "waiting" | "review" | "ready";
 
 const ACCENT: Record<MetricAccent, string> = {
-  attention: "text-warning bg-warning-soft",
-  waiting: "text-info bg-info-soft",
-  review: "text-pillar-teal bg-pillar-teal-soft",
-  ready: "text-success bg-success-soft",
+  attention:
+    "text-warning bg-[linear-gradient(180deg,var(--warning-soft)_0%,rgb(248_241_221/0.55)_100%)]",
+  waiting:
+    "text-info bg-[linear-gradient(180deg,var(--info-soft)_0%,rgb(234_240_246/0.5)_100%)]",
+  review:
+    "text-pillar-teal bg-[linear-gradient(180deg,var(--pillar-teal-soft)_0%,rgb(231_244_242/0.5)_100%)]",
+  ready:
+    "text-success bg-[linear-gradient(180deg,var(--success-soft)_0%,rgb(232_245_238/0.5)_100%)]",
 };
 
 const TOP: Record<MetricAccent, string> = {
@@ -38,7 +42,7 @@ export function MetricCard({
           {value}
         </p>
         <span
-          className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${ACCENT[accent]}`}
+          className={`inline-flex h-8 w-8 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgb(255_255_255/0.7)] ${ACCENT[accent]}`}
           aria-hidden
         >
           <MetricIcon accent={accent} className="h-3.5 w-3.5" />

@@ -144,17 +144,20 @@ export function ContactsWorkspace({
                   No {group.label.toLowerCase()} on file.
                 </p>
               ) : (
-                <ul className="divide-y divide-line">
+                <ul className="space-y-2">
                   {group.rows.map((contact) => {
                     const open = openId === contact.id;
                     const method =
                       contact.email || contact.phone || "No contact method";
                     return (
-                      <li key={contact.id} className="py-3.5">
+                      <li
+                        key={contact.id}
+                        className="rounded-[14px] border border-line/70 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_100%)] px-3 py-3 shadow-[var(--shadow-card)]"
+                      >
                         <div className="flex items-start gap-3">
                           <StaffAvatar
                             name={contact.name}
-                            size={32}
+                            size={40}
                             label={contact.name}
                             kind="external"
                           />
@@ -241,7 +244,7 @@ export function ContactsWorkspace({
                           </div>
                         </div>
                         {open ? (
-                          <div className="mt-3 ml-11 space-y-3 rounded-[14px] bg-surface-muted px-3 py-3 transition duration-200 motion-reduce:transition-none">
+                          <div className="mt-3 ml-[3.25rem] space-y-3 rounded-[12px] bg-surface-muted/80 px-3 py-3 transition duration-200 motion-reduce:transition-none">
                             {contact.notes ? (
                               <p className="text-sm leading-6 text-ink-muted">
                                 {contact.notes}

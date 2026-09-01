@@ -34,8 +34,8 @@ export default async function LoginPage({
       : undefined;
 
   return (
-    <div className="flex min-h-full items-center justify-center bg-workspace px-4 py-12">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)]">
+    <div className="flex min-h-full items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-elevated)]">
         <div className="bg-black px-6 py-6">
           <PillarWordmark height={56} priority />
         </div>

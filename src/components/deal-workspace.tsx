@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StatusChip } from "@/components/status-chip";
 import { TabList } from "@/components/ui/controls";
+import { PropertyThumb } from "@/components/ui/property-thumb";
 import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
@@ -71,53 +72,58 @@ export function DealWorkspaceHeader({
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
-    <div className="grid items-start gap-6 border-b-2 border-b-pillar-teal/35 pb-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-      <div className="min-w-0">
-        <p className={labelClass}>{deal.dealReference}</p>
-        <h2 className="mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink uppercase">
-          {deal.borrowerName}
-        </h2>
-        {deal.entityName ? (
-          <p className="mt-2 text-sm text-ink">{deal.entityName}</p>
-        ) : null}
-        {locationLine ? (
-          <p className="mt-1 text-sm text-ink-muted">{locationLine}</p>
-        ) : null}
-        {deal.propertyAddress ? (
-          <p className="mt-3 text-sm leading-6 text-ink">
-            {deal.propertyAddress}
-            {cityState !== "—" ? (
-              <>
-                <br />
-                {cityState}
-              </>
+    <div className="rounded-[14px] border border-line/80 bg-[linear-gradient(165deg,rgb(231_244_242/0.55)_0%,#ffffff_46%,rgb(234_240_246/0.4)_100%)] px-5 py-5 shadow-[var(--shadow-card)]">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <p className={labelClass}>{deal.dealReference}</p>
+            <h2 className="mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink uppercase">
+              {deal.borrowerName}
+            </h2>
+            {deal.entityName ? (
+              <p className="mt-2 text-sm text-ink">{deal.entityName}</p>
             ) : null}
-          </p>
-        ) : null}
-      </div>
-
-      {loanAmount !== "—" ? (
-        <div className="min-w-[8rem]">
-          <p className="text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
-            {loanAmount}
-          </p>
-          <p className="mt-1.5 text-[11px] text-ink-muted">Loan request</p>
-        </div>
-      ) : null}
-
-      <div className="flex flex-col items-start gap-3 lg:items-end">
-        <div className="flex items-center gap-2.5">
-          <StaffAvatar name={ownerName} unassigned={unassigned} size={32} />
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-ink">
-              {unassigned ? "Unassigned" : ownerName}
-            </p>
-            <p className="text-[11px] text-ink-muted">Processor</p>
+            {locationLine ? (
+              <p className="mt-1 text-sm text-ink-muted">{locationLine}</p>
+            ) : null}
+            {deal.propertyAddress ? (
+              <p className="mt-3 text-sm leading-6 text-ink">
+                {deal.propertyAddress}
+                {cityState !== "—" ? (
+                  <>
+                    <br />
+                    {cityState}
+                  </>
+                ) : null}
+              </p>
+            ) : null}
           </div>
+          <PropertyThumb address={deal.propertyAddress} />
         </div>
-        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          <StatusChip status={deal.status} />
-          {actions}
+
+        {loanAmount !== "—" ? (
+          <div className="min-w-[8.5rem] rounded-[12px] border border-line/70 bg-surface/70 px-3.5 py-3">
+            <p className="text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
+              {loanAmount}
+            </p>
+            <p className="mt-1.5 text-[11px] text-ink-muted">Loan request</p>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col items-start gap-3 lg:items-end">
+          <div className="flex items-center gap-2.5">
+            <StaffAvatar name={ownerName} unassigned={unassigned} size={40} />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink">
+                {unassigned ? "Unassigned" : ownerName}
+              </p>
+              <p className="text-[11px] text-ink-muted">Processor</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <StatusChip status={deal.status} />
+            {actions}
+          </div>
         </div>
       </div>
     </div>
@@ -193,16 +199,16 @@ function DealProgressStrip({
       <ol className="relative grid grid-cols-4 gap-2">
         <span
           aria-hidden
-          className="absolute top-[7px] right-4 left-4 h-px bg-line"
+          className="absolute top-[8px] right-4 left-4 h-[2px] rounded-full bg-line"
         />
         {DEAL_PROGRESS_STAGES.map((stage, index) => {
           const state = dealProgressState(status, index);
           const tone =
             state === "future"
-              ? "h-3.5 w-3.5 border-line bg-surface text-ink-muted"
+              ? "h-3.5 w-3.5 border-line bg-surface text-ink-muted shadow-[var(--shadow-card)]"
               : state === "current"
-                ? "h-4 w-4 border-2 border-pillar-teal bg-white ring-4 ring-pillar-teal/25"
-                : "h-3.5 w-3.5 border-pillar-teal bg-pillar-teal text-white";
+                ? "h-4 w-4 border-2 border-pillar-teal bg-white shadow-[var(--shadow-elevated)] ring-4 ring-pillar-teal/22"
+                : "h-3.5 w-3.5 border-pillar-teal bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]";
           return (
             <li key={stage.key} className="relative flex flex-col items-center">
               <span
@@ -232,9 +238,9 @@ function DealProgressStrip({
               ? ` · ${reviewCount} still need review`
               : ""}
           </p>
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-line">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line/90">
             <div
-              className="h-1 rounded-full bg-pillar-teal/70 transition-[width] duration-200 motion-reduce:transition-none"
+              className="h-1.5 rounded-full bg-[linear-gradient(90deg,var(--pillar-teal)_0%,var(--aqua)_100%)] transition-[width] duration-200 motion-reduce:transition-none"
               style={{ width: `${ratio}%` }}
             />
           </div>
@@ -370,7 +376,7 @@ export function DealOverview({
 
       {nextAction && presentation ? (
         <section
-          className={`${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal bg-pillar-teal-soft/50 px-5 py-5`}
+          className={`${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal bg-[linear-gradient(135deg,var(--pillar-teal-soft)_0%,rgb(234_240_246/0.55)_100%)] px-5 py-5`}
         >
           <p className="text-[11px] font-semibold tracking-[0.08em] text-pillar-teal uppercase">
             Next action
@@ -450,13 +456,15 @@ export function DealOverview({
           <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
             Deal snapshot
           </h3>
-          <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <dl className={`${surfaceClass("card")} mt-4 grid grid-cols-2 divide-y divide-line overflow-hidden sm:grid-cols-4 sm:divide-x sm:divide-y-0`}>
             {snapshot.map((row) => (
               <div
                 key={row.label}
-                className="rounded-[14px] border border-line bg-surface px-4 py-4"
+                className="px-4 py-4"
               >
-                <dt className="text-[11px] text-ink-muted">{row.label}</dt>
+                <dt className="text-[11px] tracking-wide text-ink-muted uppercase">
+                  {row.label}
+                </dt>
                 <dd className="mt-2 text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
                   {row.value}
                 </dd>

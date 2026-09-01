@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TaskBadges } from "@/components/task-badges";
+import { surfaceClass } from "@/components/ui/styles";
 import { BOARD_COLUMNS, boardColumnForStatus } from "@/lib/ops/ops-board";
 import { formatTimestamp } from "@/lib/format";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
@@ -26,7 +27,7 @@ export function TaskBoard({ rows }: { rows: DecoratedAction[] }) {
                 {cards.length}
               </span>
             </div>
-            <ul className="rounded-[14px] border border-line bg-surface">
+            <ul className={`${surfaceClass("card")} overflow-hidden`}>
               {cards.length === 0 ? (
                 <li className="px-3 py-6 text-xs text-ink-muted">
                   {EMPTY[column.key] ?? "You’re clear for now."}

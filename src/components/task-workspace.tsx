@@ -202,7 +202,10 @@ export function TaskWorkspace({
                       ? "Follow-up is overdue"
                       : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
-                    <li key={task.id} className={`${surfaceClass("card")} px-4 py-3`}>
+                    <li
+                      key={task.id}
+                      className={`${open ? `${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal` : surfaceClass("card", true)} px-4 py-3`}
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                       <button
                         type="button"
@@ -216,7 +219,7 @@ export function TaskWorkspace({
                               : null
                           }
                           unassigned={!task.assignedTo}
-                          size={28}
+                          size={32}
                         />
                         <span className="min-w-0">
                         <p className="text-sm font-semibold text-ink">
@@ -251,6 +254,7 @@ export function TaskWorkspace({
                         </div>
                       </div>
                       {open ? (
+                        <div className="mt-3 border-t border-line/80 pt-3">
                         <TaskDetail
                           task={task}
                           needs={needs}
@@ -266,6 +270,7 @@ export function TaskWorkspace({
                               : false
                           }
                         />
+                        </div>
                       ) : null}
                     </li>
                   );

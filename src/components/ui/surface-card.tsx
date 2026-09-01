@@ -55,9 +55,17 @@ export function CardHeader({
       }`}
     >
       <div>
-        <h3 className={compact ? "text-sm font-semibold tracking-tight text-ink" : sectionTitleClass}>
-          {title}
-        </h3>
+        <div className="flex items-center gap-2">
+          {accent ? (
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full shadow-[inset_0_1px_0_rgb(255_255_255/0.55)] ${QUEUE_SECTION_TINT[accent]}`}
+              aria-hidden
+            />
+          ) : null}
+          <h3 className={compact ? "text-sm font-semibold tracking-tight text-ink" : sectionTitleClass}>
+            {title}
+          </h3>
+        </div>
         {description ? (
           <p className={`text-xs text-ink-muted ${compact ? "mt-0 leading-4" : "mt-0.5 leading-5"}`}>
             {description}

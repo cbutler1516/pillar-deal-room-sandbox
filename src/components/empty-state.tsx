@@ -6,9 +6,37 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="px-2 py-8">
+    <div className="rounded-[14px] border border-dashed border-line bg-[linear-gradient(180deg,#eef2f6_0%,#e8edf3_100%)] px-4 py-8">
+      <span
+        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface text-slate shadow-[var(--shadow-card)]"
+        aria-hidden
+      >
+        <EmptyMark />
+      </span>
       <h2 className="text-sm font-semibold text-ink">{title}</h2>
       <p className="mt-1 max-w-lg text-sm leading-6 text-ink-muted">{description}</p>
     </div>
+  );
+}
+
+function EmptyMark() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden>
+      <rect
+        x="4"
+        y="5"
+        width="12"
+        height="11"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M7 9.2h6M7 12h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
