@@ -3,7 +3,7 @@ import type { DocumentIntelligenceDocumentResult } from "@/lib/document-intellig
 export const MATERIAL_DOCUMENT_FLAGS = [
   "Possible mismatch",
   "Possible duplicate",
-  "Replacement received",
+  "Replacement document",
 ] as const;
 
 export type MaterialDocumentFlag = (typeof MATERIAL_DOCUMENT_FLAGS)[number];
@@ -22,7 +22,7 @@ export function materialDocumentFlags(
     flags.push("Possible duplicate");
   }
   if (result.recommendation.action === "review_replacement") {
-    flags.push("Replacement received");
+    flags.push("Replacement document");
   }
   return flags;
 }
@@ -65,19 +65,22 @@ export function documentIntelligenceExplanation(
     result.classification.suggestedType;
   const headline = documentIntelligenceHeadline(result);
   if (headline === "Possible mismatch") {
-    return requested
-      ? `This file may not match the requested ${requested}.`
-      : "This file may not match the requested item.";
+    const suggested = result.classification.suggestedType;
+    return requested && suggested && suggested !== requested
+      ? `This file appears to be ${suggested}, but it is linked to ${requested}.`
+      : requested
+        ? `This file may not match the requested ${requested}.`
+        : "This file may not match the requested item.";
   }
   if (headline === "Possible duplicate") {
-    return "This file may already exist on the file.";
+    return "Another file with the same name is already on this deal.";
   }
-  if (headline === "Replacement received" || headline === "Likely match") {
+  if (headline === "Replacement document" || headline === "Likely match") {
     return requested
-      ? `This file appears consistent with the requested ${requested}. Processor review is still required.`
-      : "This file appears consistent with the requested item. Processor review is still required.";
+      ? `This looks like the requested ${requested}.`
+      : "This looks like the requested item.";
   }
-  return "A processor still has to review this file.";
+  return "This document still needs review.";
 }
 
 export function documentInspectorPrimaryAction(input: {

@@ -157,7 +157,7 @@ export function DocumentsWorkspace({
                     }}
                     className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[14px] border-l-2 px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                       active
-                        ? "border-l-pillar-teal bg-surface shadow-[var(--shadow-card)]"
+                        ? "border-l-pillar-teal bg-pillar-teal-soft/80 shadow-[var(--shadow-card)]"
                         : "border-l-transparent hover:bg-surface-muted/80"
                     }`}
                   >

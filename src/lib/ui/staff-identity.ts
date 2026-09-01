@@ -5,9 +5,20 @@ export type StaffAvatarSize = (typeof STAFF_AVATAR_SIZES)[number];
 export const STAFF_AVATAR_TONES = [
   { bg: "bg-info-soft", fg: "text-info" },
   { bg: "bg-pillar-teal-soft", fg: "text-pillar-teal" },
-  { bg: "bg-surface-muted", fg: "text-pillar-navy" },
-  { bg: "bg-[#eef2f6]", fg: "text-pillar-navy-soft" },
+  { bg: "bg-violet-soft", fg: "text-violet" },
+  { bg: "bg-warning-soft", fg: "text-warning" },
 ] as const;
+
+const SANDBOX_STAFF_PHOTOS: Record<string, string> = {
+  "chris butler": "/staff/chris-butler.png",
+};
+
+export function sandboxStaffAvatarUrl(
+  name?: string | null,
+): string | null {
+  const key = (name ?? "").trim().toLowerCase();
+  return SANDBOX_STAFF_PHOTOS[key] ?? null;
+}
 
 export function staffInitials(name: string | null | undefined): string {
   const parts = (name ?? "")

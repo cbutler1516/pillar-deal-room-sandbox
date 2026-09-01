@@ -6,6 +6,7 @@ import {
   type QueueTodaySection,
 } from "@/lib/ops/operational-work";
 import { staffCalendarDate } from "@/lib/format";
+import { humanizeWorkReason } from "@/lib/ui/staff-copy";
 
 export { QUEUE_TODAY_SECTIONS };
 export type { QueueTodaySection };
@@ -33,7 +34,7 @@ export function queueWhyNow(row: DecoratedAction, now = new Date()): string {
     return "Follow-up overdue";
   }
   if (row.lastResponseAt) {
-    return "Response received";
+    return "Reply received — review needed";
   }
   if (row.band === "document_review") {
     return "Ready to review";
@@ -123,7 +124,7 @@ export function workQueueRow(
     loanType: row.loanType,
     location: extra.location ?? null,
     title: row.title,
-    reason: row.reason,
+    reason: humanizeWorkReason(row.reason),
     actionLabel: row.recommendedAction,
     href: row.href,
     hot: row.priorityBand === "critical" || row.dueState === "overdue",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  sandboxStaffAvatarUrl,
   staffAvatarToneIndex,
   staffInitials,
 } from "@/lib/ui/staff-identity";
@@ -18,5 +19,10 @@ describe("staff identity", () => {
     expect(staffAvatarToneIndex("Chris Butler")).toBe(first);
     expect(first).toBeGreaterThanOrEqual(0);
     expect(first).toBeLessThan(4);
+  });
+
+  it("maps Chris Butler to the sandbox photo asset", () => {
+    expect(sandboxStaffAvatarUrl("Chris Butler")).toBe("/staff/chris-butler.png");
+    expect(sandboxStaffAvatarUrl("Avery Quinn")).toBeNull();
   });
 });

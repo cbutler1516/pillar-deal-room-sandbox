@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import {
   STAFF_AVATAR_TONES,
+  sandboxStaffAvatarUrl,
   staffAvatarToneIndex,
   staffInitials,
   type StaffAvatarSize,
@@ -30,6 +34,9 @@ export function StaffAvatar({
 }) {
   const display = (name ?? "").trim();
   const title = label ?? (unassigned ? "Unassigned" : display || "Staff");
+  const resolved =
+    kind === "staff" ? (avatarUrl ?? sandboxStaffAvatarUrl(display)) : null;
+  const [failed, setFailed] = useState(false);
   const frame = `inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold tracking-tight ${SIZE_CLASS[size]}`;
 
   if (unassigned || !display) {
@@ -44,15 +51,15 @@ export function StaffAvatar({
     );
   }
 
-  if (avatarUrl) {
+  if (resolved && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={avatarUrl}
-        alt=""
+        src={resolved}
+        alt={title}
         title={title}
-        aria-label={title}
-        className={`${frame} border border-line bg-surface-muted object-cover`}
+        onError={() => setFailed(true)}
+        className={`${frame} object-cover ring-2 ring-pillar-teal/45 ring-offset-1 ring-offset-workspace`}
       />
     );
   }

@@ -79,7 +79,7 @@ describe("missing-contact workflow", () => {
         blockedReason: CONTACT_MISSING,
       }),
     ).toBe(false);
-    expect(addContactLabel("insurance")).toBe("Add Insurance");
+    expect(addContactLabel("insurance")).toBe("Add insurance contact");
     expect(contactTypeLabel("co_borrower")).toBe("Co-borrower");
     expect(contactTypeLabel("property_manager")).toBe("Property manager");
   });

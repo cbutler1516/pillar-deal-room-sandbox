@@ -1,4 +1,5 @@
 import { AI_ASSIST_DISCLAIMER, type AISummaryResult } from "@/lib/ai/types";
+import { polishAssistSummary } from "@/lib/ui/staff-copy";
 
 function severityClass(severity: "info" | "warning" | "blocker"): string {
   if (severity === "blocker") {
@@ -21,9 +22,9 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-medium tracking-[0.08em] text-ink-muted uppercase">
-        AI-assisted
+        Processor Assist
       </p>
-      <p className="text-sm leading-6 text-ink">{result.dealSummary}</p>
+      <p className="text-sm leading-6 text-ink">{polishAssistSummary(result.dealSummary)}</p>
       {importantFlag ? (
         <p className={`text-sm font-medium leading-6 ${severityClass(importantFlag.severity)}`}>
           {importantFlag.title}

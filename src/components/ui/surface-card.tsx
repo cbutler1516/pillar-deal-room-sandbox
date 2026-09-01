@@ -6,6 +6,10 @@ import {
   surfaceClass,
   type SurfaceTone,
 } from "@/components/ui/styles";
+import {
+  QUEUE_SECTION_TINT,
+  type QueueCardAccent,
+} from "@/lib/ui/queue-card";
 
 export function SurfaceCard({
   children,
@@ -34,11 +38,13 @@ export function CardHeader({
   description,
   meta,
   actions,
+  accent,
 }: {
   title: string;
   description?: string;
   meta?: ReactNode;
   actions?: ReactNode;
+  accent?: QueueCardAccent;
 }) {
   return (
     <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -49,7 +55,17 @@ export function CardHeader({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {meta ? <span className={sectionMetaClass}>{meta}</span> : null}
+        {meta != null ? (
+          <span
+            className={
+              accent
+                ? `inline-flex min-w-6 justify-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${QUEUE_SECTION_TINT[accent]}`
+                : sectionMetaClass
+            }
+          >
+            {meta}
+          </span>
+        ) : null}
         {actions}
       </div>
     </div>

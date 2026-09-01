@@ -65,9 +65,9 @@ describe("deal timeline", () => {
       ],
     });
     expect(entries[0].actor).toBe("Chris Butler → Jordan Lee");
-    expect(entries[0].action).toBe("Marked contacted");
+    expect(entries[0].action).toBe("Contacted");
     expect(entries[0].context).toMatch(/Insurance Binder/);
-    expect(entries[1].action).toBe("Requested replacement");
+    expect(entries[1].action).toBe("Document marked rejected");
     expect(filterTimelineEntries(entries, "communications")).toHaveLength(1);
     expect(groupTimelineByDay(entries, now)[0].label).toBe("Today");
   });

@@ -83,7 +83,7 @@ export function ContactsWorkspace({
             A required contact is missing
           </p>
           <p className="mt-1 text-sm leading-6 text-ink-muted">
-            Add the person before related tasks can proceed. No messages are sent.
+            Add this person before related work can continue. Nothing is sent.
           </p>
           {canMutate ? (
             <button

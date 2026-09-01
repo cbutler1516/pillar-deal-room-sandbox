@@ -44,7 +44,7 @@ const SECTIONS = [
 
 const WORK_FILTERS = [
   { value: "all", label: "All work" },
-  { value: "attention", label: "Needs attention" },
+  { value: "attention", label: "Files needing attention" },
   { value: "new", label: "New" },
   { value: "review", label: "Needs review" },
   { value: "missing_contact", label: "Missing contact" },
@@ -52,7 +52,7 @@ const WORK_FILTERS = [
   { value: "follow_up", label: "Follow-up" },
   { value: "waiting", label: "Waiting" },
   { value: "escalated", label: "Escalated" },
-  { value: "ready", label: "Ready" },
+  { value: "ready", label: "Ready to submit" },
 ] as const;
 
 export default async function ProcessorQueuePage({

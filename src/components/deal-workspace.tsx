@@ -71,7 +71,7 @@ export function DealWorkspaceHeader({
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
-    <div className="grid items-start gap-6 border-b border-line pb-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+    <div className="grid items-start gap-6 border-b-2 border-b-pillar-teal/35 pb-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
       <div className="min-w-0">
         <p className={labelClass}>{deal.dealReference}</p>
         <h2 className="mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink uppercase">
@@ -199,17 +199,23 @@ function DealProgressStrip({
           const state = dealProgressState(status, index);
           const tone =
             state === "future"
-              ? "border-line bg-surface text-ink-muted"
-              : "border-pillar-teal bg-pillar-teal text-white";
+              ? "h-3.5 w-3.5 border-line bg-surface text-ink-muted"
+              : state === "current"
+                ? "h-4 w-4 border-2 border-pillar-teal bg-white ring-4 ring-pillar-teal/25"
+                : "h-3.5 w-3.5 border-pillar-teal bg-pillar-teal text-white";
           return (
             <li key={stage.key} className="relative flex flex-col items-center">
               <span
-                className={`relative z-10 h-3.5 w-3.5 rounded-full border ${tone}`}
+                className={`relative z-10 rounded-full border ${tone}`}
                 aria-current={state === "current" ? "step" : undefined}
               />
               <span
                 className={`mt-2 text-center text-[11px] leading-4 ${
-                  state === "future" ? "text-ink-muted" : "text-ink"
+                  state === "current"
+                    ? "font-semibold text-pillar-teal"
+                    : state === "future"
+                      ? "text-ink-muted"
+                      : "text-ink"
                 }`}
               >
                 {stage.label}
@@ -364,9 +370,9 @@ export function DealOverview({
 
       {nextAction && presentation ? (
         <section
-          className={`${surfaceClass("elevated")} border-l-2 border-l-pillar-teal px-5 py-5`}
+          className={`${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal bg-pillar-teal-soft/50 px-5 py-5`}
         >
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-pillar-teal uppercase">
             Next action
           </p>
           <h3 className="mt-2 text-xl font-semibold tracking-tight text-ink">
@@ -444,11 +450,14 @@ export function DealOverview({
           <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
             Deal snapshot
           </h3>
-          <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
+          <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {snapshot.map((row) => (
-              <div key={row.label}>
+              <div
+                key={row.label}
+                className="rounded-[14px] border border-line bg-surface px-4 py-4"
+              >
                 <dt className="text-[11px] text-ink-muted">{row.label}</dt>
-                <dd className="mt-1 text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
+                <dd className="mt-2 text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
                   {row.value}
                 </dd>
               </div>

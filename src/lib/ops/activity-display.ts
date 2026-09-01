@@ -27,7 +27,7 @@ const EVENT_ACTIONS: Record<string, string> = {
   deal_status_changed: "Changed deal status",
   client_need_status_changed: "Updated Client Need",
   document_upload_session_created: "Started a document upload",
-  document_metadata_recorded: "Recorded document metadata",
+  document_metadata_recorded: "Uploaded a document",
   document_status_changed: "Updated document status",
   document_access_requested: "Requested temporary document access",
   document_linked: "Linked a document",
@@ -35,16 +35,16 @@ const EVENT_ACTIONS: Record<string, string> = {
   task_waiting: "Marked waiting",
   task_completed: "Completed task",
   task_dismissed: "Dismissed task",
-  task_contacted: "Marked contacted",
-  task_follow_up_set: "Set follow-up",
+  task_contacted: "Contacted",
+  task_follow_up_set: "Follow-up scheduled",
   task_escalated: "Escalated",
   task_created: "Created task",
   baseline_tasks_generated: "Generated baseline tasks",
   contact_created: "Added contact",
   contact_updated: "Updated contact",
   contact_linked: "Linked contact",
-  contact_marked: "Marked contacted",
-  follow_up_scheduled: "Set follow-up",
+  contact_marked: "Contacted",
+  follow_up_scheduled: "Follow-up scheduled",
   escalation_triggered: "Escalated",
   response_received: "Recorded a response",
   communication_draft_copied: "Copied a communication draft",
@@ -98,9 +98,12 @@ export function formatActivityAction(
   eventType: string,
   metadata: Record<string, string>,
 ): string {
+  if (eventType === "document_status_changed" && metadata.to === "rejected") {
+    return "Document marked rejected";
+  }
   if (eventType === "client_need_status_changed") {
     if (metadata.to === "rejected") {
-      return "Requested replacement";
+      return "Document marked rejected";
     }
     if (metadata.to === "approved") {
       return "Approved";
@@ -122,16 +125,16 @@ export function formatActivityAction(
     return type ? `Linked ${titleCase(type)} contact` : "Linked contact";
   }
   if (eventType === "task_contacted" || eventType === "contact_marked") {
-    return "Marked contacted";
+    return "Contacted";
   }
   if (eventType === "response_received") {
     if (metadata.sandbox_simulated === "true") {
-      return "Recorded a sandbox simulated response";
+      return "Reply received (sandbox)";
     }
-    return "Recorded a response";
+    return "Reply received";
   }
   if (eventType === "document_metadata_recorded") {
-    return "Recorded uploaded document";
+    return "Uploaded a document";
   }
   if (eventType === "ai_assist_requested") {
     if (metadata.capability === "rewrite_communication") {

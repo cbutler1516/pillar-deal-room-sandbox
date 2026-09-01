@@ -11,6 +11,13 @@ const ACCENT: Record<MetricAccent, string> = {
   ready: "text-success bg-success-soft",
 };
 
+const TOP: Record<MetricAccent, string> = {
+  attention: "border-t-[3px] border-t-warning",
+  waiting: "border-t-[3px] border-t-info",
+  review: "border-t-[3px] border-t-pillar-teal",
+  ready: "border-t-[3px] border-t-success",
+};
+
 export function MetricCard({
   label,
   value,
@@ -41,7 +48,7 @@ export function MetricCard({
       {hint ? <p className="mt-1 text-[11px] text-ink-muted">{hint}</p> : null}
     </>
   );
-  const frame = `${surfaceClass("elevated", Boolean(href))} block px-5 py-4`;
+  const frame = `${surfaceClass("elevated", Boolean(href))} ${TOP[accent]} block px-5 py-4`;
   if (href) {
     return (
       <Link href={href} className={frame}>

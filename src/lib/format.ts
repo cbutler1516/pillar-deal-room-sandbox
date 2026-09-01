@@ -27,9 +27,9 @@ export function formatCurrency(amount: number | null): string {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  new: "New",
+  new: "New file",
   collecting_documents: "Collecting documents",
-  processor_review: "In review",
+  processor_review: "In processor review",
   ready_for_submission: "Ready to submit",
   waiting: "Waiting",
   replacement_needed: "Replacement needed",

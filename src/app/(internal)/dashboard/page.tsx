@@ -17,6 +17,7 @@ import {
 import { workQueueRow } from "@/lib/ops/queue-today";
 import { waitingCopyForDeal, workItemMatchesFilter } from "@/lib/ops/operational-work";
 import { formatDashboardSummary } from "@/lib/ui/dashboard-summary";
+import { humanizeWorkReason } from "@/lib/ui/staff-copy";
 import { formatProperty } from "@/lib/format";
 
 export default async function DashboardPage() {
@@ -46,7 +47,7 @@ export default async function DashboardPage() {
 
   return (
     <div className={`${pageWidthClass} space-y-8`}>
-      <div>
+      <div className="rounded-[14px] border border-pillar-teal/15 bg-gradient-to-r from-pillar-teal-soft/80 via-surface to-info-soft/60 px-5 py-5">
         <p className="text-[11px] text-ink-muted">{formatLongDate(now)}</p>
         <h2 className={`mt-1 ${pageTitleClass}`}>
           {greetingForNow(now)}, {firstName}
@@ -60,25 +61,25 @@ export default async function DashboardPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          label="Needs attention"
+          label="Files needing attention"
           value={counts.needsAttention}
           href="/processor-queue?work=attention"
           accent="attention"
         />
         <MetricCard
-          label="Waiting"
+          label="Waiting on others"
           value={counts.waiting}
           href="/processor-queue?work=waiting"
           accent="waiting"
         />
         <MetricCard
-          label="Docs to review"
+          label="Documents to review"
           value={counts.docsToReview}
           href="/processor-queue?work=review"
           accent="review"
         />
         <MetricCard
-          label="Ready"
+          label="Ready to submit"
           value={counts.ready}
           href="/processor-queue?work=ready"
           accent="ready"
@@ -90,10 +91,11 @@ export default async function DashboardPage() {
           workQueueRow(row, { location: locationByDeal[row.dealId] }),
         )}
         staffNames={staffNames}
-        title="Needs attention"
-        description="Highest-priority work. Open a row to work it."
+        title="Files needing attention"
+        description="Highest-priority work. Open a card to work it."
         empty="You’re clear for now."
         compact
+        accent="urgent"
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -111,7 +113,7 @@ export default async function DashboardPage() {
                         {row.borrowerName}
                       </Link>
                       <p className="text-xs text-ink-muted">
-                        {row.reason}
+                        {humanizeWorkReason(row.reason)}
                         {` · ${row.title}`}
                       </p>
                     </div>
@@ -160,7 +162,7 @@ export default async function DashboardPage() {
                       }
                       unassigned={!deal.assignedProcessorId}
                     />
-                    <StatusChip status={deal.status} label="Ready" />
+                    <StatusChip status={deal.status} label="Ready to submit" />
                   </div>
                 </li>
               ))}

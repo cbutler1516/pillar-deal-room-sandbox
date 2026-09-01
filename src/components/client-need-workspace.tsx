@@ -51,7 +51,7 @@ function needStatusLine(
     return "Waived";
   }
   if (need.status === "rejected") {
-    return hint === "Replacement received" ? hint : "Replacement needed";
+    return hint === "Replacement received" ? "Replacement received" : "Replacement needed";
   }
   if (need.status === "received" || need.status === "needs_review") {
     const review =

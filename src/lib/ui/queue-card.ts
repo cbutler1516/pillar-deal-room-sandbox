@@ -21,12 +21,30 @@ export function queueCardAccent(
 }
 
 export const QUEUE_ACCENT_EDGE: Record<QueueCardAccent, string> = {
-  urgent: "border-l-danger/70",
+  urgent: "border-l-danger",
   review: "border-l-pillar-teal",
-  waiting: "border-l-warning/80",
+  waiting: "border-l-warning",
   ready: "border-l-success",
-  new: "border-l-pillar-navy/50",
-  due: "border-l-info/70",
+  new: "border-l-pillar-navy",
+  due: "border-l-info",
+};
+
+export const QUEUE_SECTION_TINT: Record<QueueCardAccent, string> = {
+  urgent: "bg-danger-soft text-danger",
+  review: "bg-pillar-teal-soft text-pillar-teal",
+  waiting: "bg-warning-soft text-warning",
+  ready: "bg-success-soft text-success",
+  new: "bg-info-soft text-info",
+  due: "bg-info-soft text-info",
+};
+
+export const QUEUE_SECTION_WASH: Record<QueueCardAccent, string> = {
+  urgent: "bg-danger-soft/70",
+  review: "bg-pillar-teal-soft/80",
+  waiting: "bg-warning-soft/70",
+  ready: "bg-success-soft/70",
+  new: "bg-info-soft/70",
+  due: "bg-info-soft/70",
 };
 
 export function queueContextLine(input: {

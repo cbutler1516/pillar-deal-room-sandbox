@@ -5,9 +5,11 @@ import { surfaceClass } from "@/components/ui/styles";
 import { formatFollowUpAt } from "@/lib/format";
 import {
   QUEUE_ACCENT_EDGE,
+  QUEUE_SECTION_WASH,
   queueCardAccent,
   queueContextLine,
   queueWorkCardLabel,
+  type QueueCardAccent,
 } from "@/lib/ui/queue-card";
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
 
@@ -35,6 +37,7 @@ export function NextActionsQueue({
   description,
   empty = "Nothing needs your attention.",
   compact = false,
+  accent,
 }: {
   rows: QueueDisplayRow[];
   staffNames?: Record<string, string>;
@@ -42,10 +45,14 @@ export function NextActionsQueue({
   description?: string;
   empty?: string;
   compact?: boolean;
+  accent?: QueueCardAccent;
 }) {
+  const tone = accent ?? (rows[0] ? queueCardAccent(rows[0].queueSection) : undefined);
   return (
     <section>
-      <CardHeader title={title} description={description} meta={rows.length} />
+      <div className={tone ? `-mx-1 mb-1 rounded-[10px] px-2 pt-2 ${QUEUE_SECTION_WASH[tone]}` : ""}>
+      <CardHeader title={title} description={description} meta={rows.length} accent={tone} />
+      </div>
       {rows.length === 0 ? (
         <p className="text-sm leading-6 text-ink-muted">{empty}</p>
       ) : (

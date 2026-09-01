@@ -11,9 +11,9 @@ import { formatLongDate } from "@/lib/ops/ops-board";
 
 describe("status language", () => {
   it("never returns raw enum strings", () => {
-    expect(formatStatusLabel("new")).toBe("New");
+    expect(formatStatusLabel("new")).toBe("New file");
     expect(formatStatusLabel("collecting_documents")).toBe("Collecting documents");
-    expect(formatStatusLabel("processor_review")).toBe("In review");
+    expect(formatStatusLabel("processor_review")).toBe("In processor review");
     expect(formatDealStatus("ready_for_submission")).toBe("Ready to submit");
     expect(formatStatusLabel("waiting")).toBe("Waiting");
     expect(formatStatusLabel("replacement_needed")).toBe("Replacement needed");

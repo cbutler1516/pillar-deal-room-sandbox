@@ -18,7 +18,7 @@ describe("activity display formatting", () => {
       new Date("2026-08-29T16:00:00.000Z"),
     );
     expect(display.who).toBe("Chris Butler");
-    expect(display.didWhat).toBe("Requested replacement");
+    expect(display.didWhat).toBe("Document marked rejected");
     expect(display.toWhat).toBe("Government-issued ID");
     expect(display.when).toMatch(/8:44|3:44|15:44|11:44/);
   });

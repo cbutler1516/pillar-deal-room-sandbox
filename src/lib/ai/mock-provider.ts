@@ -222,13 +222,24 @@ function dealSummary(snapshot: AIDealSnapshot): string {
   const required = snapshot.needs.filter((need) => need.required);
   const complete = required.filter((need) => COMPLETE_NEED.has(need.status)).length;
   const waiting = snapshot.tasks.filter((task) => task.status === "waiting").length;
-  const assigned = snapshot.assignedProcessorId ? "assigned" : "unassigned";
+  const assigned = snapshot.assignedProcessorId
+    ? "A processor owns this file."
+    : "This file is unassigned.";
+  const status =
+    snapshot.status === "new"
+      ? "This is a new file"
+      : snapshot.status === "collecting_documents"
+        ? "This file is collecting documents"
+        : snapshot.status === "processor_review"
+          ? "This file is in processor review"
+          : `This file is ${snapshot.status.replaceAll("_", " ")}`;
   return [
-    `${snapshot.dealReference} is a ${snapshot.loanType ?? "business-purpose"} file in ${snapshot.status.replaceAll("_", " ")}.`,
-    `${complete} of ${required.length} required Client Needs are accepted or waived.`,
-    `${waiting} task${waiting === 1 ? " is" : "s are"} waiting.`,
-    `Processor is ${assigned}.`,
-    "This is an assistive summary. It does not change the file.",
+    `${status} (${snapshot.loanType ?? "business-purpose"}).`,
+    `${complete} of ${required.length} required items are accepted or waived.`,
+    waiting === 0
+      ? "Nothing is waiting on a reply."
+      : `${waiting} item${waiting === 1 ? " is" : "s are"} waiting on a reply.`,
+    assigned,
   ].join(" ");
 }
 

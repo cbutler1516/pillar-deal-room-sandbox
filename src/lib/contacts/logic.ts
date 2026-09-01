@@ -72,9 +72,13 @@ export function addContactLabel(
   contactType: ContactType | string | null | undefined,
 ): string {
   if (!contactType) {
-    return "Add Contact";
+    return "Add contact";
   }
-  return `Add ${contactTypeLabel(contactType)}`;
+  const label = contactTypeLabel(contactType);
+  if (label === "CPA") {
+    return "Add CPA contact";
+  }
+  return `Add ${label.toLowerCase()} contact`;
 }
 
 export function contactActionChannel(): {
