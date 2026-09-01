@@ -17,6 +17,7 @@ export type PortalNeed = {
   status: string;
   timing: "required_now" | "required_later" | "optional";
   documentCount: number;
+  expectedDocumentCount: number | null;
 };
 
 export type PortalDocument = {
@@ -32,6 +33,7 @@ export type PortalDeal = {
   id: string;
   dealReference: string;
   borrowerName: string;
+  entityName: string | null;
   loanType: string | null;
   loanAmount: number | null;
   propertyLabel: string;
@@ -53,7 +55,7 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
   const { data: deal } = await admin
     .from("deals")
     .select(
-      "id, deal_reference, borrower_name, loan_type, loan_amount, property_address, property_city, property_state, status",
+      "id, deal_reference, borrower_name, entity_name, loan_type, loan_amount, property_address, property_city, property_state, status",
     )
     .eq("id", dealId)
     .maybeSingle();
@@ -65,7 +67,7 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
     await Promise.all([
       admin
         .from("client_needs")
-        .select("id, document_type, description, required, status")
+        .select("id, document_type, description, required, status, expected_document_count")
         .eq("deal_id", dealId),
       admin
         .from("documents")
@@ -125,6 +127,10 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
     status: need.status,
     timing: timingFor(need.id),
     documentCount: linksFor(need.id).length,
+    expectedDocumentCount:
+      need.expected_document_count == null
+        ? null
+        : Number(need.expected_document_count),
   }));
 
   const portalDocuments: PortalDocument[] = (documents ?? []).map((doc) => ({
@@ -147,6 +153,7 @@ export async function loadPortalDeal(token: string): Promise<PortalDeal | null> 
     id: deal.id,
     dealReference: deal.deal_reference,
     borrowerName: deal.borrower_name,
+    entityName: deal.entity_name ?? null,
     loanType: deal.loan_type,
     loanAmount: deal.loan_amount == null ? null : Number(deal.loan_amount),
     propertyLabel: [deal.property_address, deal.property_city, deal.property_state]

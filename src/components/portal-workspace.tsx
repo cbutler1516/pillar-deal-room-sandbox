@@ -7,29 +7,20 @@ import {
 } from "@/lib/application/portal-actions";
 import type { PortalDeal } from "@/lib/application/portal-data";
 import { SandboxBadge } from "@/components/sandbox-badge";
-import { StatusChip } from "@/components/status-chip";
 import { buttonClass } from "@/components/ui/button";
+import { surfaceClass } from "@/components/ui/styles";
 import { SANDBOX_MIME_TYPES } from "@/lib/documents/types";
-import { formatCurrency } from "@/lib/format";
-
-function statusMessage(status: string): string {
-  if (status === "rejected") {
-    return "Replacement needed";
-  }
-  if (status === "needs_review") {
-    return "Received — under review";
-  }
-  if (status === "received") {
-    return "Received";
-  }
-  if (status === "approved") {
-    return "Accepted for this requirement";
-  }
-  if (status === "waived") {
-    return "Waived";
-  }
-  return "Requested";
-}
+import {
+  PORTAL_NEED_GROUPS,
+  PORTAL_PROGRESS_STEPS,
+  portalNeedAction,
+  portalNeedExplanation,
+  portalNeedGroup,
+  portalNeedStatusLabel,
+  portalProgressStep,
+  portalReceivedCopy,
+  type PortalNeedLike,
+} from "@/lib/portal/presentation";
 
 export function PortalWorkspace({
   token,
@@ -47,10 +38,7 @@ export function PortalWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const percent =
-    deal.requiredCount === 0
-      ? 0
-      : Math.round((deal.completeCount / deal.requiredCount) * 100);
+  const current = portalProgressStep(deal.needs);
 
   function onPick(file: File | undefined) {
     if (!file) {
@@ -63,13 +51,13 @@ export function PortalWorkspace({
     }
   }
 
-  async function upload() {
+  async function upload(targetNeedId = needId) {
     setError(null);
     setMessage(null);
     setPending(true);
     const createData = new FormData();
     createData.set("portalToken", token);
-    createData.set("clientNeedId", needId);
+    createData.set("clientNeedId", targetNeedId);
     createData.set("fileName", fileName);
     createData.set("mimeType", mimeType);
     createData.set("fileSize", String(fileSize));
@@ -88,96 +76,106 @@ export function PortalWorkspace({
       setError(completed.error ?? "Unable to complete the upload.");
       return;
     }
-    setMessage("Test document metadata recorded. File bytes were not sent to Pillar.");
+    setMessage("Sandbox upload recorded. File bytes were not sent to Pillar.");
   }
-
-  const groups = [
-    { key: "required_now", label: "Required now" },
-    { key: "required_later", label: "Required later" },
-    { key: "optional", label: "Optional" },
-  ] as const;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-muted">
-            Sandbox borrower portal
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold text-pillar-navy">
-            {deal.dealReference}
-          </h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            {deal.loanType ?? "Business-purpose loan"} · {deal.propertyLabel || "Property pending"}
-          </p>
+      <div className={`${surfaceClass("elevated")} px-5 py-5`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] tracking-[0.14em] text-ink-muted uppercase">
+              Borrower portal
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+              {deal.borrowerName}
+            </h1>
+            {deal.entityName ? (
+              <p className="mt-1 text-sm text-ink">{deal.entityName}</p>
+            ) : null}
+            <p className="mt-1 text-sm text-ink-muted">
+              {[deal.loanType, deal.propertyLabel].filter(Boolean).join(" · ") ||
+                "Business-purpose loan"}
+            </p>
+          </div>
+          <SandboxBadge />
         </div>
-        <SandboxBadge />
+        <ol className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {PORTAL_PROGRESS_STEPS.map((step) => {
+            const active = step.key === current;
+            return (
+              <li
+                key={step.key}
+                className={`rounded-[12px] px-3 py-2 text-xs ${
+                  active
+                    ? "bg-pillar-teal-soft font-semibold text-pillar-teal"
+                    : "bg-surface-muted text-ink-muted"
+                }`}
+              >
+                {step.label}
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
-      <section className="rounded-[10px] border border-line bg-surface p-5">
-        <p className="text-xs text-ink-muted">Completion</p>
-        <p className="mt-1 text-2xl font-semibold text-ink">{percent}%</p>
-        <p className="mt-1 text-sm text-ink-muted">
-          {deal.completeCount} of {deal.requiredCount} required Client Needs accepted
-          or waived. Requested amount {formatCurrency(deal.loanAmount)}.
+      <section>
+        <h2 className="text-sm font-semibold text-ink">What we need from you</h2>
+        <p className="mt-1 text-xs text-ink-muted">
+          Upload only the items in Action needed. Our team reviews the rest.
         </p>
       </section>
 
       {deal.messages.length > 0 ? (
-        <section className="space-y-3 rounded-[10px] border border-line bg-surface p-5">
+        <section className={`${surfaceClass("card")} space-y-3 px-5 py-4`}>
           <h2 className="text-sm font-semibold text-ink">Messages for you</h2>
-          <p className="text-xs text-ink-muted">
-            These are borrower-safe copies only. They are not live email or text
-            messages.
-          </p>
           <ul className="space-y-3">
-            {deal.messages.map((message) => (
-              <li key={message.id} className="rounded-lg border border-line px-3 py-2">
-                <p className="text-sm font-medium text-ink">{message.subject}</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{message.body}</p>
-                {message.kind === "replacement" ? (
-                  <p className="mt-2 text-xs font-medium text-danger">
-                    Replacement needed
-                  </p>
-                ) : null}
+            {deal.messages.map((item) => (
+              <li key={item.id} className="rounded-[12px] border border-line px-3 py-2">
+                <p className="text-sm font-medium text-ink">{item.subject}</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{item.body}</p>
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      {groups.map((group) => {
-        const rows = deal.needs.filter((need) => need.timing === group.key);
+      {PORTAL_NEED_GROUPS.map((group) => {
+        const rows = deal.needs.filter((need) => portalNeedGroup(need) === group.key);
         if (rows.length === 0) {
           return null;
         }
         return (
           <section key={group.key} className="space-y-2">
-            <h2 className="text-sm font-semibold text-ink">{group.label}</h2>
-            <ul className="divide-y divide-line border-y border-line">
+            <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+              {group.label}
+            </h3>
+            <ul className="space-y-2">
               {rows.map((need) => (
-                <li key={need.id} className="flex items-center justify-between gap-3 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-ink">{need.documentType}</p>
-                    <p className="text-xs text-ink-muted">{statusMessage(need.status)}</p>
-                  </div>
-                  <StatusChip status={need.status} />
-                </li>
+                <NeedCard
+                  key={need.id}
+                  need={need}
+                  pending={pending}
+                  onUpload={() => {
+                    setNeedId(need.id);
+                    void upload(need.id);
+                  }}
+                />
               ))}
             </ul>
           </section>
         );
       })}
 
-      <section className="space-y-3 rounded-[10px] border border-line bg-surface p-5">
-        <h2 className="text-sm font-semibold text-ink">Upload a test document</h2>
+      <section className={`${surfaceClass("card")} space-y-3 px-5 py-4`}>
+        <h2 className="text-sm font-semibold text-ink">Sandbox upload</h2>
         <p className="text-xs text-ink-muted">
-          Choose a local fictitious file for evaluation. Pillar stores filename,
-          type, size, and a mock provider reference only.
+          Demo only. Pillar stores filename, type, size, and a sandbox
+          reference. Secure file storage can be connected later.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-xs text-ink-muted">
-            Client Need
+          <label className="text-xs font-medium text-ink-muted">
+            Item
             <select
               className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm"
               value={needId}
@@ -190,7 +188,7 @@ export function PortalWorkspace({
               ))}
             </select>
           </label>
-          <label className="text-xs text-ink-muted">
+          <label className="text-xs font-medium text-ink-muted">
             Local test file
             <input
               type="file"
@@ -208,11 +206,50 @@ export function PortalWorkspace({
           disabled={pending || !needId}
           onClick={() => void upload()}
         >
-          Upload test document
+          Upload document
         </button>
         {message ? <p className="text-xs text-pillar-teal">{message}</p> : null}
         {error ? <p className="text-xs text-danger">{error}</p> : null}
       </section>
     </div>
+  );
+}
+
+function NeedCard({
+  need,
+  pending,
+  onUpload,
+}: {
+  need: PortalNeedLike;
+  pending: boolean;
+  onUpload: () => void;
+}) {
+  const action = portalNeedAction(need);
+  const received = portalReceivedCopy(need);
+  return (
+    <li className={`${surfaceClass("card")} px-4 py-3.5`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-ink">{need.documentType}</p>
+          <p className="mt-1 text-xs font-medium text-ink">
+            {portalNeedStatusLabel(need.status)}
+            {received ? ` · ${received}` : ""}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-ink-muted">
+            {portalNeedExplanation(need)}
+          </p>
+        </div>
+        {action ? (
+          <button
+            type="button"
+            className={buttonClass("accent", "sm")}
+            disabled={pending}
+            onClick={onUpload}
+          >
+            {action}
+          </button>
+        ) : null}
+      </div>
+    </li>
   );
 }

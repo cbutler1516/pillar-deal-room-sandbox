@@ -90,6 +90,13 @@ export default async function ProcessorQueuePage({
     if (assignment === "unassigned" && row.assignedProcessorId) {
       return false;
     }
+    if (
+      assignment !== "all" &&
+      assignment !== "unassigned" &&
+      row.assignedProcessorId !== assignment
+    ) {
+      return false;
+    }
     if (!workItemMatchesFilter(row, work)) {
       return false;
     }
@@ -221,6 +228,11 @@ export default async function ProcessorQueuePage({
           <SelectField name="assignment" defaultValue={assignment}>
             <option value="all">All assignments</option>
             <option value="unassigned">Unassigned only</option>
+            {staff.map((person) => (
+              <option key={person.id} value={person.id}>
+                {staffDisplayName(person)}
+              </option>
+            ))}
           </SelectField>
           <SelectField name="urgency" defaultValue={urgency}>
             <option value="all">All urgency</option>
@@ -245,6 +257,8 @@ export default async function ProcessorQueuePage({
 
             if (assignment === "unassigned") {
               rows = rows.filter((row) => !row.assignedProcessorId);
+            } else if (assignment !== "all") {
+              rows = rows.filter((row) => row.assignedProcessorId === assignment);
             }
             if (urgency === "exceptions") {
               rows = rows.filter((row) => row.exceptions > 0);

@@ -9,6 +9,7 @@ import { SandboxBadge } from "@/components/sandbox-badge";
 import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { displayName, type InternalProfile } from "@/lib/auth/authorization";
 import { formatRoleLabel } from "@/lib/auth/roles";
+import { DemoGuide } from "@/components/demo-guide";
 import {
   DESKTOP_APP_NAV,
   MOBILE_APP_NAV,
@@ -20,14 +21,21 @@ const NAV_ICONS = {
   "/deals": DealsIcon,
   "/processor-queue": QueueIcon,
   "/tasks": TasksIcon,
+  "/team": TeamIcon,
 } as const;
 
 export function AppShell({
   profile,
   children,
+  demoGuide = null,
 }: {
   profile: InternalProfile;
   children: ReactNode;
+  demoGuide?: {
+    caseyHref: string;
+    readyHref: string;
+    portalHref: string;
+  } | null;
 }) {
   const pathname = usePathname();
   const name = displayName(profile);
@@ -43,6 +51,7 @@ export function AppShell({
               Deal Room
             </p>
             <SandboxBadge />
+            {demoGuide ? <DemoGuide {...demoGuide} /> : null}
           </div>
           <nav aria-label="Primary" className="hidden lg:block">
             <ul className="flex items-center gap-2">
@@ -209,6 +218,20 @@ function QueueIcon(props: SVGProps<SVGSVGElement>) {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TeamIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden {...props}>
+      <path
+        d="M7 8.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM13 8.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM4.2 16c0-2.2 1.8-3.6 2.8-3.6h2M10.2 12.4h2c1 0 2.8 1.4 2.8 3.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

@@ -117,7 +117,7 @@ export function dealSnapshotMetrics(input: {
 
 export function nextActionPresentation(input: {
   action: string;
-  target: "tasks" | "needs" | "documents" | "contacts";
+  target: "tasks" | "needs" | "documents" | "contacts" | "conditions";
 }): { context: string; cta: string } {
   const action = input.action.toLowerCase();
   if (action.includes("review replacement")) {
@@ -142,6 +142,12 @@ export function nextActionPresentation(input: {
     return {
       context: "This request needs processor escalation.",
       cta: "Escalate",
+    };
+  }
+  if (action.includes("review condition")) {
+    return {
+      context: "A lender condition has a response waiting for processor review.",
+      cta: "Review condition",
     };
   }
   if (action.includes("follow up")) {
@@ -190,6 +196,12 @@ export function nextActionPresentation(input: {
     return {
       context: "A processor still has to review the file on this item.",
       cta: action.includes("reply") ? "Review reply" : "Review document",
+    };
+  }
+  if (input.target === "conditions") {
+    return {
+      context: "A lender condition still needs processor attention.",
+      cta: action.includes("review") ? "Review condition" : "Follow up",
     };
   }
   if (input.target === "needs") {

@@ -207,6 +207,33 @@ describe("sandbox mock AI", () => {
     expect(input).toEqual(frozen);
   });
 
+  it("summarizes open lender conditions without making them executable", async () => {
+    const provider = getSandboxMockAIProvider();
+    const result = await provider.summarize({
+      snapshot: buildAIDealSnapshot({
+        deal: deal(),
+        needs: [need({ status: "approved" })],
+        documents: [document({ status: "approved" })],
+        tasks: [
+          task({
+            title: "Updated insurance binder",
+            sourceType: "lender",
+            status: "open",
+          }),
+        ],
+        communications: [],
+        activity: [],
+      }),
+    });
+    expect(result.dealSummary).toMatch(/lender condition/i);
+    expect(result.nextActions.some((item) => item.target === "conditions")).toBe(
+      true,
+    );
+    expect(result.nextActions.every((item) => item.executable === false)).toBe(
+      true,
+    );
+  });
+
   it("never marks suggestions as executable", async () => {
     const provider = getSandboxMockAIProvider();
     const result = await provider.summarize({ snapshot: snapshot() });

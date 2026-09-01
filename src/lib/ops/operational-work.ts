@@ -1,3 +1,4 @@
+import { conditionQueueAction, conditionQueueReason, isLenderCondition } from "@/lib/conditions/model";
 import { staffCalendarDate } from "@/lib/format";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/lib/playbooks/logic";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 
-export type NextActionTarget = "tasks" | "needs" | "documents" | "contacts";
+export type NextActionTarget = "tasks" | "needs" | "documents" | "contacts" | "conditions";
 
 export const OPERATIONAL_WORK_TYPES = [
   "escalated_task",
@@ -991,7 +992,22 @@ function collectDealWork(
     );
   }
 
-  return items;
+  return items.map((row) => {
+    if (row.sourceKind !== "task") {
+      return row;
+    }
+    const sourceTask = fileTasks.find((task) => task.id === row.sourceId);
+    if (!sourceTask || !isLenderCondition(sourceTask)) {
+      return row;
+    }
+    return {
+      ...row,
+      reason: conditionQueueReason(row.workType),
+      recommendedAction: conditionQueueAction(row.workType),
+      href: hrefFor(deal.id, "conditions"),
+      target: "conditions" as const,
+    };
+  });
 }
 
 export function collectOperationalWork(

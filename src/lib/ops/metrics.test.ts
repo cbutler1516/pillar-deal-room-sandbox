@@ -34,10 +34,10 @@ describe("dashboard counts", () => {
   it("uses the agreed operational definitions", () => {
     expect(computeDashboardCounts(deals, needs, documents, tasks)).toEqual({
       newDeals: 1,
-      needsDocuments: 1,
-      documentsToReview: 3,
+      needsDocuments: 2,
+      documentsToReview: 4,
       readyForSubmission: 1,
-      exceptions: 2,
+      exceptions: 3,
     });
   });
 

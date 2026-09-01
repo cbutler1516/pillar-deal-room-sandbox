@@ -25,6 +25,7 @@ import {
 } from "@/lib/ops/operational-work";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
+import { conditionSummary } from "@/lib/conditions/model";
 import {
   DEAL_PROGRESS_STAGES,
   countRequiredItemsReceived,
@@ -38,6 +39,7 @@ export const DEAL_TABS = [
   "tasks",
   "needs",
   "documents",
+  "conditions",
   "contacts",
   "activity",
 ] as const;
@@ -256,6 +258,7 @@ export function DealOverview({
   deal,
   needs,
   documents,
+  tasks = [],
   nextActions,
   intake = null,
   attempts = [],
@@ -371,6 +374,17 @@ export function DealOverview({
         target: nextAction.target,
       })
     : null;
+  const conditions = conditionSummary({
+    tasks: (tasks ?? nextActions).map((task) => ({
+      sourceType: task.sourceType,
+      taskType: "taskType" in task ? task.taskType : null,
+      playbookKey: task.playbookKey,
+      status: task.status,
+      clientNeedId: task.clientNeedId,
+    })),
+    needs: needs.map((need) => ({ id: need.id, status: need.status })),
+  });
+  const openConditions = conditions.open + conditions.received + conditions.waiting + conditions.review;
 
   return (
     <div className="space-y-8">
@@ -452,6 +466,30 @@ export function DealOverview({
           )}
         </SurfaceCard>
       </div>
+
+      {openConditions > 0 || conditions.cleared > 0 ? (
+        <section className={`${surfaceClass("card")} px-5 py-4`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+                Conditions
+              </h3>
+              <p className="mt-2 text-sm text-ink">
+                {openConditions} open
+                {conditions.received > 0 ? ` · ${conditions.received} received` : ""}
+                {conditions.waiting > 0 ? ` · ${conditions.waiting} waiting` : ""}
+                {conditions.review > 0 ? ` · ${conditions.review} need review` : ""}
+              </p>
+            </div>
+            <a
+              href={`/deals/${deal.id}?tab=conditions`}
+              className={buttonClass("secondary", "sm")}
+            >
+              View conditions
+            </a>
+          </div>
+        </section>
+      ) : null}
 
       {snapshot.length > 0 ? (
         <section>
@@ -549,6 +587,7 @@ export function DealTabNav({
     { key: "overview", label: "Overview", href: `/deals/${dealId}?tab=overview` },
     { key: "needs", label: "Needs", href: `/deals/${dealId}?tab=needs` },
     { key: "documents", label: "Documents", href: `/deals/${dealId}?tab=documents` },
+    { key: "conditions", label: "Conditions", href: `/deals/${dealId}?tab=conditions` },
     { key: "contacts", label: "People", href: `/deals/${dealId}?tab=people` },
     { key: "activity", label: "Timeline", href: `/deals/${dealId}?tab=timeline` },
   ];

@@ -204,6 +204,18 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
       !task.lastContactedAt &&
       !task.contactMissing,
   );
+  const openCondition = snapshot.tasks.find(
+    (task) => task.sourceType === "lender" && OPEN_TASK.has(task.status),
+  );
+  if (openCondition && suggestions.length < 4) {
+    suggestions.push({
+      action: `Review open condition: ${openCondition.title.toLowerCase()}`,
+      reason: "Conditions are processor-entered. Nothing is cleared automatically.",
+      target: "conditions",
+      href: href(snapshot.dealId, "conditions"),
+      executable: false,
+    });
+  }
   if (initial && suggestions.length < 4) {
     suggestions.push({
       action: initial.contactName
@@ -225,6 +237,9 @@ function dealSummary(snapshot: AIDealSnapshot): string {
   const assigned = snapshot.assignedProcessorId
     ? "A processor owns this file."
     : "This file is unassigned.";
+  const openConditions = snapshot.tasks.filter(
+    (task) => task.sourceType === "lender" && OPEN_TASK.has(task.status),
+  ).length;
   const status =
     snapshot.status === "new"
       ? "This is a new file"
@@ -240,6 +255,9 @@ function dealSummary(snapshot: AIDealSnapshot): string {
       ? "Nothing is waiting on a reply."
       : `${waiting} item${waiting === 1 ? " is" : "s are"} waiting on a reply.`,
     assigned,
+    openConditions === 0
+      ? "No open lender conditions."
+      : `${openConditions} lender condition${openConditions === 1 ? " is" : "s are"} still open.`,
   ].join(" ");
 }
 

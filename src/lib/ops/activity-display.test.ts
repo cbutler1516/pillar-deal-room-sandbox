@@ -56,6 +56,39 @@ describe("activity display formatting", () => {
     expect(display.didWhat).not.toMatch(/sent|approved|completed/i);
   });
 
+  it("uses plain language for condition events", () => {
+    const added = formatActivityDisplay(
+      {
+        eventType: "task_created",
+        actorType: "user",
+        actorId: "user-1",
+        createdAt: "2026-08-31T15:00:00.000Z",
+        safeMetadata: { kind: "condition", title: "Updated insurance binder" },
+      },
+      { "user-1": "Chris Butler" },
+    );
+    expect(`${added.who} ${added.didWhat}`).toBe("Chris Butler added condition");
+    expect(added.toWhat).toBe("Updated insurance binder");
+
+    const cleared = formatActivityDisplay({
+      eventType: "task_completed",
+      actorType: "user",
+      actorId: "user-1",
+      createdAt: "2026-08-31T16:00:00.000Z",
+      safeMetadata: { kind: "condition", title: "Current lease" },
+    }, { "user-1": "Chris Butler" });
+    expect(cleared.didWhat).toBe("cleared condition");
+    expect(cleared.didWhat).not.toMatch(/task_completed|kind=/);
+
+    const received = formatActivityDisplay({
+      eventType: "document_metadata_recorded",
+      actorType: "system",
+      createdAt: "2026-08-31T16:30:00.000Z",
+      safeMetadata: { kind: "condition", title: "Updated insurance binder" },
+    });
+    expect(received.didWhat).toBe("Document received for condition");
+  });
+
   it("does not throw when the activity clock is invalid", () => {
     expect(formatActivityClock("", new Date("2026-08-31T18:00:00.000Z"))).toBe("—");
     expect(formatActivityClock("2026-08-31T18:00:00.000Z", new Date(Number.NaN))).toBe(

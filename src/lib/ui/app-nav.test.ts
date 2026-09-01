@@ -17,8 +17,9 @@ describe("app navigation", () => {
       "Deals",
       "Queue",
       "Tasks",
+      "Team",
     ]);
-    expect(DESKTOP_APP_NAV.at(-1)).toEqual({ href: "/tasks", label: "Tasks" });
+    expect(DESKTOP_APP_NAV.at(-1)).toEqual({ href: "/team", label: "Team" });
     expect(MOBILE_APP_NAV.map((item) => item.href)).toEqual([
       "/dashboard",
       "/deals",
@@ -31,7 +32,7 @@ describe("app navigation", () => {
     expect(isAppNavActive("/dashboard", "/tasks")).toBe(false);
     expect(isAppNavActive("/deals/abc", "/deals")).toBe(true);
     expect(DESKTOP_APP_NAV.map((item) => item.href)).not.toEqual(
-      expect.arrayContaining(["/reports", "/team", "/settings"]),
+      expect.arrayContaining(["/reports", "/settings"]),
     );
   });
 });

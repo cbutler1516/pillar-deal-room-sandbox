@@ -75,7 +75,7 @@ describe("seed guard", () => {
 });
 
 describe("idempotent demo seed", () => {
-  it("creates six fictitious deals and replaces them on rerun", async () => {
+  it("creates seven fictitious deals and replaces them on rerun", async () => {
     const client = createMemoryClient();
     const env = {
       SANDBOX_MODE: "true",
@@ -83,9 +83,9 @@ describe("idempotent demo seed", () => {
     };
     const first = await seedDemoDeals(client, env);
     const second = await seedDemoDeals(client, env);
-    expect(first.dealCount).toBe(6);
-    expect(second.replacedDealIds).toBe(6);
-    expect(client.deals).toHaveLength(6);
+    expect(first.dealCount).toBe(7);
+    expect(second.replacedDealIds).toBe(7);
+    expect(client.deals).toHaveLength(7);
     expect(buildSeedRows()[0].deal.assigned_processor_id).toBeNull();
     expect(DEMO_DEALS.every((deal) => deal.borrowerEmail.endsWith("@sandbox.example"))).toBe(true);
     const seeded = buildSeedRows();
@@ -121,6 +121,18 @@ describe("idempotent demo seed", () => {
     const avery = seeded.find((row) => row.deal.borrower_name === "Avery Quinn");
     const riley = seeded.find((row) => row.deal.borrower_name === "Riley Chen");
     const sam = seeded.find((row) => row.deal.borrower_name === "Sam Rivera");
+    const casey = seeded.find((row) => row.deal.borrower_name === "Casey Nguyen");
+    expect(casey?.deal.loan_type).toBe("Fix & Flip");
+    expect(casey?.deal.assigned_processor_id).toBeNull();
+    expect(casey?.tasks.filter((task) => task.source_type === "lender")).toHaveLength(3);
+    expect(avery?.tasks.filter((task) => task.source_type === "lender")).toHaveLength(3);
+    expect(
+      seeded
+        .find((row) => row.deal.borrower_name === "Casey Brooks")
+        ?.tasks.some(
+          (task) => task.source_type === "lender" && task.status === "completed",
+        ),
+    ).toBe(true);
     expect(avery?.tasks.map((task) => task.playbook_key)).toEqual(
       expect.arrayContaining([
         "request_insurance_binder",

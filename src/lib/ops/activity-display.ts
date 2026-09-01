@@ -98,6 +98,28 @@ export function formatActivityAction(
   eventType: string,
   metadata: Record<string, string>,
 ): string {
+  if (metadata.kind === "condition") {
+    if (eventType === "task_created") {
+      return "added condition";
+    }
+    if (eventType === "task_completed") {
+      return "cleared condition";
+    }
+    if (
+      eventType === "task_contacted" ||
+      eventType === "task_follow_up_set" ||
+      eventType === "follow_up_scheduled"
+    ) {
+      return "followed up on condition";
+    }
+    if (
+      eventType === "document_metadata_recorded" ||
+      eventType === "document_linked" ||
+      eventType === "response_received"
+    ) {
+      return "Document received for condition";
+    }
+  }
   if (eventType === "document_status_changed" && metadata.to === "rejected") {
     return "Document marked rejected";
   }

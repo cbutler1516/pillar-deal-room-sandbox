@@ -8,6 +8,7 @@ import type {
 } from "@/lib/data/deals";
 import type { AIDealSnapshot } from "@/lib/ai/types";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
+import { isLenderCondition } from "@/lib/conditions/model";
 import { isEscalationDue, isFollowUpDue } from "@/lib/playbooks/logic";
 
 function inferContactMissing(task: {
@@ -16,6 +17,9 @@ function inferContactMissing(task: {
   sourceType: string | null;
 }): boolean {
   if (task.contactName || task.dealContactId) {
+    return false;
+  }
+  if (isLenderCondition(task)) {
     return false;
   }
   return (

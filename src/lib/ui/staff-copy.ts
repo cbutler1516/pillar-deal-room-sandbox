@@ -18,6 +18,10 @@ const REASON_EXACT: Record<string, string> = {
   "New application": "New file",
   "Follow-up overdue": "Follow-up is overdue",
   "Document awaiting processor review": "New document ready for review",
+  "Condition still outstanding": "Condition still outstanding",
+  "Condition response received": "Condition response received",
+  "Condition document needs review": "Condition document needs review",
+  "Waiting on a condition response": "Waiting on a condition response",
 };
 
 export function humanizeWorkReason(reason: string): string {
@@ -91,6 +95,12 @@ export function humanizeWorkAction(row: {
     type === "document_mismatch"
   ) {
     return "Review document";
+  }
+  if (action === "Review condition" || row.target === "conditions") {
+    if (action === "Follow up") {
+      return "Follow up";
+    }
+    return "Review condition";
   }
   if (type === "response_received") {
     return "Review reply";

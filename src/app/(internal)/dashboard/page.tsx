@@ -17,6 +17,7 @@ import {
 } from "@/lib/ops/ops-board";
 import { workQueueRow } from "@/lib/ops/queue-today";
 import { waitingCopyForDeal, workItemMatchesFilter } from "@/lib/ops/operational-work";
+import { isLenderCondition } from "@/lib/conditions/model";
 import { formatDashboardSummary } from "@/lib/ui/dashboard-summary";
 import { humanizeWorkReason } from "@/lib/ui/staff-copy";
 import { formatProperty } from "@/lib/format";
@@ -39,6 +40,12 @@ export default async function DashboardPage() {
   const firstName = firstNameFromProfile(profile);
   const summary = formatDashboardSummary(counts);
   const waitingCopy = waitingCopyForDeal(items);
+  const openConditions = snapshot.tasks.filter(
+    (task) =>
+      isLenderCondition(task) &&
+      task.status !== "completed" &&
+      task.status !== "dismissed",
+  ).length;
   const locationByDeal = Object.fromEntries(
     snapshot.deals.map((deal) => [
       deal.id,
@@ -89,6 +96,15 @@ export default async function DashboardPage() {
           accent="ready"
         />
       </div>
+      {openConditions > 0 ? (
+        <p className="text-xs text-ink-muted">
+          {openConditions} open condition{openConditions === 1 ? "" : "s"} are
+          included in operational work.{" "}
+          <Link href="/processor-queue" className={linkClass}>
+            Open Queue
+          </Link>
+        </p>
+      ) : null}
 
       <NextActionsQueue
         rows={attentionRows.slice(0, 10).map((row) =>

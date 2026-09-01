@@ -7,6 +7,7 @@ describe("deal tab aliases", () => {
     expect(parseDealTab("tasks")).toBe("tasks");
     expect(parseDealTab("needs")).toBe("needs");
     expect(parseDealTab("documents")).toBe("documents");
+    expect(parseDealTab("conditions")).toBe("conditions");
     expect(parseDealTab("contacts")).toBe("contacts");
     expect(parseDealTab("activity")).toBe("activity");
   });

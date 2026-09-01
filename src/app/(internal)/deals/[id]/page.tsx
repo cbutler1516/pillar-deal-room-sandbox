@@ -9,6 +9,7 @@ import { canViewDocumentIntelligence } from "@/lib/document-intelligence/authori
 import { getDocumentIntelligenceProvider } from "@/lib/document-intelligence/factory";
 import { buildDocumentIntelligenceSnapshot } from "@/lib/document-intelligence/snapshot";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
+import { ConditionsWorkspace } from "@/components/conditions-workspace";
 import { DealTimeline } from "@/components/deal-timeline";
 import { TaskWorkspace } from "@/components/task-workspace";
 import { canViewAIAssist } from "@/lib/ai/authorization";
@@ -272,6 +273,21 @@ export default async function DealDetailPage({
             nowMs={nowMs}
           />
         </div>
+      ) : null}
+
+      {tab === "conditions" ? (
+        <ConditionsWorkspace
+          dealId={deal.id}
+          tasks={tasks}
+          needs={needs.map((need) => ({
+            id: need.id,
+            documentType: need.documentType,
+            status: need.status,
+          }))}
+          staffNames={staffNames}
+          canMutate={canEditTasks}
+          nowMs={nowMs}
+        />
       ) : null}
 
       {tab === "needs" ? (
