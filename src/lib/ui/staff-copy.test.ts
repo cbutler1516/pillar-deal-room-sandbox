@@ -79,7 +79,14 @@ describe("staff copy", () => {
         recommendedAction: "Collect",
         workType: "required_need_missing",
       }),
-    ).toBe("Open task");
+    ).toBe("View requirement");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Open",
+        workType: "active_collection",
+        target: "tasks",
+      }),
+    ).toBe("Review file");
   });
 
   it("removes robotic assist phrasing without changing facts", () => {

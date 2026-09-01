@@ -43,7 +43,7 @@ function buildFlags(snapshot: AIDealSnapshot): AIWorkflowFlag[] {
       kind: "replacement",
       severity: "blocker",
       title: "Replacement needed",
-      detail: `${need.documentType} was rejected and still needs a borrower-safe replacement request.`,
+      detail: `${need.documentType} was rejected and still needs a replacement document.`,
     });
   }
   for (const task of snapshot.tasks) {
@@ -140,8 +140,8 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
   );
   if (replacement) {
     suggestions.push({
-      action: `Request replacement ${replacement.documentType} from borrower`,
-      reason: "A required Client Need is marked replacement needed.",
+      action: `Get a replacement ${replacement.documentType}`,
+      reason: "A required item still needs a replacement document.",
       target: "needs",
       href: href(snapshot.dealId, "needs"),
       executable: false,
@@ -180,7 +180,7 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
   if (review || receivedNeed) {
     suggestions.push({
       action: `Review newly received ${(review?.documentType ?? receivedNeed?.documentType ?? "documents").toLowerCase()}`,
-      reason: "A processor still has to accept or request a replacement.",
+      reason: "A processor still has to review it or get a replacement document.",
       target: "documents",
       href: href(snapshot.dealId, "documents"),
       executable: false,
@@ -207,8 +207,8 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
   if (initial && suggestions.length < 4) {
     suggestions.push({
       action: initial.contactName
-        ? `Send initial request to ${initial.contactName} for ${initial.title.toLowerCase()}`
-        : `Copy the initial request for ${initial.title.toLowerCase()}`,
+        ? `Contact ${initial.contactName} about ${initial.title.toLowerCase()}`
+        : `Prepare a request for ${initial.title.toLowerCase()}`,
       reason: "No contact has been recorded. Copy only.",
       target: "tasks",
       href: href(snapshot.dealId, "tasks"),

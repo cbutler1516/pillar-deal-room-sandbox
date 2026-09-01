@@ -8,7 +8,7 @@ const REASON_EXACT: Record<string, string> = {
   "Response received awaiting review": "Reply received — review needed",
   "Required task has not had initial contact": "No request has been sent yet",
   "Required item is missing": "Required document is still missing",
-  "Active collection task": "Open work on this file",
+  "Active collection task": "Review file",
   "Escalation due": "Follow-up is overdue",
   "Follow-up is overdue — escalate": "Follow-up is overdue",
   "Ready to submit": "Ready to submit",
@@ -96,7 +96,7 @@ export function humanizeWorkAction(row: {
     return "Review reply";
   }
   if (type === "required_need_missing" || action === "Collect") {
-    return "Open task";
+    return row.target === "needs" || !row.target ? "View requirement" : "Open file";
   }
   if (type === "unassigned_file" || action === "Claim") {
     return "Claim file";
@@ -105,7 +105,9 @@ export function humanizeWorkAction(row: {
     return "Open file";
   }
   if (action === "Open") {
-    return row.target === "tasks" ? "Open task" : "Open file";
+    return row.target === "documents" || row.target === "tasks"
+      ? "Review file"
+      : "Open file";
   }
   if (action === "Add contact") {
     return "Add contact";
@@ -153,6 +155,8 @@ export function polishAssistSummary(summary: string): string {
     .replace(/\bfile in processor review\b/gi, "file in processor review")
     .replace(/\bfile in collecting documents\b/gi, "file collecting documents")
     .replace(/\bThis is an assistive summary\. It does not change the file\./gi, "")
+    .replace(/\brequest replacement\b/gi, "get a replacement document")
+    .replace(/\bRequest replacement\b/g, "Get a replacement document")
     .replace(/\s+/g, " ")
     .trim();
 }

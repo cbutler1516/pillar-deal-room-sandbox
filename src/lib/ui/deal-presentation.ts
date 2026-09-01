@@ -183,7 +183,7 @@ export function nextActionPresentation(input: {
   if (action.startsWith("get ") && !action.includes("replacement")) {
     return {
       context: "A required document is still missing.",
-      cta: "Open task",
+      cta: "View requirement",
     };
   }
   if (input.target === "documents" || action.includes("review")) {
@@ -195,7 +195,7 @@ export function nextActionPresentation(input: {
   if (input.target === "needs") {
     return {
       context: "A required item still needs processor attention.",
-      cta: "Open task",
+      cta: "View requirement",
     };
   }
   return {
