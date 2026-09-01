@@ -40,6 +40,7 @@ export const DEAL_TABS = [
   "needs",
   "documents",
   "conditions",
+  "submission",
   "contacts",
   "activity",
 ] as const;
@@ -264,6 +265,7 @@ export function DealOverview({
   attempts = [],
   mismatches = [],
   assist = null,
+  submittedLabel = null,
 }: {
   deal: DealDetail;
   needs: ClientNeedRow[];
@@ -274,6 +276,7 @@ export function DealOverview({
   attempts?: CommunicationAttempt[];
   mismatches?: NextActionMismatch[];
   assist?: ReactNode;
+  submittedLabel?: string | null;
 }) {
   const requiredNow = nextActions.filter((task) => task.timing === "required_now").length;
   const followUps = nextActions.filter((task) => task.followUpDue).length;
@@ -303,6 +306,9 @@ export function DealOverview({
       status: task.status,
       blockedReason: task.blockedReason ?? null,
       timing: task.timing,
+      title: task.title,
+      sourceType: task.sourceType,
+      playbookKey: task.playbookKey,
     })),
   });
   const nextAction = deriveDealNextAction({
@@ -389,6 +395,18 @@ export function DealOverview({
   return (
     <div className="space-y-8">
       <DealProgressStrip status={deal.status} received={received} reviewCount={reviewCount} />
+
+      {deal.status === "submitted" && submittedLabel ? (
+        <section className={`${surfaceClass("card")} border-l-4 border-l-pillar-navy px-5 py-4`}>
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+            Submitted
+          </p>
+          <p className="mt-2 text-sm leading-6 text-ink">{submittedLabel}</p>
+          <p className="mt-1 text-xs text-ink-muted">
+            This is not an approval, close, or clear-to-close. Conditions can continue.
+          </p>
+        </section>
+      ) : null}
 
       {nextAction && presentation ? (
         <section
@@ -588,6 +606,7 @@ export function DealTabNav({
     { key: "needs", label: "Needs", href: `/deals/${dealId}?tab=needs` },
     { key: "documents", label: "Documents", href: `/deals/${dealId}?tab=documents` },
     { key: "conditions", label: "Conditions", href: `/deals/${dealId}?tab=conditions` },
+    { key: "submission", label: "Submission", href: `/deals/${dealId}?tab=submission` },
     { key: "contacts", label: "People", href: `/deals/${dealId}?tab=people` },
     { key: "activity", label: "Timeline", href: `/deals/${dealId}?tab=timeline` },
   ];

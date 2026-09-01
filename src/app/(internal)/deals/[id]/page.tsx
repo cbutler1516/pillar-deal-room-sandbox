@@ -11,7 +11,12 @@ import { buildDocumentIntelligenceSnapshot } from "@/lib/document-intelligence/s
 import { ContactsWorkspace } from "@/components/contacts-workspace";
 import { ConditionsWorkspace } from "@/components/conditions-workspace";
 import { DealTimeline } from "@/components/deal-timeline";
+import { SubmissionWorkspace } from "@/components/submission-workspace";
 import { TaskWorkspace } from "@/components/task-workspace";
+import {
+  buildSubmissionViewModel,
+  formatSubmittedLabel,
+} from "@/lib/submission/workspace";
 import { canViewAIAssist } from "@/lib/ai/authorization";
 import { getAIProvider } from "@/lib/ai/factory";
 import { buildAIDealSnapshot } from "@/lib/ai/snapshot";
@@ -169,9 +174,68 @@ export default async function DealDetailPage({
         }),
       })
     : null;
+  const submittedEvent = activity.find(
+    (event) =>
+      event.eventType === "deal_status_changed" &&
+      (event.safeMetadata.to === "submitted" ||
+        event.safeMetadata.kind === "submission"),
+  );
+  const submittedLabel =
+    deal.status === "submitted"
+      ? formatSubmittedLabel({
+          at: submittedEvent?.createdAt ?? deal.updatedAt,
+          actorName: submittedEvent?.actorId
+            ? staffNames[submittedEvent.actorId] ?? null
+            : null,
+        })
+      : null;
+  const submission = buildSubmissionViewModel({
+    dealId: deal.id,
+    borrowerName: deal.borrowerName,
+    entityName: deal.entityName,
+    loanType: deal.loanType,
+    loanPurpose: deal.loanPurpose,
+    loanAmount: deal.loanAmount,
+    propertyAddress: deal.propertyAddress,
+    propertyCity: deal.propertyCity,
+    propertyState: deal.propertyState,
+    propertyType: deal.propertyType,
+    experience: deal.experience,
+    creditBand: deal.creditBand,
+    status: deal.status,
+    processorName: assignedStaff ? staffDisplayName(assignedStaff) : null,
+    submittedLabel,
+    intake: deal.applicationIntake,
+    needs: needs.map((need) => ({
+      id: need.id,
+      documentType: need.documentType,
+      required: need.required,
+      status: need.status,
+    })),
+    documents: documents.map((doc) => ({
+      id: doc.id,
+      fileName: doc.fileName,
+      documentType: doc.documentType,
+      status: doc.status,
+      uploadedAt: doc.uploadedAt,
+      linkedNeedIds: doc.linkedNeedIds,
+    })),
+    tasks: tasks.map((task) => ({
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      timing: task.timing,
+      blockedReason: task.blockedReason,
+      sourceType: task.sourceType,
+      taskType: task.taskType,
+      playbookKey: task.playbookKey,
+      clientNeedId: task.clientNeedId,
+    })),
+  });
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
+      <div className="print-hide">
       <DealWorkspaceHeader
         deal={deal}
         processorLabel={processorLabel}
@@ -192,8 +256,9 @@ export default async function DealDetailPage({
           </>
         }
       />
+      </div>
 
-      <div className={dealTabsStickyClass}>
+      <div className={`print-hide ${dealTabsStickyClass}`}>
         <div className="pointer-events-auto">
           <DealTabNav dealId={deal.id} tab={tab} />
         </div>
@@ -210,6 +275,7 @@ export default async function DealDetailPage({
             nextActions={nextActions}
             attempts={attempts}
             mismatches={documentMismatches}
+            submittedLabel={submittedLabel}
             intake={
               deal.applicationIntake ??
               activity.find((event) => event.eventType === "application_received")
@@ -287,6 +353,14 @@ export default async function DealDetailPage({
           staffNames={staffNames}
           canMutate={canEditTasks}
           nowMs={nowMs}
+        />
+      ) : null}
+
+      {tab === "submission" ? (
+        <SubmissionWorkspace
+          dealId={deal.id}
+          canMutate={canMutate}
+          {...submission}
         />
       ) : null}
 

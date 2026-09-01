@@ -73,5 +73,15 @@ describe("deal presentation", () => {
       context: "A replacement document has been received and needs processor review.",
       cta: "Review document",
     });
+    expect(
+      nextActionPresentation({
+        action: "Prepare lender submission",
+        target: "submission",
+      }),
+    ).toEqual({
+      context:
+        "Required-now items are complete. Prepare the lender package from stored file facts.",
+      cta: "Open submission",
+    });
   });
 });

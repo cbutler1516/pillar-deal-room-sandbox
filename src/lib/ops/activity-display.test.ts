@@ -89,6 +89,21 @@ describe("activity display formatting", () => {
     expect(received.didWhat).toBe("Document received for condition");
   });
 
+  it("labels a manual mark-submitted event without implying a send", () => {
+    const display = formatActivityDisplay(
+      {
+        eventType: "deal_status_changed",
+        actorType: "user",
+        actorId: "user-1",
+        createdAt: "2026-09-01T17:28:00.000Z",
+        safeMetadata: { kind: "submission", from: "ready_for_submission", to: "submitted" },
+      },
+      { "user-1": "Chris Butler" },
+    );
+    expect(`${display.who} ${display.didWhat}`).toBe("Chris Butler marked file submitted");
+    expect(display.didWhat).not.toMatch(/sent|emailed|lender selected/i);
+  });
+
   it("does not throw when the activity clock is invalid", () => {
     expect(formatActivityClock("", new Date("2026-08-31T18:00:00.000Z"))).toBe("—");
     expect(formatActivityClock("2026-08-31T18:00:00.000Z", new Date(Number.NaN))).toBe(

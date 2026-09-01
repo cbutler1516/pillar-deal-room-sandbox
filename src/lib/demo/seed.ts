@@ -40,6 +40,7 @@ export function buildSeedRows() {
       experience: deal.experience,
       assigned_processor_id: null,
       status: deal.status,
+      application_intake: deal.applicationIntake ?? null,
       created_at: deal.createdAt,
       updated_at: deal.updatedAt,
     },

@@ -43,7 +43,7 @@ export function AppShell({
 
   return (
     <div className="min-h-full bg-transparent">
-      <header className="sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
+      <header className="print-hide sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
         <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3.5">
             <PillarMark size={32} decorative className="shrink-0" />
@@ -92,7 +92,7 @@ export function AppShell({
 
       <nav
         aria-label="Application"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)] lg:hidden"
+        className="print-hide fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)] lg:hidden"
       >
         <div className="flex items-center">
           <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">

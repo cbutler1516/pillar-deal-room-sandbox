@@ -120,6 +120,12 @@ export function formatActivityAction(
       return "Document received for condition";
     }
   }
+  if (
+    eventType === "deal_status_changed" &&
+    (metadata.kind === "submission" || metadata.to === "submitted")
+  ) {
+    return "marked file submitted";
+  }
   if (eventType === "document_status_changed" && metadata.to === "rejected") {
     return "Document marked rejected";
   }

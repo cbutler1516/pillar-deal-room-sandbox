@@ -12,7 +12,7 @@ import {
 } from "@/lib/playbooks/logic";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 
-export type NextActionTarget = "tasks" | "needs" | "documents" | "contacts" | "conditions";
+export type NextActionTarget = "tasks" | "needs" | "documents" | "contacts" | "conditions" | "submission";
 
 export const OPERATIONAL_WORK_TYPES = [
   "escalated_task",
@@ -201,7 +201,8 @@ export type OperationalDashboardCounts = {
   readyDealIds: string[];
 };
 
-const CLOSED_DEAL = new Set(["closed", "withdrawn", "submitted"]);
+const CLOSED_DEAL = new Set(["closed", "withdrawn"]);
+const SUBMITTED_DEAL = "submitted";
 const REVIEW_DOC_STATUS = new Set(["received", "classifying", "needs_review"]);
 const COMPLETE_NEED = new Set(["approved", "waived"]);
 const CONTACT_SOURCE = new Set([
@@ -426,6 +427,7 @@ function collectDealWork(
   if (CLOSED_DEAL.has(deal.status)) {
     return [];
   }
+  const submitted = deal.status === SUBMITTED_DEAL;
 
   const items: OperationalWorkItem[] = [];
   const coveredNeeds = new Set<string>();
@@ -916,7 +918,10 @@ function collectDealWork(
     void type;
   }
 
-  if (deal.status === "new" || deal.assignedProcessorId == null) {
+  if (
+    !submitted &&
+    (deal.status === "new" || deal.assignedProcessorId == null)
+  ) {
     push(
       item({
         deal,
@@ -950,9 +955,15 @@ function collectDealWork(
       status: task.status,
       blockedReason: task.blockedReason ?? null,
       timing: task.timing,
+      title: task.title,
+      sourceType: task.sourceType,
+      playbookKey: task.playbookKey,
     })),
   });
-  if (deal.status === "ready_for_submission" || readiness.ready) {
+  if (
+    !submitted &&
+    (deal.status === "ready_for_submission" || readiness.ready)
+  ) {
     push(
       item({
         deal,
@@ -960,16 +971,17 @@ function collectDealWork(
         rank: 12,
         title: deal.loanType ?? "Submission",
         reason: "Ready to submit",
-        recommendedAction: "Review",
+        recommendedAction: "Prepare submission",
         sourceKind: "deal",
         sourceId: `${deal.id}:ready`,
         dueState: "due_today",
         queueSection: "due_today",
         dueAt: null,
-        target: "needs",
+        target: "submission",
       }),
     );
   } else if (
+    !submitted &&
     readiness.requiredCount > 0 &&
     readiness.satisfiedCount / readiness.requiredCount >= 0.75 &&
     readiness.blockers.length <= 2
@@ -981,13 +993,13 @@ function collectDealWork(
         rank: 12,
         title: deal.loanType ?? "Submission",
         reason: "Near-ready file",
-        recommendedAction: "Review",
+        recommendedAction: "Prepare submission",
         sourceKind: "deal",
         sourceId: `${deal.id}:near-ready`,
         dueState: "due_today",
         queueSection: "due_today",
         dueAt: null,
-        target: "needs",
+        target: "submission",
       }),
     );
   }

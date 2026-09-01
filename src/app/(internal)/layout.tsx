@@ -16,7 +16,7 @@ export default async function InternalLayout({
   const demoGuide = canShowDemoGuide()
     ? {
         caseyHref: `/deals/${demoUuid(7)}`,
-        readyHref: `/deals/${demoUuid(5)}`,
+        readyHref: `/deals/${demoUuid(5)}?tab=submission`,
         portalHref: `/portal/${createPortalToken(demoUuid(7))}`,
       }
     : null;

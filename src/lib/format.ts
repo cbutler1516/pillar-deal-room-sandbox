@@ -31,6 +31,7 @@ const STATUS_LABELS: Record<string, string> = {
   collecting_documents: "Collecting documents",
   processor_review: "In processor review",
   ready_for_submission: "Ready to submit",
+  submitted: "Submitted",
   waiting: "Waiting",
   replacement_needed: "Replacement needed",
   needs_review: "Needs review",

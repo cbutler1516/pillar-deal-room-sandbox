@@ -8,6 +8,7 @@ describe("deal tab aliases", () => {
     expect(parseDealTab("needs")).toBe("needs");
     expect(parseDealTab("documents")).toBe("documents");
     expect(parseDealTab("conditions")).toBe("conditions");
+    expect(parseDealTab("submission")).toBe("submission");
     expect(parseDealTab("contacts")).toBe("contacts");
     expect(parseDealTab("activity")).toBe("activity");
   });

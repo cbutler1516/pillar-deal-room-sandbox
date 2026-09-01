@@ -122,6 +122,7 @@ export type DemoDeal = {
   contacts: DemoContact[];
   tasks: DemoTask[];
   activity: DemoActivity[];
+  applicationIntake?: Record<string, unknown> | null;
 };
 
 const daysAgo = (days: number, hours = 10) =>
@@ -508,10 +509,26 @@ export const DEMO_DEALS: DemoDeal[] = [
       need(506, "Legal", "Purchase Agreement", "approved", true, 5, daysAgo(16), daysAgo(14), daysAgo(10)),
       need(507, "Financials", "Operating Statements", "waived", false, 5, daysAgo(10), null, daysAgo(3), "Covered by T12 for this sandbox file."),
     ],
+    applicationIntake: {
+      version: 1,
+      source: "sandbox_application",
+      transaction: "Purchase",
+      propertyType: "Multifamily",
+      fundingTimeline: "45 days",
+      purchasePrice: "2100000",
+      requestedLoan: "1850000",
+      estimatedArv: "2600000",
+      rehabBudget: "250000",
+      experience: "48 units owned",
+      creditRange: "740-759",
+      units: "12",
+    },
     documents: [
       doc(511, 501, "rent-roll-oak-terrace.pdf", "Rent Roll", "approved", "sandbox-demo-document-008", daysAgo(12), "rent_roll", 0.93),
       doc(512, 502, "t12-oak-terrace.pdf", "T12", "approved", "sandbox-demo-document-009", daysAgo(12), "t12", 0.88),
       doc(513, 506, "psa-oak-terrace.pdf", "Purchase Agreement", "approved", "sandbox-demo-document-010", daysAgo(14), "purchase_agreement", 0.95),
+      doc(514, 505, "brooks-entity-docs.pdf", "Entity Documents", "approved", "sandbox-demo-document-025", daysAgo(13), "entity_docs", 0.91),
+      doc(515, 503, "brooks-pfs.pdf", "PFS", "approved", "sandbox-demo-document-026", daysAgo(11), "pfs", 0.86),
     ],
     contacts: [],
     tasks: [
@@ -646,6 +663,19 @@ export const DEMO_DEALS: DemoDeal[] = [
     status: "collecting_documents",
     createdAt: daysAgo(3),
     updatedAt: daysAgo(0, 14),
+    applicationIntake: {
+      version: 1,
+      source: "sandbox_application",
+      transaction: "Purchase",
+      propertyType: "SFR",
+      fundingTimeline: "30 days",
+      purchasePrice: "580000",
+      requestedLoan: "465000",
+      estimatedArv: "720000",
+      rehabBudget: "85000",
+      experience: "3 completed flips",
+      creditRange: "700-719",
+    },
     needs: [
       need(801, "Identity", "Government-issued ID", "rejected", true, 7, daysAgo(3), daysAgo(2), daysAgo(1), "Photo was cropped. Replacement received."),
       need(802, "Liquidity", "Bank Statements", "needs_review", true, 7, daysAgo(3), daysAgo(1), null, null, {

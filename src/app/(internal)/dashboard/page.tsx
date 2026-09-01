@@ -167,7 +167,7 @@ export default async function DashboardPage() {
                   className="flex items-center justify-between gap-3 border-t border-line py-2 first:border-0"
                 >
                   <div className="min-w-0">
-                    <Link href={`/deals/${deal.id}`} className={linkClass}>
+                    <Link href={`/deals/${deal.id}?tab=submission`} className={linkClass}>
                       {deal.borrowerName}
                     </Link>
                     <p className="text-xs text-ink-muted">
@@ -184,6 +184,12 @@ export default async function DashboardPage() {
                       unassigned={!deal.assignedProcessorId}
                     />
                     <StatusChip status={deal.status} label="Ready to submit" />
+                    <Link
+                      href={`/deals/${deal.id}?tab=submission`}
+                      className={`${linkClass} text-xs`}
+                    >
+                      Prepare submission
+                    </Link>
                   </div>
                 </li>
               ))}

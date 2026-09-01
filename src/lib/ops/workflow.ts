@@ -1,3 +1,4 @@
+import { isLenderCondition } from "@/lib/conditions/model";
 import type { UserRole } from "@/lib/auth/roles";
 import { isAdmin, isProcessor } from "@/lib/auth/roles";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
@@ -102,10 +103,19 @@ export type SubmissionTask = {
   blockedReason: string | null;
   timing?: string | null;
   blocksSubmission?: boolean;
+  title?: string | null;
+  sourceType?: string | null;
+  taskType?: string | null;
+  playbookKey?: string | null;
 };
 
 export type ReadinessAttention = {
-  kind: "incomplete" | "replacement" | "missing_contact" | "blocking_task";
+  kind:
+    | "incomplete"
+    | "replacement"
+    | "missing_contact"
+    | "blocking_task"
+    | "open_condition";
   label: string;
 };
 
@@ -131,6 +141,21 @@ export function needRequiredBeforeSubmission(need: SubmissionNeed): boolean {
     return false;
   }
   return true;
+}
+
+function isOpenTask(task: SubmissionTask): boolean {
+  return (
+    task.status === "open" ||
+    task.status === "in_progress" ||
+    task.status === "waiting"
+  );
+}
+
+export function isRequiredNowCondition(task: SubmissionTask): boolean {
+  if (!isLenderCondition(task) || !isOpenTask(task)) {
+    return false;
+  }
+  return task.timing !== "optional" && task.timing !== "required_later";
 }
 
 function isOpenBlockingTask(task: SubmissionTask): boolean {
@@ -190,6 +215,12 @@ export function evaluateSubmissionReadiness(input: {
   if (extraBlocking.length > 0) {
     const label = `${extraBlocking.length} open blocking task${extraBlocking.length === 1 ? "" : "s"}`;
     attention.push({ kind: "blocking_task", label });
+    blockers.push(label);
+  }
+  const openConditions = (input.tasks ?? []).filter(isRequiredNowCondition);
+  if (openConditions.length > 0) {
+    const label = `${openConditions.length} open required condition${openConditions.length === 1 ? "" : "s"}`;
+    attention.push({ kind: "open_condition", label });
     blockers.push(label);
   }
 

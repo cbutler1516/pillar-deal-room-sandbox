@@ -169,3 +169,18 @@ summary {
     animation: none;
   }
 }
+
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+
+  .submission-print-brand {
+    display: block !important;
+  }
+
+  body {
+    background: #fff;
+    color: #0b1f3a;
+  }
+}
