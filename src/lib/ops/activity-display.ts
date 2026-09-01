@@ -22,8 +22,8 @@ export type ActivityDisplay = {
 
 const EVENT_ACTIONS: Record<string, string> = {
   application_received: "Received application",
-  deal_claimed: "Claimed the deal",
-  deal_unclaimed: "Unclaimed the deal",
+  deal_claimed: "Assigned the file",
+  deal_unclaimed: "Unassigned the file",
   deal_status_changed: "Changed deal status",
   client_need_status_changed: "Updated Client Need",
   document_upload_session_created: "Started a document upload",

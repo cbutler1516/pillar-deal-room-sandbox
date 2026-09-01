@@ -126,10 +126,10 @@ export function nextActionPresentation(input: {
       cta: "Review document",
     };
   }
-  if (action.includes("request replacement")) {
+  if (action.includes("request replacement") || action.includes("get replacement")) {
     return {
       context: "A required item was rejected and still needs a replacement.",
-      cta: "Request replacement",
+      cta: "Get replacement",
     };
   }
   if (action.includes("mismatch")) {
@@ -138,10 +138,16 @@ export function nextActionPresentation(input: {
       cta: "Review document",
     };
   }
-  if (action.includes("follow up") || action.includes("escalate")) {
+  if (action.includes("escalate") && !action.includes("follow up")) {
+    return {
+      context: "This request needs processor escalation.",
+      cta: "Escalate",
+    };
+  }
+  if (action.includes("follow up")) {
     return {
       context: "This request still needs a processor follow-up.",
-      cta: action.includes("escalate") ? "Escalate" : "Follow up",
+      cta: "Follow up",
     };
   }
   if (action.includes("add") && action.includes("contact")) {
@@ -156,16 +162,40 @@ export function nextActionPresentation(input: {
       cta: "Claim file",
     };
   }
+  if (action.includes("review reply") || action.includes("review response")) {
+    return {
+      context: "A reply is waiting for processor review.",
+      cta: "Review reply",
+    };
+  }
+  if (action.includes("prepare request")) {
+    return {
+      context: "No request has been prepared yet.",
+      cta: "Prepare request",
+    };
+  }
+  if (action.startsWith("contact ")) {
+    return {
+      context: "No request has been sent yet.",
+      cta: "Contact",
+    };
+  }
+  if (action.startsWith("get ") && !action.includes("replacement")) {
+    return {
+      context: "A required document is still missing.",
+      cta: "Open task",
+    };
+  }
   if (input.target === "documents" || action.includes("review")) {
     return {
       context: "A processor still has to review the file on this item.",
-      cta: "Review document",
+      cta: action.includes("reply") ? "Review reply" : "Review document",
     };
   }
   if (input.target === "needs") {
     return {
-      context: "A Client Need still needs a processor decision.",
-      cta: "Open need",
+      context: "A required item still needs processor attention.",
+      cta: "Open task",
     };
   }
   return {

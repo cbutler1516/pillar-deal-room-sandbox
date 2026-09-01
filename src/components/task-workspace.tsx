@@ -48,8 +48,8 @@ import {
 import { TASK_TIMINGS, type PlaybookDefinition } from "@/lib/playbooks/types";
 
 const GROUPS = [
-  { key: "required_now", label: "Required Now" },
-  { key: "required_later", label: "Required Later" },
+  { key: "required_now", label: "Required now" },
+  { key: "required_later", label: "Required later" },
   { key: "optional", label: "Optional" },
   { key: "completed", label: "Completed" },
 ] as const;
@@ -192,11 +192,14 @@ export function TaskWorkspace({
                     escalationDue,
                     lastResponseAt: task.lastResponseAt,
                     status: task.status,
+                    sourceType: task.sourceType,
+                    title: task.title,
+                    escalationLevel: task.escalationLevel,
                   });
                   const dueState = followUpDue
-                    ? "Follow-up overdue"
+                    ? "Follow-up is overdue"
                     : aging.followUpOverdue
-                      ? "Follow-up overdue"
+                      ? "Follow-up is overdue"
                       : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
                     <li key={task.id} className={`${surfaceClass("card")} px-4 py-3`}>

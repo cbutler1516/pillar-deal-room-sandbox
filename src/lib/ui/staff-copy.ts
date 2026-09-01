@@ -16,6 +16,8 @@ const REASON_EXACT: Record<string, string> = {
   "Waiting on a response": "Waiting on a reply",
   "Unassigned file": "New unassigned file",
   "New application": "New file",
+  "Follow-up overdue": "Follow-up is overdue",
+  "Document awaiting processor review": "New document ready for review",
 };
 
 export function humanizeWorkReason(reason: string): string {
@@ -38,7 +40,93 @@ export function humanizeWorkReason(reason: string): string {
   if (waitingOn && waitingOn[1] !== "a response") {
     return `Waiting on ${waitingOn[1]}`;
   }
+  const overdueBy = reason.match(/^Follow-up overdue by (.+)$/);
+  if (overdueBy) {
+    return `Follow-up is overdue by ${overdueBy[1]}`;
+  }
   return stripReasonCtaEcho(reason);
+}
+
+const CONTACT_ROLES = [
+  "borrower",
+  "title",
+  "insurance",
+  "contractor",
+  "cpa",
+  "property manager",
+] as const;
+
+export function contactRoleFromText(value: string | null | undefined): string | null {
+  const haystack = (value ?? "").toLowerCase();
+  for (const role of CONTACT_ROLES) {
+    if (haystack.includes(role)) {
+      return role === "cpa" ? "CPA" : role;
+    }
+  }
+  return null;
+}
+
+export function humanizeWorkAction(row: {
+  recommendedAction: string;
+  workType: string;
+  title?: string | null;
+  target?: string | null;
+}): string {
+  const action = row.recommendedAction.trim();
+  const type = row.workType;
+
+  if (type === "escalation_due") {
+    return "Follow up";
+  }
+  if (type === "escalated_task") {
+    return "Escalate";
+  }
+  if (type === "replacement_needed" || action === "Request replacement") {
+    return "Get replacement";
+  }
+  if (
+    type === "replacement_received" ||
+    type === "document_awaiting_review" ||
+    type === "document_duplicate" ||
+    type === "document_mismatch"
+  ) {
+    return "Review document";
+  }
+  if (type === "response_received") {
+    return "Review reply";
+  }
+  if (type === "required_need_missing" || action === "Collect") {
+    return "Open task";
+  }
+  if (type === "unassigned_file" || action === "Claim") {
+    return "Claim file";
+  }
+  if (type === "new_application" && action === "Open") {
+    return "Open file";
+  }
+  if (action === "Open") {
+    return row.target === "tasks" ? "Open task" : "Open file";
+  }
+  if (action === "Add contact") {
+    return "Add contact";
+  }
+  if (action === "Contact") {
+    const role = contactRoleFromText(row.title);
+    return role ? `Contact ${role}` : "Contact";
+  }
+  if (action === "Review") {
+    if (row.target === "tasks") {
+      return "Review task";
+    }
+    return "Review document";
+  }
+  if (action === "Follow up") {
+    return "Follow up";
+  }
+  if (action === "Escalate") {
+    return "Follow up";
+  }
+  return action;
 }
 
 export function stripReasonCtaEcho(reason: string, actionLabel?: string): string {

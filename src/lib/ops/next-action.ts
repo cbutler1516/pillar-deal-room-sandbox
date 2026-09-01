@@ -85,11 +85,21 @@ export function nextActionFromWorkItem(
 
   switch (row.workType) {
     case "escalated_task":
-    case "escalation_due":
       return {
         action: who
           ? `Escalate ${subject.toLowerCase()} with ${who}`
-          : `Escalate follow-up for ${subject.toLowerCase()}`,
+          : `Escalate ${subject.toLowerCase()}`,
+        source: task?.sourceType?.replaceAll("_", " ") ?? row.loanType,
+        contactName: task?.contactName ?? null,
+        dueAt: row.dueAt,
+        href,
+        target,
+      };
+    case "escalation_due":
+      return {
+        action: who
+          ? `Follow up with ${who} for ${subject.toLowerCase()}`
+          : `Follow up for ${subject.toLowerCase()}`,
         source: task?.sourceType?.replaceAll("_", " ") ?? row.loanType,
         contactName: task?.contactName ?? null,
         dueAt: row.dueAt,
@@ -98,11 +108,7 @@ export function nextActionFromWorkItem(
       };
     case "replacement_needed":
       return {
-        action: `Request replacement ${subject} from ${
-          task?.sourceType === "borrower" || !task?.sourceType
-            ? "borrower"
-            : task.sourceType.replaceAll("_", " ")
-        }`,
+        action: `Get replacement ${subject}`,
         source: task?.sourceType?.replaceAll("_", " ") ?? "borrower",
         contactName: task?.contactName ?? null,
         dueAt: task?.nextFollowUpAt ?? row.dueAt,
@@ -143,8 +149,8 @@ export function nextActionFromWorkItem(
     case "response_received":
       return {
         action: who
-          ? `Review response from ${who} for ${subject.toLowerCase()}`
-          : `Review response for ${subject.toLowerCase()}`,
+          ? `Review reply from ${who} for ${subject.toLowerCase()}`
+          : `Review reply for ${subject.toLowerCase()}`,
         source: task?.sourceType?.replaceAll("_", " ") ?? null,
         contactName: task?.contactName ?? null,
         dueAt: row.dueAt,
@@ -154,7 +160,7 @@ export function nextActionFromWorkItem(
     case "document_awaiting_review":
     case "document_duplicate":
       return {
-        action: `Review newly received ${subject.toLowerCase()}`,
+        action: `Review ${subject}`,
         source: "internal",
         contactName: null,
         dueAt: null,
@@ -179,8 +185,8 @@ export function nextActionFromWorkItem(
     case "no_initial_contact":
       return {
         action: who
-          ? `Send initial request to ${who} for ${subject.toLowerCase()}`
-          : `Send initial request for ${subject.toLowerCase()}`,
+          ? `Contact ${who} about ${subject.toLowerCase()}`
+          : `Prepare request for ${subject.toLowerCase()}`,
         source: task?.sourceType?.replaceAll("_", " ") ?? null,
         contactName: task?.contactName ?? null,
         dueAt: row.dueAt,
@@ -189,7 +195,7 @@ export function nextActionFromWorkItem(
       };
     case "required_need_missing":
       return {
-        action: `Collect missing required ${subject}`,
+        action: `Get ${subject}`,
         source: "internal",
         contactName: null,
         dueAt: null,
@@ -199,9 +205,7 @@ export function nextActionFromWorkItem(
     case "new_application":
     case "unassigned_file":
       return {
-        action: row.assignedProcessorId
-          ? "Start collecting documents on this new file"
-          : "Claim this unassigned application",
+        action: row.assignedProcessorId ? "Start this new file" : "Claim file",
         source: "internal",
         contactName: null,
         dueAt: null,

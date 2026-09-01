@@ -20,9 +20,9 @@ import { updateNeedStatusAction } from "@/lib/workflow/actions";
 const SUMMARY_CHIPS = [
   { key: "requested", label: "Requested", match: "requested" },
   { key: "received", label: "Received", match: "received" },
-  { key: "needs_review", label: "Needs Review", match: "needs_review" },
+  { key: "needs_review", label: "Needs review", match: "needs_review" },
   { key: "approved", label: "Approved", match: "approved" },
-  { key: "replacement", label: "Replacement Needed", match: "rejected" },
+  { key: "replacement", label: "Replacement needed", match: "rejected" },
 ] as const;
 
 const NEED_GROUPS = [
@@ -55,7 +55,7 @@ function needStatusLine(
   }
   if (need.status === "received" || need.status === "needs_review") {
     const review =
-      hint !== progress.receivedLabel ? hint : "Review required";
+      hint !== progress.receivedLabel ? hint : "Needs review";
     return `${progress.receivedLabel} · ${review}`;
   }
   if (need.status === "missing" || need.status === "requested") {
@@ -227,7 +227,7 @@ export function ClientNeedsWorkspace({
                           setOpenId(need.id);
                         }}
                       >
-                        {action === "review" ? "Review →" : "Request →"}
+                        {action === "review" ? "Review document →" : "Prepare request →"}
                       </button>
                     ) : null}
                     {canMutate && open ? (
@@ -305,15 +305,15 @@ function needOverflowItems(
   const items: { label: string; onClick: () => void; tone?: "default" | "danger" }[] =
     [];
   if (status !== "approved") {
-    items.push({ label: "Approve Need", onClick: actions.onApprove });
+    items.push({ label: "Approve", onClick: actions.onApprove });
   }
   if (status !== "rejected") {
-    items.push({ label: "Request Replacement", onClick: actions.onReplace });
+    items.push({ label: "Get replacement", onClick: actions.onReplace });
   }
-  items.push({ label: "Attach Existing", onClick: actions.onAttach });
-  items.push({ label: "Clone Need", onClick: actions.onClone });
+  items.push({ label: "Attach existing", onClick: actions.onAttach });
+  items.push({ label: "Duplicate item", onClick: actions.onClone });
   if (status !== "requested") {
-    items.push({ label: "Mark Requested", onClick: actions.onRequest });
+    items.push({ label: "Prepare request", onClick: actions.onRequest });
   }
   if (status !== "waived") {
     items.push({ label: "Waive", onClick: actions.onWaive });

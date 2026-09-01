@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { humanizeWorkReason, polishAssistSummary } from "@/lib/ui/staff-copy";
+import {
+  humanizeWorkAction,
+  humanizeWorkReason,
+  polishAssistSummary,
+} from "@/lib/ui/staff-copy";
 
 describe("staff copy", () => {
   it("rewrites Queue reasons into processor language", () => {
@@ -19,6 +23,63 @@ describe("staff copy", () => {
       "Reply received from Title — review needed",
     );
     expect(humanizeWorkReason("Follow-up due today")).toBe("Follow-up due today");
+    expect(humanizeWorkReason("Document awaiting processor review")).toBe(
+      "New document ready for review",
+    );
+  });
+
+  it("maps CTAs to concrete actions without implying a send", () => {
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Escalate",
+        workType: "escalation_due",
+      }),
+    ).toBe("Follow up");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Escalate",
+        workType: "escalated_task",
+      }),
+    ).toBe("Escalate");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Request replacement",
+        workType: "replacement_needed",
+      }),
+    ).toBe("Get replacement");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Review",
+        workType: "replacement_received",
+        target: "documents",
+      }),
+    ).toBe("Review document");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Review",
+        workType: "response_received",
+        target: "tasks",
+      }),
+    ).toBe("Review reply");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Claim",
+        workType: "unassigned_file",
+      }),
+    ).toBe("Claim file");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Contact",
+        workType: "no_initial_contact",
+        title: "Insurance binder",
+      }),
+    ).toBe("Contact insurance");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Collect",
+        workType: "required_need_missing",
+      }),
+    ).toBe("Open task");
   });
 
   it("removes robotic assist phrasing without changing facts", () => {

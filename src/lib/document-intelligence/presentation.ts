@@ -3,7 +3,7 @@ import type { DocumentIntelligenceDocumentResult } from "@/lib/document-intellig
 export const MATERIAL_DOCUMENT_FLAGS = [
   "Possible mismatch",
   "Possible duplicate",
-  "Replacement document",
+  "Replacement received",
 ] as const;
 
 export type MaterialDocumentFlag = (typeof MATERIAL_DOCUMENT_FLAGS)[number];
@@ -22,7 +22,7 @@ export function materialDocumentFlags(
     flags.push("Possible duplicate");
   }
   if (result.recommendation.action === "review_replacement") {
-    flags.push("Replacement document");
+    flags.push("Replacement received");
   }
   return flags;
 }
@@ -75,7 +75,7 @@ export function documentIntelligenceExplanation(
   if (headline === "Possible duplicate") {
     return "Another file with the same name is already on this deal.";
   }
-  if (headline === "Replacement document" || headline === "Likely match") {
+  if (headline === "Replacement received" || headline === "Likely match") {
     return requested
       ? `This looks like the requested ${requested}.`
       : "This looks like the requested item.";
