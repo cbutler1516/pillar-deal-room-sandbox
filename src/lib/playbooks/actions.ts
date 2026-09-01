@@ -432,11 +432,7 @@ export async function markTaskContactedAction(
     markWaiting,
   });
   const channel = contactActionChannel();
-  const { error } = await supabase.from("tasks").update(patch).eq("id", task.id);
-  if (error) {
-    return { error: "Unable to mark this task contacted." };
-  }
-  await insertCommunicationAttempt(
+  const recorded = await insertCommunicationAttempt(
     supabase,
     buildContactedAttempt({
       dealId: task.deal_id,
@@ -447,6 +443,18 @@ export async function markTaskContactedAction(
       attemptedAt: now,
     }),
   );
+  if (recorded.error) {
+    return { error: recorded.error };
+  }
+  const { data: updated, error } = await supabase
+    .from("tasks")
+    .update(patch)
+    .eq("id", task.id)
+    .select("id, last_contacted_at, next_follow_up_at")
+    .maybeSingle();
+  if (error || !updated?.last_contacted_at || !updated.next_follow_up_at) {
+    return { error: "Unable to mark this task contacted." };
+  }
   await logAuthorizedActivity({
     dealId: task.deal_id,
     actorId: user.id,

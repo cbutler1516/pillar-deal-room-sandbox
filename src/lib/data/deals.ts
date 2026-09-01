@@ -289,6 +289,9 @@ export async function listDocuments(
 const TASK_COLUMNS =
   "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to, source_type, task_kind, timing, client_need_id, deal_contact_id, contact_name, contact_email, contact_phone, follow_up_interval_hours, next_follow_up_at, escalation_after_hours, escalation_level, completion_rule, playbook_key, instructions, last_contacted_at, last_response_at, waiting_since, blocked_reason, created_at";
 
+const TASK_COLUMNS_WITHOUT_RESPONSE =
+  "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to, source_type, task_kind, timing, client_need_id, deal_contact_id, contact_name, contact_email, contact_phone, follow_up_interval_hours, next_follow_up_at, escalation_after_hours, escalation_level, completion_rule, playbook_key, instructions, last_contacted_at, waiting_since, blocked_reason, created_at";
+
 const TASK_COLUMNS_LEGACY =
   "id, deal_id, title, task_type, description, priority, status, due_at, assigned_to";
 
@@ -400,13 +403,21 @@ export async function listTasks(
     .eq("deal_id", dealId)
     .order("created_at", { ascending: true });
 
-  const result = expanded.error
+  const staff = expanded.error
+    ? await supabase
+        .from("tasks")
+        .select(TASK_COLUMNS_WITHOUT_RESPONSE)
+        .eq("deal_id", dealId)
+        .order("created_at", { ascending: true })
+    : expanded;
+
+  const result = staff.error
     ? await supabase
         .from("tasks")
         .select(TASK_COLUMNS_LEGACY)
         .eq("deal_id", dealId)
         .order("created_at", { ascending: true })
-    : expanded;
+    : staff;
 
   if (result.error || !result.data) {
     return [];
@@ -422,12 +433,18 @@ export async function listQueueTasks(
     .from("tasks")
     .select(TASK_COLUMNS)
     .in("status", ["open", "in_progress", "waiting"]);
+  const staff = expanded.error
+    ? await supabase
+        .from("tasks")
+        .select(TASK_COLUMNS_WITHOUT_RESPONSE)
+        .in("status", ["open", "in_progress", "waiting"])
+    : expanded;
 
-  if (expanded.error || !expanded.data) {
+  if (staff.error || !staff.data) {
     return [];
   }
 
-  return expanded.data.map((row) => mapTaskRow(row as Record<string, unknown>));
+  return staff.data.map((row) => mapTaskRow(row as Record<string, unknown>));
 }
 
 export async function listWorkspaceTasks(
@@ -437,12 +454,18 @@ export async function listWorkspaceTasks(
     .from("tasks")
     .select(TASK_COLUMNS)
     .in("status", ["open", "in_progress", "waiting", "completed"]);
+  const staff = expanded.error
+    ? await supabase
+        .from("tasks")
+        .select(TASK_COLUMNS_WITHOUT_RESPONSE)
+        .in("status", ["open", "in_progress", "waiting", "completed"])
+    : expanded;
 
-  if (expanded.error || !expanded.data) {
+  if (staff.error || !staff.data) {
     return [];
   }
 
-  return expanded.data.map((row) => mapTaskRow(row as Record<string, unknown>));
+  return staff.data.map((row) => mapTaskRow(row as Record<string, unknown>));
 }
 
 export async function listReviewDocuments(

@@ -64,6 +64,7 @@ export function CommunicationPanel({
 }) {
   const [open, setOpen] = useState(false);
   const [channel, setChannel] = useState<CommunicationChannel>("email");
+  const [contactError, setContactError] = useState<string | null>(null);
   const playbook = task.playbookKey ? getPlaybook(task.playbookKey) : null;
   const recommendation = recommendedDraftForTask(
     {
@@ -187,10 +188,16 @@ export function CommunicationPanel({
           </div>
 
           {canMutate && active ? (
+            <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <form
                 action={async (formData) => {
-                  await markTaskContactedWithCommunicationAction(formData);
+                  setContactError(null);
+                  const result =
+                    await markTaskContactedWithCommunicationAction(formData);
+                  if (result.error) {
+                    setContactError(result.error);
+                  }
                 }}
               >
                 <input type="hidden" name="taskId" value={task.id} />
@@ -243,6 +250,10 @@ export function CommunicationPanel({
                   },
                 ]}
               />
+            </div>
+            {contactError ? (
+              <p className="max-w-xl text-[11px] text-danger">{contactError}</p>
+            ) : null}
             </div>
           ) : null}
 

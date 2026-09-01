@@ -6,6 +6,7 @@ import type {
   CommunicationAttemptInput,
 } from "@/lib/communications/types";
 import type { StaffName } from "@/lib/data/deals";
+import { communicationInsertErrorMessage } from "@/lib/communications/records";
 
 const ATTEMPT_COLUMNS =
   "id, deal_id, task_id, client_need_id, deal_contact_id, direction, channel, status, subject, body_snapshot, attempted_at, created_by, outbound_sent, draft_type, audience, sandbox_simulated";
@@ -97,7 +98,7 @@ export async function insertCommunicationAttempt(
     sandbox_simulated: attempt.sandboxSimulated,
   });
   if (error) {
-    return { error: "Unable to record this communication." };
+    return { error: communicationInsertErrorMessage(error.message) };
   }
   return { error: null };
 }
