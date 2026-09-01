@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode, type SVGProps } from "reac
 import { PillarMark } from "@/components/brand/pillar-logo";
 import { LogoutButton } from "@/components/logout-button";
 import { SandboxBadge } from "@/components/sandbox-badge";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { displayName, type InternalProfile } from "@/lib/auth/authorization";
 import { formatRoleLabel } from "@/lib/auth/roles";
 
@@ -42,6 +43,7 @@ export function AppShell({
             <SandboxBadge />
           </div>
           <div className="flex min-w-0 items-center gap-2">
+            <StaffAvatar name={name} size={32} />
             <div className="hidden min-w-0 text-right sm:block">
               <p className="truncate text-xs font-medium text-ink">{name}</p>
               <p className="text-[11px] text-ink-muted">{role}</p>
@@ -55,7 +57,7 @@ export function AppShell({
 
       <nav
         aria-label="Application"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[10px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-card)]"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)]"
       >
         <div className="flex items-center">
           <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">

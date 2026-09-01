@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { buttonClass } from "@/components/ui/button";
 import {
   archiveDealContactAction,
@@ -150,7 +151,8 @@ export function ContactsWorkspace({
                       contact.email || contact.phone || "No contact method";
                     return (
                       <li key={contact.id} className="py-3.5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <StaffAvatar name={contact.name} size={32} label={contact.name} />
                           <button
                             type="button"
                             className="min-w-0 flex-1 text-left"
@@ -178,18 +180,30 @@ export function ContactsWorkspace({
                             </p>
                             <p className="text-sm leading-6 text-ink">{method}</p>
                           </button>
-                          <div className="flex flex-wrap items-center gap-1">
+                          <div className="flex shrink-0 flex-wrap items-center gap-1">
                             {contact.email ? (
                               <CopyTextButton value={contact.email} label="Copy email" />
                             ) : null}
                             {contact.phone ? (
                               <CopyTextButton value={contact.phone} label="Copy phone" />
                             ) : null}
+                            <button
+                              type="button"
+                              className={buttonClass("ghost", "sm")}
+                              onClick={() => {
+                                setOpenId(contact.id);
+                                if (canMutate) {
+                                  setEditId(contact.id);
+                                }
+                              }}
+                            >
+                              {open ? "Hide" : "View"}
+                            </button>
                             {canMutate ? (
                               <OverflowMenu
                                 items={[
                                   {
-                                    label: open ? "Hide details" : "View / Edit",
+                                    label: "Edit",
                                     onClick: () => {
                                       setOpenId(contact.id);
                                       setEditId(contact.id);
@@ -222,7 +236,7 @@ export function ContactsWorkspace({
                           </div>
                         </div>
                         {open ? (
-                          <div className="mt-3 space-y-3">
+                          <div className="mt-3 ml-11 space-y-3 rounded-[14px] bg-surface-muted px-3 py-3 transition duration-200 motion-reduce:transition-none">
                             {contact.notes ? (
                               <p className="text-sm leading-6 text-ink-muted">
                                 {contact.notes}

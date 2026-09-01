@@ -1,3 +1,4 @@
+import { StaffPresence } from "@/components/ui/staff-avatar";
 import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
 import type { ProcessorWorkload } from "@/lib/communications/workload";
 
@@ -31,7 +32,12 @@ export function WorkloadSummary({
             <tbody>
               {rows.map((row) => (
                 <tr key={row.processorId ?? "unassigned"} className="border-t border-line">
-                  <td className="py-2 font-medium text-ink">{row.processorName}</td>
+                  <td className="py-2 font-medium text-ink">
+                    <StaffPresence
+                      name={row.processorName}
+                      unassigned={!row.processorId}
+                    />
+                  </td>
                   <td className="py-2 tabular-nums text-ink">{row.noContact}</td>
                   <td className="py-2 tabular-nums text-ink">{row.waiting}</td>
                   <td className="py-2 tabular-nums text-ink">{row.followUpOverdue}</td>

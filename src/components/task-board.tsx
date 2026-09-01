@@ -26,7 +26,7 @@ export function TaskBoard({ rows }: { rows: DecoratedAction[] }) {
                 {cards.length}
               </span>
             </div>
-            <ul className="rounded-[10px] border border-line bg-surface">
+            <ul className="rounded-[14px] border border-line bg-surface">
               {cards.length === 0 ? (
                 <li className="px-3 py-6 text-xs text-ink-muted">
                   {EMPTY[column.key] ?? "You’re clear for now."}

@@ -25,7 +25,7 @@ export function buttonClass(
   size: ButtonSize = "md",
   className = "",
 ): string {
-  return `inline-flex items-center justify-center transition disabled:cursor-not-allowed ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim();
+  return `inline-flex min-h-8 items-center justify-center transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pillar-teal motion-reduce:transition-none disabled:cursor-not-allowed ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim();
 }
 
 export function Button({

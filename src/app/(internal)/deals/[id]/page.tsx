@@ -173,6 +173,7 @@ export default async function DealDetailPage({
       <DealWorkspaceHeader
         deal={deal}
         processorLabel={processorLabel}
+        ownerName={assignedStaff ? staffDisplayName(assignedStaff) : null}
         actions={
           <>
             {canMutate &&
@@ -213,22 +214,24 @@ export default async function DealDetailPage({
                 ?.safeMetadata ??
               null
             }
+            assist={
+              assist ? (
+                <details className="px-1">
+                  <summary className="cursor-pointer text-sm font-medium text-ink-muted">
+                    Processor assist
+                  </summary>
+                  <div className="mt-3">
+                    <AIAssistPanel result={assist} />
+                  </div>
+                </details>
+              ) : null
+            }
           />
-          {assist ? (
-            <details className="px-1 py-2">
-              <summary className="cursor-pointer text-sm font-medium text-ink-muted">
-                Processor assist
-              </summary>
-              <div className="mt-4">
-                <AIAssistPanel result={assist} />
-              </div>
-            </details>
-          ) : null}
         </>
       ) : null}
 
       {tab === "tasks" ? (
-        <SurfaceCard>
+        <div>
           <TaskWorkspace
             dealId={deal.id}
             loanType={deal.loanType}
@@ -267,7 +270,7 @@ export default async function DealDetailPage({
               .map((need) => need.id)}
             nowMs={nowMs}
           />
-        </SurfaceCard>
+        </div>
       ) : null}
 
       {tab === "needs" ? (
@@ -313,21 +316,19 @@ export default async function DealDetailPage({
               }))}
             />
           ) : null}
-          <SurfaceCard>
-            <DocumentsWorkspace
-              dealId={deal.id}
-              documents={documents}
-              needs={needs}
-              canMutate={canMutate}
-              canIntake={canIntake}
-              intelligence={documentIntelligence}
-            />
-          </SurfaceCard>
+          <DocumentsWorkspace
+            dealId={deal.id}
+            documents={documents}
+            needs={needs}
+            canMutate={canMutate}
+            canIntake={canIntake}
+            intelligence={documentIntelligence}
+          />
         </div>
       ) : null}
 
       {tab === "contacts" ? (
-        <SurfaceCard>
+        <div>
           <ContactsWorkspace
             dealId={deal.id}
             contacts={contacts}
@@ -343,11 +344,11 @@ export default async function DealDetailPage({
               ),
             ]}
           />
-        </SurfaceCard>
+        </div>
       ) : null}
 
       {tab === "activity" ? (
-        <SurfaceCard>
+        <div>
           <DealTimeline
             activity={activity}
             attempts={attempts}
@@ -355,7 +356,7 @@ export default async function DealDetailPage({
             staffNames={staffNames}
             nowMs={nowMs}
           />
-        </SurfaceCard>
+        </div>
       ) : null}
       </div>
     </div>

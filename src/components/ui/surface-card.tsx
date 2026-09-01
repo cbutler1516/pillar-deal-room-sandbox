@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import {
-  cardClass,
   cardPadClass,
   sectionMetaClass,
   sectionTitleClass,
+  surfaceClass,
+  type SurfaceTone,
 } from "@/components/ui/styles";
 
 export function SurfaceCard({
@@ -11,15 +12,17 @@ export function SurfaceCard({
   className = "",
   padded = true,
   elevated = false,
+  tone,
 }: {
   children: ReactNode;
   className?: string;
   padded?: boolean;
   elevated?: boolean;
+  tone?: SurfaceTone;
 }) {
   return (
     <section
-      className={`${cardClass} ${elevated ? "shadow-[var(--shadow-card)]" : ""} ${padded ? cardPadClass : ""} ${className}`.trim()}
+      className={`${surfaceClass(tone ?? (elevated ? "elevated" : "card"))} ${padded ? cardPadClass : ""} ${className}`.trim()}
     >
       {children}
     </section>

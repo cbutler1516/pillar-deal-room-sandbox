@@ -96,24 +96,39 @@ export function taskPrimaryActionLabel(input: {
   return "Contact";
 }
 
-export function workQueueRow(row: OperationalWorkItem): {
+export function workQueueRow(
+  row: OperationalWorkItem,
+  extra: { location?: string | null } = {},
+): {
   id: string;
   dealId: string;
   borrowerName: string;
+  entityName: string | null;
+  loanType: string | null;
+  location: string | null;
   title: string;
   reason: string;
   actionLabel: string;
   href: string;
   hot: boolean;
+  assignedProcessorId: string | null;
+  queueSection: QueueTodaySection;
+  dueAt: string | null;
 } {
   return {
     id: row.id,
     dealId: row.dealId,
     borrowerName: row.borrowerName,
+    entityName: row.entityName,
+    loanType: row.loanType,
+    location: extra.location ?? null,
     title: row.title,
     reason: row.reason,
     actionLabel: row.recommendedAction,
     href: row.href,
     hot: row.priorityBand === "critical" || row.dueState === "overdue",
+    assignedProcessorId: row.assignedProcessorId,
+    queueSection: row.queueSection,
+    dueAt: row.dueAt,
   };
 }

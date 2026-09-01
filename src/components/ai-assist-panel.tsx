@@ -19,8 +19,8 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
   const suggestions = result.nextActions.slice(0, 3);
 
   return (
-    <div className="space-y-4">
-      <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+    <div className="space-y-3">
+      <p className="text-xs font-medium tracking-[0.08em] text-ink-muted uppercase">
         AI-assisted
       </p>
       <p className="text-sm leading-6 text-ink">{result.dealSummary}</p>

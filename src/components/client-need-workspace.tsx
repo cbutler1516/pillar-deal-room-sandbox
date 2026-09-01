@@ -25,6 +25,61 @@ const SUMMARY_CHIPS = [
   { key: "replacement", label: "Replacement Needed", match: "rejected" },
 ] as const;
 
+const NEED_GROUPS = [
+  { key: "required_now", label: "Required now" },
+  { key: "required_later", label: "Required later" },
+  { key: "optional", label: "Optional" },
+  { key: "other", label: "Other" },
+] as const;
+
+function needGroupKey(timing: string | null | undefined): (typeof NEED_GROUPS)[number]["key"] {
+  if (timing === "required_now" || timing === "required_later" || timing === "optional") {
+    return timing;
+  }
+  return "other";
+}
+
+function needStatusLine(
+  need: ClientNeedRow,
+  progress: ReturnType<typeof summarizeNeedDocuments>,
+  hint: string,
+): string {
+  if (need.status === "approved") {
+    return "Approved";
+  }
+  if (need.status === "waived") {
+    return "Waived";
+  }
+  if (need.status === "rejected") {
+    return hint === "Replacement received" ? hint : "Replacement needed";
+  }
+  if (need.status === "received" || need.status === "needs_review") {
+    const review =
+      hint !== progress.receivedLabel ? hint : "Review required";
+    return `${progress.receivedLabel} · ${review}`;
+  }
+  if (need.status === "missing" || need.status === "requested") {
+    return "Missing";
+  }
+  return formatStatusLabel(need.status);
+}
+
+function needCollapsedAction(need: ClientNeedRow, hint: string): "review" | "request" | null {
+  if (
+    need.status === "received" ||
+    need.status === "needs_review" ||
+    hint === "Replacement received" ||
+    hint === "Possible mismatch" ||
+    hint === "Review needed"
+  ) {
+    return "review";
+  }
+  if (need.status === "missing" || need.status === "requested") {
+    return "request";
+  }
+  return null;
+}
+
 function NeedGlyph({ status }: { status: string }) {
   const tone =
     status === "approved" || status === "waived"
@@ -107,81 +162,116 @@ export function ClientNeedsWorkspace({
   }
 
   const openCount = SUMMARY_CHIPS.reduce((sum, chip) => sum + (counts[chip.key] ?? 0), 0);
+  const grouped = NEED_GROUPS.map((group) => ({
+    ...group,
+    rows: needs.filter((need) => {
+      const timing = needOps.find((item) => item.needId === need.id)?.timing ?? null;
+      return needGroupKey(timing) === group.key;
+    }),
+  })).filter((group) => group.rows.length > 0);
+  const showGroups = needOps.some((item) => item.timing);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       <p className="px-1 text-xs text-ink-muted">
         {needs.length} item{needs.length === 1 ? "" : "s"}
         {openCount > 0 ? ` · ${counts.approved ?? 0} approved` : ""}
       </p>
 
-      <div className="divide-y divide-line border-y border-line">
-        {needs.map((need) => {
-          const linked = documents.filter((doc) => doc.linkedNeedIds.includes(need.id));
-          const progress = summarizeNeedDocuments(linked, need.expectedDocumentCount);
-          const ops = needOps.find((item) => item.needId === need.id);
-          const open = openId === need.id;
-          const hint = ops?.replacementCandidate
-            ? "Replacement received"
-            : ops?.mismatch
-              ? "Possible mismatch"
-              : ops?.reviewNeeded
-                ? "Review needed"
-                : ops?.contactMissing
-                  ? "Contact missing"
-                  : progress.receivedLabel;
-          return (
-            <article key={need.id}>
-              <div className="flex items-center gap-3 px-4 py-2.5">
-                <NeedGlyph status={need.status} />
-                <button
-                  type="button"
-                  onClick={() => setOpenId(open ? null : need.id)}
-                  className="min-w-0 flex-1 text-left"
-                >
-                  <p className="text-sm font-semibold text-ink">{need.documentType}</p>
-                  <p className="mt-0.5 truncate text-xs text-ink-muted">{hint}</p>
-                </button>
-                {canMutate && open ? (
-                  <OverflowMenu
-                    items={needOverflowItems(need.status, {
-                      onApprove: () => void runNeedStatus(need.id, "approved"),
-                      onReplace: () => void runNeedStatus(need.id, "rejected"),
-                      onAttach: () => {
-                        setOpenId(need.id);
-                        setAttachFor(need.id);
-                      },
-                      onClone: () => void cloneNeed(dealId, need.id),
-                      onRequest: () => void runNeedStatus(need.id, "requested"),
-                      onWaive: () => void runNeedStatus(need.id, "waived"),
-                      onNote: () => {
-                        setOpenId(need.id);
-                        setNoteFor(need.id);
-                      },
-                    })}
-                  />
-                ) : null}
-              </div>
-              {open ? (
-                <NeedReviewPanel
-                  dealId={dealId}
-                  need={need}
-                  linked={linked}
-                  progress={progress}
-                  documents={documents}
-                  canMutate={canMutate}
-                  canIntake={canIntake}
-                  showAttach={attachFor === need.id}
-                  showNotes={noteFor === need.id}
-                  onToggleAttach={() =>
-                    setAttachFor((current) => (current === need.id ? null : need.id))
-                  }
-                />
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
+      {grouped.map((group) => (
+        <section key={group.key}>
+          {showGroups ? (
+            <h3 className="mb-1 px-1 text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+              {group.label}
+            </h3>
+          ) : null}
+          <div className="divide-y divide-line border-y border-line">
+            {group.rows.map((need) => {
+              const linked = documents.filter((doc) => doc.linkedNeedIds.includes(need.id));
+              const progress = summarizeNeedDocuments(linked, need.expectedDocumentCount);
+              const ops = needOps.find((item) => item.needId === need.id);
+              const open = openId === need.id;
+              const hint = ops?.replacementCandidate
+                ? "Replacement received"
+                : ops?.mismatch
+                  ? "Possible mismatch"
+                  : ops?.reviewNeeded
+                    ? "Review needed"
+                    : ops?.contactMissing
+                      ? "Contact missing"
+                      : progress.receivedLabel;
+              const action = needCollapsedAction(need, hint);
+              return (
+                <article key={need.id}>
+                  <div className="flex items-center gap-3 px-1 py-3.5">
+                    <NeedGlyph status={need.status} />
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(open ? null : need.id)}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <p className="text-sm font-medium text-ink">{need.documentType}</p>
+                      <p className="mt-0.5 truncate text-xs text-ink-muted">
+                        {needStatusLine(need, progress, hint)}
+                      </p>
+                    </button>
+                    {!open && action ? (
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs font-medium text-pillar-teal hover:text-pillar-navy"
+                        onClick={() => {
+                          if (action === "request" && need.status === "missing") {
+                            void runNeedStatus(need.id, "requested");
+                            return;
+                          }
+                          setOpenId(need.id);
+                        }}
+                      >
+                        {action === "review" ? "Review →" : "Request →"}
+                      </button>
+                    ) : null}
+                    {canMutate && open ? (
+                      <OverflowMenu
+                        items={needOverflowItems(need.status, {
+                          onApprove: () => void runNeedStatus(need.id, "approved"),
+                          onReplace: () => void runNeedStatus(need.id, "rejected"),
+                          onAttach: () => {
+                            setOpenId(need.id);
+                            setAttachFor(need.id);
+                          },
+                          onClone: () => void cloneNeed(dealId, need.id),
+                          onRequest: () => void runNeedStatus(need.id, "requested"),
+                          onWaive: () => void runNeedStatus(need.id, "waived"),
+                          onNote: () => {
+                            setOpenId(need.id);
+                            setNoteFor(need.id);
+                          },
+                        })}
+                      />
+                    ) : null}
+                  </div>
+                  {open ? (
+                    <NeedReviewPanel
+                      dealId={dealId}
+                      need={need}
+                      linked={linked}
+                      progress={progress}
+                      documents={documents}
+                      canMutate={canMutate}
+                      canIntake={canIntake}
+                      showAttach={attachFor === need.id}
+                      showNotes={noteFor === need.id}
+                      onToggleAttach={() =>
+                        setAttachFor((current) => (current === need.id ? null : need.id))
+                      }
+                    />
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
@@ -276,13 +366,10 @@ function NeedReviewPanel({
   }
 
   return (
-    <div className="space-y-4 border-t border-line px-4 py-4">
-      <div>
-        <h4 className="text-sm font-semibold text-ink">{need.documentType}</h4>
-        <p className="mt-1 text-xs text-ink-muted">
-          {need.description || need.category}
-        </p>
-      </div>
+    <div className="ml-8 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3.5 transition duration-200 motion-reduce:transition-none">
+      {need.description ? (
+        <p className="text-xs leading-5 text-ink-muted">{need.description}</p>
+      ) : null}
       <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
         <Item label="Status" value={need.status.replaceAll("_", " ")} />
         <Item label="Requested" value={formatTimestamp(need.requestedAt)} />
@@ -308,7 +395,7 @@ function NeedReviewPanel({
         {linked.length === 0 ? (
           <p className="text-sm text-ink-muted">No documents linked to this need.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+          <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="text-[11px] tracking-wide text-ink-muted uppercase">
                 <tr>
@@ -316,8 +403,8 @@ function NeedReviewPanel({
                   <th className="px-3 py-2">Type</th>
                   <th className="px-3 py-2">Uploaded</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">AI class</th>
-                  <th className="px-3 py-2">Confidence</th>
+                  <th className="px-3 py-2 text-ink-muted/70">AI class</th>
+                  <th className="px-3 py-2 text-ink-muted/70">Confidence</th>
                   {canIntake ? <th className="px-3 py-2">Access</th> : null}
                   {canMutate ? <th className="px-3 py-2">Detach</th> : null}
                 </tr>
@@ -335,10 +422,10 @@ function NeedReviewPanel({
                     <td className="px-3 py-2">
                       <StatusChip status={doc.status} />
                     </td>
-                    <td className="px-3 py-2 text-xs text-ink-muted">
+                    <td className="px-3 py-2 text-xs text-ink-muted/70">
                       {doc.aiClassification ?? "—"}
                     </td>
-                    <td className="px-3 py-2 text-xs text-ink-muted">
+                    <td className="px-3 py-2 text-xs tabular-nums text-ink-muted/70">
                       {formatPercent(doc.aiConfidence)}
                     </td>
                     {canIntake ? (
@@ -368,37 +455,26 @@ function NeedReviewPanel({
       {canMutate ? (
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
-            <NeedStatusControl needId={need.id} status={need.status} />
+            {need.status !== "approved" ? (
+              <button
+                type="button"
+                className={buttonClass("accent", "sm")}
+                onClick={() => void runNeedStatus(need.id, "approved")}
+              >
+                Approve
+              </button>
+            ) : null}
+            {need.status !== "rejected" ? (
+              <button
+                type="button"
+                className={buttonClass("secondary", "sm")}
+                onClick={() => void runNeedStatus(need.id, "rejected")}
+              >
+                Replace
+              </button>
+            ) : null}
             <button type="button" className={buttonClass("secondary", "sm")} onClick={onToggleAttach}>
               Attach Existing
-            </button>
-            <button
-              type="button"
-              className={buttonClass("secondary", "sm")}
-              onClick={() => void runNeedStatus(need.id, "approved")}
-            >
-              Approve Need
-            </button>
-            <button
-              type="button"
-              className={buttonClass("secondary", "sm")}
-              onClick={() => void runNeedStatus(need.id, "rejected")}
-            >
-              Request Replacement
-            </button>
-            <button
-              type="button"
-              className={buttonClass("secondary", "sm")}
-              onClick={() => void runNeedStatus(need.id, "requested")}
-            >
-              Mark Requested
-            </button>
-            <button
-              type="button"
-              className={buttonClass("secondary", "sm")}
-              onClick={() => void cloneNeed(dealId, need.id)}
-            >
-              Clone Need
             </button>
             <button
               type="button"
@@ -406,6 +482,23 @@ function NeedReviewPanel({
               onClick={() => void runNeedStatus(need.id, "waived")}
             >
               Waive
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <NeedStatusControl needId={need.id} status={need.status} />
+            <button
+              type="button"
+              className={buttonClass("ghost", "sm")}
+              onClick={() => void runNeedStatus(need.id, "requested")}
+            >
+              Mark Requested
+            </button>
+            <button
+              type="button"
+              className={buttonClass("ghost", "sm")}
+              onClick={() => void cloneNeed(dealId, need.id)}
+            >
+              Clone Need
             </button>
           </div>
           <p className="text-[11px] text-ink-muted">

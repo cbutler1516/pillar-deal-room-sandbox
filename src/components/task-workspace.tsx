@@ -6,7 +6,9 @@ import { CommunicationPanel } from "@/components/communication-panel";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { StatusChip } from "@/components/status-chip";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { buttonClass } from "@/components/ui/button";
+import { surfaceClass } from "@/components/ui/styles";
 import { taskPrimaryActionLabel } from "@/lib/ops/queue-today";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import { communicationAging } from "@/lib/communications/aging";
@@ -172,7 +174,7 @@ export function TaskWorkspace({
               <h4 className="mb-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
                 {group.label}
               </h4>
-              <ul className="divide-y divide-line border-y border-line">
+              <ul className="space-y-2">
                 {rows.map((task) => {
                   const open = openId === task.id;
                   const followUpDue = isFollowUpDue(task, now);
@@ -197,13 +199,23 @@ export function TaskWorkspace({
                       ? "Follow-up overdue"
                       : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
-                    <li key={task.id}>
-                      <div className="flex flex-wrap items-start justify-between gap-3 py-3.5">
+                    <li key={task.id} className={`${surfaceClass("card")} px-4 py-3`}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : task.id)}
-                        className="min-w-0 flex-1 text-left"
+                        className="flex min-w-0 flex-1 items-start gap-3 text-left"
                       >
+                        <StaffAvatar
+                          name={
+                            task.assignedTo
+                              ? staffNames[task.assignedTo] ?? null
+                              : null
+                          }
+                          unassigned={!task.assignedTo}
+                          size={28}
+                        />
+                        <span className="min-w-0">
                         <p className="text-sm font-semibold text-ink">
                           {task.title}
                         </p>
@@ -222,6 +234,7 @@ export function TaskWorkspace({
                         >
                           {dueState}
                         </p>
+                        </span>
                       </button>
                         <div className="flex flex-wrap items-center gap-2">
                           <StatusChip status={task.status} />
@@ -315,7 +328,7 @@ function TaskDetail({
     task.status === "waiting";
 
   return (
-    <div className="space-y-4 border-t border-line px-3 py-3">
+    <div className="mt-3 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3">
       {missing ? (
         <div className="rounded-xl border border-danger/20 bg-danger-soft px-3 py-2">
           <p className="text-sm font-medium text-danger">
@@ -557,7 +570,7 @@ function AddTaskForm({
       <div className="flex gap-2">
         <button
           type="submit"
-          className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white"
+          className={buttonClass("accent", "sm")}
         >
           Create from playbook
         </button>

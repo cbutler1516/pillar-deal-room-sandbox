@@ -21,8 +21,17 @@ export function OverflowMenu({
         setOpen(false);
       }
     }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
     document.addEventListener("mousedown", onPointer);
-    return () => document.removeEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   if (items.length === 0) {
@@ -46,7 +55,7 @@ export function OverflowMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-1 min-w-44 rounded-xl border border-line bg-surface p-1 shadow-[var(--shadow-card)]"
+          className="absolute right-0 z-20 mt-1 min-w-44 rounded-[14px] border border-line bg-surface p-1 shadow-[var(--shadow-elevated)]"
         >
           {items.map((item) => (
             <button

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  documentInspectorPrimaryAction,
+  documentIntelligenceExplanation,
   documentIntelligenceHeadline,
   documentLooksConsistent,
   materialDocumentFlags,
@@ -49,9 +51,7 @@ describe("document intelligence presentation", () => {
   it("hides list flags when nothing material is wrong", () => {
     expect(materialDocumentFlags(result())).toEqual([]);
     expect(documentLooksConsistent(result())).toBe(true);
-    expect(documentIntelligenceHeadline(result())).toBe(
-      "Looks consistent with the requested item",
-    );
+    expect(documentIntelligenceHeadline(result())).toBe("Likely match");
   });
 
   it("surfaces only material list flags", () => {
@@ -79,5 +79,33 @@ describe("document intelligence presentation", () => {
   it("keeps high confidence out of the default view", () => {
     expect(shouldShowConfidence(0.92)).toBe(false);
     expect(shouldShowConfidence(0.41)).toBe(true);
+  });
+
+  it("explains the intelligence state in plain language", () => {
+    expect(documentIntelligenceExplanation(result())).toBe(
+      "This file appears consistent with the requested Insurance Binder. Processor review is still required.",
+    );
+  });
+
+  it("picks one inspector primary action from current state", () => {
+    expect(
+      documentInspectorPrimaryAction({
+        documentType: "Government-issued ID",
+        linkedNeedCount: 1,
+      }),
+    ).toBe("review");
+    expect(
+      documentInspectorPrimaryAction({
+        documentType: null,
+        linkedNeedCount: 0,
+        suggestedType: "Insurance Binder",
+      }),
+    ).toBe("save");
+    expect(
+      documentInspectorPrimaryAction({
+        documentType: "Insurance Binder",
+        linkedNeedCount: 0,
+      }),
+    ).toBe("attach");
   });
 });

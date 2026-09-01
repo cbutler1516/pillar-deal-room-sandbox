@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FilterToggle } from "@/components/ui/controls";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ActivityRow, DealContactRow } from "@/lib/data/deals";
 import { parseStaffInstant } from "@/lib/format";
@@ -82,37 +83,49 @@ export function DealTimeline({
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
               {day.label}
             </h3>
-            <ol className="divide-y divide-line border-y border-line">
+            <ol className="relative space-y-1 border-l border-line pl-5">
               {day.entries.map((entry) => {
                 const open = openId === entry.id;
+                const system = entry.actor === "System";
                 return (
-                  <li key={entry.id}>
+                  <li key={entry.id} className="relative">
+                    <span
+                      aria-hidden
+                      className="absolute top-4 -left-[23px] h-2 w-2 rounded-full border border-line bg-surface"
+                    />
                     <button
                       type="button"
                       onClick={() =>
                         setOpenId(open || !entry.detail ? null : entry.id)
                       }
-                      className="flex w-full items-start justify-between gap-4 py-3.5 text-left"
+                      className="flex w-full items-start gap-3 rounded-[14px] px-2 py-2.5 text-left transition duration-200 hover:bg-surface-muted/70 motion-reduce:transition-none"
                     >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-ink">{entry.actor}</p>
+                      <StaffAvatar
+                        name={entry.actor.split("→")[0]?.trim() ?? entry.actor}
+                        size={28}
+                        label={entry.actor}
+                      />
+                      <time className="w-16 shrink-0 pt-1 text-xs tabular-nums text-ink-muted">
+                        {formatActivityClock(entry.at, now)}
+                      </time>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-semibold ${system ? "text-ink-muted" : "text-ink"}`}>
+                          {entry.actor}
+                        </p>
+                        <p className="mt-0.5 text-sm leading-6 text-ink-muted">
+                          {entry.action}
+                          {entry.target ? ` · ${entry.target}` : ""}
+                          {entry.simulated ? " · Simulated" : ""}
+                        </p>
                         {entry.context ? (
                           <p className="mt-0.5 text-xs leading-5 text-ink-muted">
                             {entry.context}
                           </p>
                         ) : null}
-                        <p className="mt-1 text-sm leading-6 text-ink">
-                          {entry.action}
-                          {entry.target ? ` · ${entry.target}` : ""}
-                          {entry.simulated ? " · Simulated" : ""}
-                        </p>
                       </div>
-                      <time className="shrink-0 text-xs text-ink-muted">
-                        {formatActivityClock(entry.at, now)}
-                      </time>
                     </button>
                     {open && entry.detail ? (
-                      <p className="pb-3.5 text-sm leading-6 text-ink-muted">
+                      <p className="ml-24 pb-3 text-sm leading-6 text-ink-muted">
                         {entry.detail}
                       </p>
                     ) : null}

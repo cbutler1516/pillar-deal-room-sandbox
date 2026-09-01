@@ -1,32 +1,105 @@
 import Link from "next/link";
-import { cardClass, labelClass } from "@/components/ui/styles";
+import type { ReactNode } from "react";
+import { labelClass, surfaceClass } from "@/components/ui/styles";
+
+export type MetricAccent = "attention" | "waiting" | "review" | "ready";
+
+const ACCENT: Record<MetricAccent, string> = {
+  attention: "text-warning bg-warning-soft",
+  waiting: "text-info bg-info-soft",
+  review: "text-pillar-teal bg-pillar-teal-soft",
+  ready: "text-success bg-success-soft",
+};
 
 export function MetricCard({
   label,
   value,
   hint,
   href,
+  accent = "review",
 }: {
   label: string;
   value: number | string;
   hint?: string;
   href?: string;
+  accent?: MetricAccent;
 }) {
   const body = (
     <>
-      <p className="text-2xl font-semibold tracking-tight text-ink tabular-nums">
-        {value}
-      </p>
-      <p className={`mt-1 ${labelClass}`}>{label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[2rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
+          {value}
+        </p>
+        <span
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${ACCENT[accent]}`}
+          aria-hidden
+        >
+          <MetricIcon accent={accent} className="h-4 w-4" />
+        </span>
+      </div>
+      <p className={`mt-3 ${labelClass}`}>{label}</p>
       {hint ? <p className="mt-1 text-[11px] text-ink-muted">{hint}</p> : null}
     </>
   );
+  const frame = `${surfaceClass("elevated", Boolean(href))} block px-5 py-4`;
   if (href) {
     return (
-      <Link href={href} className={`${cardClass} block px-4 py-3 hover:bg-surface-muted`}>
+      <Link href={href} className={frame}>
         {body}
       </Link>
     );
   }
-  return <section className={`${cardClass} px-4 py-3`}>{body}</section>;
+  return <section className={frame}>{body}</section>;
+}
+
+function MetricIcon({
+  accent,
+  className,
+}: {
+  accent: MetricAccent;
+  className?: string;
+}) {
+  const icons: Record<MetricAccent, ReactNode> = {
+    attention: (
+      <path
+        d="M10 3.8 2.8 16h14.4L10 3.8ZM10 8.2v3.6M10 14.2h.01"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+    waiting: (
+      <path
+        d="M10 4.5v5.2l3 1.8M10 17.2a7.2 7.2 0 1 0 0-14.4 7.2 7.2 0 0 0 0 14.4Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+    review: (
+      <path
+        d="M6 4.4h5.2L15 8.2V15.6H6zM11.2 4.4V8.2H15M7.8 10.6h4.4M7.8 13h3.2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+    ready: (
+      <path
+        d="M4.4 10.3 8.1 14l7.5-8.2"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  };
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden>
+      {icons[accent]}
+    </svg>
+  );
 }

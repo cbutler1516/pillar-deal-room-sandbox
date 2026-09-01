@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NextActionsQueue } from "@/components/next-actions-queue";
 import { StatusChip } from "@/components/status-chip";
+import { StaffPresence } from "@/components/ui/staff-avatar";
 import { TaskBoard } from "@/components/task-board";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchField, SegmentedControl, SelectField } from "@/components/ui/controls";
@@ -127,6 +128,14 @@ export default async function ProcessorQueuePage({
   );
   const today = groupOperationalWorkToday(workItems);
   const hasWork = hasActionableOperationalWork(workItems);
+  const locationByDeal = Object.fromEntries(
+    snapshot.deals.map((deal) => [
+      deal.id,
+      formatProperty(deal.propertyCity, deal.propertyState),
+    ]),
+  );
+  const toQueueRow = (row: (typeof workItems)[number]) =>
+    workQueueRow(row, { location: locationByDeal[row.dealId] });
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);
@@ -286,11 +295,14 @@ export default async function ProcessorQueuePage({
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                           <StatusChip status={deal.status} />
-                          <span className="text-ink-muted">
-                            {deal.assignedProcessorId
-                              ? staffNames[deal.assignedProcessorId] ?? "Assigned"
-                              : "Unassigned"}
-                          </span>
+                          <StaffPresence
+                            name={
+                              deal.assignedProcessorId
+                                ? staffNames[deal.assignedProcessorId]
+                                : null
+                            }
+                            unassigned={!deal.assignedProcessorId}
+                          />
                           <span className="text-ink-muted">
                             {formatAgeDays(deal.ageDays)}
                           </span>
@@ -317,7 +329,8 @@ export default async function ProcessorQueuePage({
             return (
               <NextActionsQueue
                 key={section.key}
-                rows={rows.map(workQueueRow)}
+                rows={rows.map(toQueueRow)}
+                staffNames={staffNames}
                 title={section.label}
                 empty={
                   section.key === "waiting"
