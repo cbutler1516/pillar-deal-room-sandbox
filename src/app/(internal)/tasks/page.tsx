@@ -14,6 +14,7 @@ import {
 } from "@/lib/ops/ops-board";
 import { matchesQueueFilter, parseQueueFilter } from "@/lib/communications/filters";
 import { decorateBoardTasks, decorateRankedActions } from "@/lib/playbooks/decorate";
+import { queuePrimaryAction, queueWhyNow } from "@/lib/ops/queue-today";
 
 export default async function TasksPage({
   searchParams,
@@ -183,7 +184,19 @@ export default async function TasksPage({
         <TaskBoard rows={filtered} />
       ) : (
         <NextActionsQueue
-          rows={listRows}
+          rows={listRows.map((row) => {
+            const action = queuePrimaryAction(row);
+            return {
+              id: row.id,
+              dealId: row.dealId,
+              borrowerName: row.borrowerName,
+              title: row.title,
+              reason: queueWhyNow(row),
+              actionLabel: action.label,
+              href: action.href,
+              hot: row.escalationDue || row.followUpDue,
+            };
+          })}
           title="Task list"
           description="Ranked active work. Completed items appear on the board."
         />

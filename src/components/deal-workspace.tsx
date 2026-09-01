@@ -15,6 +15,11 @@ import {
   deriveDealNextAction,
   type NextActionMismatch,
 } from "@/lib/ops/next-action";
+import {
+  collectOperationalWork,
+  countDocumentReviewWork,
+  waitingCopyForDeal,
+} from "@/lib/ops/operational-work";
 import { documentCompletion } from "@/lib/ops/metrics";
 import { evaluateSubmissionReadiness } from "@/lib/ops/workflow";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
@@ -154,7 +159,6 @@ export function DealOverview({
       status: need.status,
     })),
   );
-  const reviewCount = documents.filter((doc) => doc.status === "needs_review").length;
   const requiredNow = nextActions.filter((task) => task.timing === "required_now").length;
   const followUps = nextActions.filter((task) => task.followUpDue).length;
   const escalations = nextActions.filter((task) => task.escalationDue).length;
@@ -188,12 +192,60 @@ export function DealOverview({
   const nextAction = deriveDealNextAction({
     dealId: deal.id,
     needs,
-    documents,
+    documents: documents.map((doc) => ({
+      id: doc.id,
+      documentType: doc.documentType,
+      status: doc.status,
+      fileName: doc.fileName,
+      mimeType: doc.mimeType,
+      linkedNeedIds: doc.linkedNeedIds,
+    })),
     nextActions,
     mismatches,
+    deal: {
+      id: deal.id,
+      dealReference: deal.dealReference,
+      borrowerName: deal.borrowerName,
+      entityName: deal.entityName,
+      loanType: deal.loanType,
+      status: deal.status,
+      assignedProcessorId: deal.assignedProcessorId,
+    },
   });
   const resolvedIntake = intake ?? deal.applicationIntake;
-  const waitingOn = uniqueWaitingOn(nextActions);
+  const dealWork = collectOperationalWork({
+    deals: [
+      {
+        id: deal.id,
+        dealReference: deal.dealReference,
+        borrowerName: deal.borrowerName,
+        entityName: deal.entityName,
+        loanType: deal.loanType,
+        status: deal.status,
+        assignedProcessorId: deal.assignedProcessorId,
+      },
+    ],
+    needs: needs.map((need) => ({
+      id: need.id,
+      dealId: deal.id,
+      documentType: need.documentType,
+      required: need.required,
+      status: need.status,
+    })),
+    documents: documents.map((doc) => ({
+      id: doc.id,
+      dealId: deal.id,
+      documentType: doc.documentType,
+      status: doc.status,
+      fileName: doc.fileName,
+      mimeType: doc.mimeType,
+      linkedNeedIds: doc.linkedNeedIds,
+    })),
+    tasks: nextActions,
+    mismatches: mismatches.map((row) => ({ ...row, dealId: deal.id })),
+  });
+  const waitingOn = waitingCopyForDeal(dealWork);
+  const reviewCount = countDocumentReviewWork(dealWork);
 
   return (
     <div className="space-y-6">
@@ -259,13 +311,11 @@ export function DealOverview({
 
         <SurfaceCard>
           <CardHeader title="Waiting on" />
-          {waitingOn.length === 0 ? (
-            <p className="text-sm leading-6 text-ink-muted">
-              Nobody is waiting on a reply.
-            </p>
+          {waitingOn.labels.length === 0 ? (
+            <p className="text-sm leading-6 text-ink-muted">{waitingOn.empty}</p>
           ) : (
             <ul className="space-y-2">
-              {waitingOn.map((label) => (
+              {waitingOn.labels.map((label) => (
                 <li key={label} className="text-sm text-ink">
                   {label}
                 </li>
@@ -345,27 +395,6 @@ export function DealOverview({
       ) : null}
     </div>
   );
-}
-
-function uniqueWaitingOn(nextActions: DecoratedAction[]): string[] {
-  const labels = new Set<string>();
-  for (const task of nextActions) {
-    if (task.status !== "waiting") {
-      continue;
-    }
-    if (task.sourceType === "borrower") {
-      labels.add(task.contactName || "Borrower");
-    } else if (task.sourceType === "title") {
-      labels.add(task.contactName || "Title company");
-    } else if (task.sourceType === "insurance") {
-      labels.add(task.contactName || "Insurance");
-    } else if (task.contactName) {
-      labels.add(task.contactName);
-    } else if (task.sourceType && task.sourceType !== "internal") {
-      labels.add(task.sourceType.replaceAll("_", " "));
-    }
-  }
-  return [...labels];
 }
 
 export function DealTabNav({

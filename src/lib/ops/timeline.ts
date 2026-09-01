@@ -1,7 +1,7 @@
 import { historyItemsFromAttempts } from "@/lib/communications/history";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ActivityRow, DealContactRow } from "@/lib/data/deals";
-import { formatInStaffZone, staffCalendarDate } from "@/lib/format";
+import { formatInStaffZone, parseStaffInstant, staffCalendarDate } from "@/lib/format";
 import { formatActivityDisplay } from "@/lib/ops/activity-display";
 
 export const TIMELINE_FILTERS = [
@@ -61,7 +61,7 @@ export function buildDealTimeline(input: {
   now?: Date;
 }): TimelineEntry[] {
   const names = input.staffNames ?? {};
-  const now = input.now ?? new Date();
+  const now = parseStaffInstant(input.now) ?? new Date();
   const contacts = new Map(
     (input.contacts ?? []).map((contact) => [contact.id, contact]),
   );
@@ -132,22 +132,31 @@ export function groupTimelineByDay(
   now = new Date(),
 ): TimelineDayGroup[] {
   const groups = new Map<string, TimelineEntry[]>();
+  const current = parseStaffInstant(now) ?? new Date();
   for (const entry of entries) {
-    const key = staffCalendarDate(new Date(entry.at));
+    const at = parseStaffInstant(entry.at);
+    if (!at) {
+      continue;
+    }
+    const key = staffCalendarDate(at);
     const list = groups.get(key) ?? [];
     list.push(entry);
     groups.set(key, list);
   }
   return [...groups.entries()].map(([key, dayEntries]) => ({
     key,
-    label: formatTimelineDay(dayEntries[0].at, now),
+    label: formatTimelineDay(dayEntries[0].at, current),
     entries: dayEntries,
   }));
 }
 
 export function formatTimelineDay(iso: string, now = new Date()): string {
-  const date = new Date(iso);
-  const today = staffCalendarDate(now);
+  const date = parseStaffInstant(iso);
+  const current = parseStaffInstant(now);
+  if (!date || !current) {
+    return "—";
+  }
+  const today = staffCalendarDate(current);
   const entryDay = staffCalendarDate(date);
   if (entryDay === today) {
     return "Today";

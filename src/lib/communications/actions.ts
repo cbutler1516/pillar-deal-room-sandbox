@@ -21,11 +21,14 @@ import {
   isDraftType,
 } from "@/lib/communications/types";
 import { canMutateProcessorTask } from "@/lib/playbooks/authorization";
-import { nextFollowUpAtFrom } from "@/lib/playbooks/logic";
 import { getPlaybook } from "@/lib/playbooks/registry";
 import { templateContextFromDeal } from "@/lib/playbooks/templates";
 import { assertSandboxGuard } from "@/lib/sandbox";
-import { contactActionChannel, markTaskContactedPatch } from "@/lib/contacts/logic";
+import {
+  contactActionChannel,
+  markTaskContactedPatch,
+  markTaskWaitingPatch,
+} from "@/lib/contacts/logic";
 import { logAuthorizedActivity } from "@/lib/workflow/activity";
 
 export type CommunicationActionResult = {
@@ -47,14 +50,26 @@ function refreshDeal(dealId: string) {
 async function loadMutableTask(taskId: string) {
   assertSandboxGuard();
   const { supabase, user, profile } = await requireInternalUser();
-  const { data: task } = await supabase
+  const expanded = await supabase
     .from("tasks")
     .select(
       "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id, contact_name, last_contacted_at, last_response_at, waiting_since, next_follow_up_at, escalation_after_hours, escalation_level, source_type",
     )
     .eq("id", taskId)
     .maybeSingle();
-  if (!task) {
+  const staff = expanded.error
+    ? await supabase
+        .from("tasks")
+        .select(
+          "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id, contact_name, last_contacted_at, waiting_since, next_follow_up_at, escalation_after_hours, escalation_level, source_type",
+        )
+        .eq("id", taskId)
+        .maybeSingle()
+    : expanded;
+  const task = staff.data
+    ? { last_response_at: null, ...staff.data }
+    : null;
+  if (staff.error || !task) {
     return { error: "Task not found." as const };
   }
   const { data: deal } = await supabase
@@ -193,13 +208,10 @@ export async function markTaskContactedWithCommunicationAction(
   const patch = markTaskContactedPatch({
     nowIso: now,
     followUpIntervalHours: task.follow_up_interval_hours,
+    sourceType: task.source_type,
     markWaiting,
   });
   const channelStub = contactActionChannel();
-  const { error } = await supabase.from("tasks").update(patch).eq("id", task.id);
-  if (error) {
-    return { error: "Unable to mark this task contacted." };
-  }
   const recorded = await insertCommunicationAttempt(
     supabase,
     buildContactedAttempt({
@@ -216,6 +228,15 @@ export async function markTaskContactedWithCommunicationAction(
   );
   if (recorded.error) {
     return { error: recorded.error };
+  }
+  const { data: updated, error } = await supabase
+    .from("tasks")
+    .update(patch)
+    .eq("id", task.id)
+    .select("id, last_contacted_at, next_follow_up_at")
+    .maybeSingle();
+  if (error || !updated?.last_contacted_at || !updated.next_follow_up_at) {
+    return { error: "Unable to mark this task contacted." };
   }
   await logAuthorizedActivity({
     dealId: task.deal_id,
@@ -414,12 +435,13 @@ export async function markTaskWaitingWithCadenceAction(
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("tasks")
-    .update({
-      status: "waiting",
-      waiting_since: now,
-      next_follow_up_at: nextFollowUpAtFrom(now, task.follow_up_interval_hours),
-      completed_at: null,
-    })
+    .update(
+      markTaskWaitingPatch({
+        nowIso: now,
+        followUpIntervalHours: task.follow_up_interval_hours,
+        sourceType: task.source_type,
+      }),
+    )
     .eq("id", task.id);
   if (error) {
     return { error: "Unable to mark this task waiting." };

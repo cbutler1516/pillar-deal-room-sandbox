@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireInternalUser } from "@/lib/auth/session";
 import { insertCommunicationAttempt } from "@/lib/communications/data";
 import { buildContactedAttempt } from "@/lib/communications/records";
-import { contactActionChannel, markTaskContactedPatch, pickContactForPlaybook } from "@/lib/contacts/logic";
+import { contactActionChannel, markTaskContactedPatch, markTaskWaitingPatch, pickContactForPlaybook } from "@/lib/contacts/logic";
 import { CONTACT_MISSING } from "@/lib/contacts/types";
 import {
   canCreateProcessorTask,
@@ -16,7 +16,6 @@ import {
   dealAlreadyHasPlaybookTask,
   instantiatePlaybook,
   isEscalationLevelValue,
-  nextFollowUpAtFrom,
   resolveClientNeedForPlaybook,
 } from "@/lib/playbooks/logic";
 import {
@@ -78,7 +77,7 @@ async function loadMutableTask(taskId: string) {
   const { data: task } = await supabase
     .from("tasks")
     .select(
-      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id",
+      "id, deal_id, status, assigned_to, follow_up_interval_hours, playbook_key, title, client_need_id, deal_contact_id, source_type, last_contacted_at",
     )
     .eq("id", taskId)
     .maybeSingle();
@@ -429,14 +428,11 @@ export async function markTaskContactedAction(
   const patch = markTaskContactedPatch({
     nowIso: now,
     followUpIntervalHours: task.follow_up_interval_hours,
+    sourceType: task.source_type,
     markWaiting,
   });
   const channel = contactActionChannel();
-  const { error } = await supabase.from("tasks").update(patch).eq("id", task.id);
-  if (error) {
-    return { error: "Unable to mark this task contacted." };
-  }
-  await insertCommunicationAttempt(
+  const recorded = await insertCommunicationAttempt(
     supabase,
     buildContactedAttempt({
       dealId: task.deal_id,
@@ -447,6 +443,18 @@ export async function markTaskContactedAction(
       attemptedAt: now,
     }),
   );
+  if (recorded.error) {
+    return { error: recorded.error };
+  }
+  const { data: updated, error } = await supabase
+    .from("tasks")
+    .update(patch)
+    .eq("id", task.id)
+    .select("id, last_contacted_at, next_follow_up_at")
+    .maybeSingle();
+  if (error || !updated?.last_contacted_at || !updated.next_follow_up_at) {
+    return { error: "Unable to mark this task contacted." };
+  }
   await logAuthorizedActivity({
     dealId: task.deal_id,
     actorId: user.id,
@@ -471,13 +479,13 @@ export async function markTaskWaitingAction(
   const now = new Date().toISOString();
   const { error } = await supabase
     .from("tasks")
-    .update({
-      status: "waiting",
-      waiting_since: now,
-      last_contacted_at: now,
-      next_follow_up_at: nextFollowUpAtFrom(now, task.follow_up_interval_hours),
-      completed_at: null,
-    })
+    .update(
+      markTaskWaitingPatch({
+        nowIso: now,
+        followUpIntervalHours: task.follow_up_interval_hours,
+        sourceType: task.source_type,
+      }),
+    )
     .eq("id", task.id);
   if (error) {
     return { error: "Unable to mark this task waiting." };

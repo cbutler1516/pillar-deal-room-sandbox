@@ -10,7 +10,7 @@ import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
 import { listActiveStaff } from "@/lib/communications/data";
 import { listQueueContacts, listWorkspaceTasks, staffDisplayName } from "@/lib/data/deals";
-import { queueSectionIds } from "@/lib/data/dashboard";
+import { operationalWorkFromSnapshot, queueSectionIds } from "@/lib/data/dashboard";
 import { loadDealSnapshot } from "@/lib/data/snapshot";
 import {
   ageInDays,
@@ -23,9 +23,15 @@ import {
   matchesTaskQuery,
   taskSearchHaystack,
 } from "@/lib/ops/ops-board";
-import { QUEUE_TODAY_SECTIONS, groupQueueToday } from "@/lib/ops/queue-today";
+import {
+  QUEUE_TODAY_SECTIONS,
+  groupOperationalWorkToday,
+  hasActionableOperationalWork,
+  workItemMatchesFilter,
+} from "@/lib/ops/operational-work";
+import { workQueueRow } from "@/lib/ops/queue-today";
 import { formatAgeDays, formatCurrency, formatProperty } from "@/lib/format";
-import { decorateBoardTasks, decorateRankedActions } from "@/lib/playbooks/decorate";
+import { decorateBoardTasks } from "@/lib/playbooks/decorate";
 
 const SECTIONS = [
   { key: "unassigned", label: "Unassigned" },
@@ -33,6 +39,19 @@ const SECTIONS = [
   { key: "documentsToReview", label: "Documents to review" },
   { key: "exceptions", label: "Exceptions" },
   { key: "readyForSubmission", label: "Ready to submit" },
+] as const;
+
+const WORK_FILTERS = [
+  { value: "all", label: "All work" },
+  { value: "attention", label: "Needs attention" },
+  { value: "new", label: "New" },
+  { value: "review", label: "Needs review" },
+  { value: "missing_contact", label: "Missing contact" },
+  { value: "replacement", label: "Replacement" },
+  { value: "follow_up", label: "Follow-up" },
+  { value: "waiting", label: "Waiting" },
+  { value: "escalated", label: "Escalated" },
+  { value: "ready", label: "Ready" },
 ] as const;
 
 export default async function ProcessorQueuePage({
@@ -46,11 +65,13 @@ export default async function ProcessorQueuePage({
     typeof params.assignment === "string" ? params.assignment : "all";
   const view = typeof params.view === "string" ? params.view : "today";
   const query = typeof params.q === "string" ? params.q : "";
+  const work = typeof params.work === "string" ? params.work : "all";
   const queryState = {
     q: query || undefined,
     assignment: assignment === "all" ? undefined : assignment,
     urgency: urgency === "all" ? undefined : urgency,
     view: view === "today" ? undefined : view,
+    work: work === "all" ? undefined : work,
   };
 
   const { supabase } = await requireInternalUser();
@@ -63,23 +84,24 @@ export default async function ProcessorQueuePage({
   const staffNames = Object.fromEntries(
     staff.map((person) => [person.id, staffDisplayName(person)]),
   );
-  const nextActions = decorateRankedActions(
-    queueTasks,
-    snapshot.deals,
-    queueContacts,
-    snapshot.needs,
-  ).filter((row) =>
-    matchesTaskQuery(
+  const now = new Date();
+  const workItems = operationalWorkFromSnapshot(snapshot, now).filter((row) => {
+    if (assignment === "unassigned" && row.assignedProcessorId) {
+      return false;
+    }
+    if (!workItemMatchesFilter(row, work)) {
+      return false;
+    }
+    return matchesTaskQuery(
       taskSearchHaystack({
         borrowerName: row.borrowerName,
         entityName: row.entityName,
         dealReference: row.dealReference,
-        propertyAddress: row.propertyAddress,
         title: row.title,
       }),
       query,
-    ),
-  );
+    );
+  });
   const boardRows = decorateBoardTasks(
     queueTasks,
     snapshot.deals,
@@ -103,7 +125,8 @@ export default async function ProcessorQueuePage({
     snapshot.documents,
     snapshot.tasks,
   );
-  const today = groupQueueToday(nextActions);
+  const today = groupOperationalWorkToday(workItems);
+  const hasWork = hasActionableOperationalWork(workItems);
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);
@@ -168,7 +191,7 @@ export default async function ProcessorQueuePage({
         </Link>
       </div>
 
-      <details className="group">
+      <details className="group" open={work !== "all"}>
         <summary className="cursor-pointer text-sm font-medium text-ink-muted">
           Filter
         </summary>
@@ -179,6 +202,13 @@ export default async function ProcessorQueuePage({
             placeholder="Search borrower, task, deal, property"
             className="min-w-56 flex-1"
           />
+          <SelectField name="work" defaultValue={work}>
+            {WORK_FILTERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </SelectField>
           <SelectField name="assignment" defaultValue={assignment}>
             <option value="all">All assignments</option>
             <option value="unassigned">Unassigned only</option>
@@ -273,23 +303,32 @@ export default async function ProcessorQueuePage({
             );
           })}
         </div>
+      ) : !hasWork ? (
+        <p className="text-sm leading-6 text-ink-muted">
+          Nothing needs your attention.
+        </p>
       ) : (
         <div className="space-y-8">
           {QUEUE_TODAY_SECTIONS.map((section) => {
             const rows = today[section.key];
+            if (rows.length === 0 && section.key === "new") {
+              return null;
+            }
             return (
               <NextActionsQueue
                 key={section.key}
-                rows={rows}
+                rows={rows.map(workQueueRow)}
                 title={section.label}
                 empty={
-                  section.key === "urgent"
-                    ? "Nothing needs your attention."
-                    : section.key === "waiting"
-                      ? "Nobody is waiting on a reply."
-                      : section.key === "ready_to_review"
-                        ? "Nothing is ready to review."
-                        : "Nothing is due today."
+                  section.key === "waiting"
+                    ? "Nobody is waiting on a reply."
+                    : section.key === "needs_review"
+                      ? "Nothing is ready to review."
+                      : section.key === "due_today"
+                        ? "Nothing else is due today."
+                        : section.key === "new"
+                          ? "No new files."
+                          : "No urgent items."
                 }
               />
             );

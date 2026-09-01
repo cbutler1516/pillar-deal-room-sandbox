@@ -1,68 +1,20 @@
 import { formatWaitingAge } from "@/lib/format";
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
+import {
+  QUEUE_TODAY_SECTIONS,
+  type OperationalWorkItem,
+  type QueueTodaySection,
+} from "@/lib/ops/operational-work";
+import { staffCalendarDate } from "@/lib/format";
 
-export const QUEUE_TODAY_SECTIONS = [
-  { key: "urgent", label: "Urgent" },
-  { key: "due_today", label: "Due today" },
-  { key: "waiting", label: "Waiting" },
-  { key: "ready_to_review", label: "Ready to review" },
-] as const;
-
-export type QueueTodaySection = (typeof QUEUE_TODAY_SECTIONS)[number]["key"];
+export { QUEUE_TODAY_SECTIONS };
+export type { QueueTodaySection };
 
 export function isDueToday(value: string | null | undefined, now = new Date()): boolean {
   if (!value) {
     return false;
   }
-  const date = new Date(value);
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  );
-}
-
-export function queueTodaySection(
-  row: DecoratedAction,
-  now = new Date(),
-): QueueTodaySection {
-  if (
-    row.escalationDue ||
-    row.overdue ||
-    row.priority === "urgent" ||
-    row.band === "overdue_or_escalation"
-  ) {
-    return "urgent";
-  }
-  if (
-    row.followUpDue ||
-    isDueToday(row.nextFollowUpAt, now) ||
-    row.band === "required_now" ||
-    row.band === "required_now_blocked" ||
-    row.band === "follow_up_due"
-  ) {
-    return "due_today";
-  }
-  if (row.status === "waiting") {
-    return "waiting";
-  }
-  return "ready_to_review";
-}
-
-export function groupQueueToday(
-  rows: DecoratedAction[],
-  now = new Date(),
-): Record<QueueTodaySection, DecoratedAction[]> {
-  const groups: Record<QueueTodaySection, DecoratedAction[]> = {
-    urgent: [],
-    due_today: [],
-    waiting: [],
-    ready_to_review: [],
-  };
-  for (const row of rows) {
-    groups[queueTodaySection(row, now)].push(row);
-  }
-  return groups;
+  return staffCalendarDate(new Date(value)) === staffCalendarDate(now);
 }
 
 export function queueWhyNow(row: DecoratedAction, now = new Date()): string {
@@ -86,8 +38,11 @@ export function queueWhyNow(row: DecoratedAction, now = new Date()): string {
   if (row.band === "document_review") {
     return "Ready to review";
   }
-  if (row.status === "waiting") {
+  if (row.status === "waiting" && row.lastContactedAt) {
     return `Waiting ${formatWaitingAge(row.waitingAgeHours)}`;
+  }
+  if (row.status === "waiting" && !row.lastContactedAt) {
+    return "No request has been sent yet";
   }
   if (isDueToday(row.nextFollowUpAt, now)) {
     return "Due today";
@@ -101,7 +56,7 @@ export function queuePrimaryAction(row: DecoratedAction): {
 } {
   const href = `/deals/${row.dealId}?tab=tasks`;
   if (row.contactMissing) {
-    return { label: "Contact", href: `/deals/${row.dealId}?tab=people` };
+    return { label: "Add contact", href: `/deals/${row.dealId}?tab=people` };
   }
   if (row.followUpDue || row.escalationDue) {
     return { label: "Follow up", href };
@@ -109,7 +64,7 @@ export function queuePrimaryAction(row: DecoratedAction): {
   if (row.lastResponseAt || row.band === "document_review") {
     return { label: "Review", href };
   }
-  if (row.status === "waiting") {
+  if (row.status === "waiting" && row.lastContactedAt) {
     return { label: "Review", href };
   }
   return { label: "Contact", href };
@@ -121,6 +76,7 @@ export function taskPrimaryActionLabel(input: {
   escalationDue: boolean;
   lastResponseAt?: string | null;
   status: string;
+  lastContactedAt?: string | null;
 }): string {
   if (input.contactMissing) {
     return "Contact";
@@ -134,8 +90,30 @@ export function taskPrimaryActionLabel(input: {
   if (input.status === "completed" || input.status === "dismissed") {
     return "Review";
   }
-  if (input.status === "waiting") {
+  if (input.status === "waiting" && input.lastContactedAt) {
     return "Follow up";
   }
   return "Contact";
+}
+
+export function workQueueRow(row: OperationalWorkItem): {
+  id: string;
+  dealId: string;
+  borrowerName: string;
+  title: string;
+  reason: string;
+  actionLabel: string;
+  href: string;
+  hot: boolean;
+} {
+  return {
+    id: row.id,
+    dealId: row.dealId,
+    borrowerName: row.borrowerName,
+    title: row.title,
+    reason: row.reason,
+    actionLabel: row.recommendedAction,
+    href: row.href,
+    hot: row.priorityBand === "critical" || row.dueState === "overdue",
+  };
 }

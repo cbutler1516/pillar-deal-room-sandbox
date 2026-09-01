@@ -4,6 +4,7 @@ import {
   computeOpsMetrics,
   firstNameFromProfile,
   greetingForHour,
+  greetingForNow,
   matchesTaskQuery,
   taskSearchHaystack,
   waitingBucket,
@@ -15,6 +16,9 @@ describe("ops board presentation", () => {
     expect(greetingForHour(8)).toBe("Good morning");
     expect(greetingForHour(14)).toBe("Good afternoon");
     expect(greetingForHour(19)).toBe("Good evening");
+    expect(greetingForNow(new Date("2026-08-31T19:11:00.000Z"))).toBe(
+      "Good afternoon",
+    );
     expect(
       firstNameFromProfile({ fullName: "Chris Butler", email: "c@sandbox.example" }),
     ).toBe("Chris");

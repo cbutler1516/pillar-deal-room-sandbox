@@ -7,6 +7,7 @@ import {
   contactsAfterMarkingPrimary,
   isSameDealContact,
   markTaskContactedPatch,
+  markTaskWaitingPatch,
   pickContactForPlaybook,
   taskIsContactBlocked,
 } from "@/lib/contacts/logic";
@@ -101,6 +102,30 @@ describe("mark contacted", () => {
     expect(patch.next_follow_up_at).toBe("2026-08-29T18:00:00.000Z");
     expect(patch.status).toBe("waiting");
     expect(contactActionChannel()).toEqual({ outboundSent: false, channel: null });
+  });
+
+  it("uses the source-type cadence when the task has no interval", () => {
+    const patch = markTaskContactedPatch({
+      nowIso: "2026-08-28T18:00:00.000Z",
+      followUpIntervalHours: null,
+      sourceType: "insurance",
+      markWaiting: true,
+    });
+    expect(patch.next_follow_up_at).toBe("2026-08-29T18:00:00.000Z");
+    expect(patch.last_contacted_at).toBe("2026-08-28T18:00:00.000Z");
+  });
+
+  it("sets waiting follow-up without fabricating last_contacted_at", () => {
+    const patch = markTaskWaitingPatch({
+      nowIso: "2026-08-28T18:00:00.000Z",
+      followUpIntervalHours: null,
+      sourceType: "contractor",
+    });
+    expect(patch.status).toBe("waiting");
+    expect(patch.waiting_since).toBe("2026-08-28T18:00:00.000Z");
+    expect(patch.next_follow_up_at).toBe("2026-08-30T18:00:00.000Z");
+    expect(patch.completed_at).toBeNull();
+    expect(patch).not.toHaveProperty("last_contacted_at");
   });
 });
 

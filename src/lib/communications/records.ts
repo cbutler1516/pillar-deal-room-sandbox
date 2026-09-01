@@ -8,6 +8,13 @@ import type {
 
 const SIMULATED_LABEL = "SANDBOX — Simulated response";
 
+export function communicationInsertErrorMessage(message: string): string {
+  if (/schema cache|does not exist/i.test(message)) {
+    return "Unable to record this communication. The communications ledger is unavailable.";
+  }
+  return "Unable to record this communication.";
+}
+
 export function buildContactedAttempt(input: {
   dealId: string;
   taskId: string | null;

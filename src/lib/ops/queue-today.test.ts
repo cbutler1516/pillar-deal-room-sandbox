@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  groupQueueToday,
   queuePrimaryAction,
-  queueTodaySection,
   queueWhyNow,
   taskPrimaryActionLabel,
 } from "@/lib/ops/queue-today";
@@ -57,7 +55,7 @@ function action(overrides: Partial<DecoratedAction> = {}): DecoratedAction {
   };
 }
 
-describe("queue today sections", () => {
+describe("queue row language", () => {
   const now = new Date("2026-08-31T18:00:00.000Z");
 
   it("keeps ranking hidden and answers who / what / why / do", () => {
@@ -65,25 +63,16 @@ describe("queue today sections", () => {
       followUpDue: true,
       waitingAgeHours: 26,
       band: "follow_up_due",
+      lastContactedAt: "2026-08-30T12:00:00.000Z",
     });
-    expect(queueTodaySection(overdue, now)).toBe("due_today");
     expect(queueWhyNow(overdue, now)).toBe("Follow-up overdue by 1 day");
     expect(queuePrimaryAction(overdue).label).toBe("Follow up");
   });
 
-  it("puts escalations in Urgent and responses in Ready to review", () => {
-    const urgent = action({
-      escalationDue: true,
-      band: "overdue_or_escalation",
-    });
-    const review = action({
-      lastResponseAt: "2026-08-31T16:00:00.000Z",
-      band: "document_review",
-    });
-    const grouped = groupQueueToday([urgent, review], now);
-    expect(grouped.urgent).toHaveLength(1);
-    expect(grouped.ready_to_review).toHaveLength(1);
-    expect(queuePrimaryAction(review).label).toBe("Review");
+  it("does not call an unsent request waiting", () => {
+    expect(queueWhyNow(action({ status: "waiting", lastContactedAt: null }), now)).toBe(
+      "No request has been sent yet",
+    );
   });
 
   it("picks one primary task action from state", () => {
@@ -101,6 +90,7 @@ describe("queue today sections", () => {
         followUpDue: true,
         escalationDue: false,
         status: "waiting",
+        lastContactedAt: "2026-08-30T12:00:00.000Z",
       }),
     ).toBe("Follow up");
   });

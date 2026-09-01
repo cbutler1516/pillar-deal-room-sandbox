@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deriveDealNextAction } from "@/lib/ops/next-action";
+
+const NOW = new Date("2026-08-31T18:00:00.000Z");
 import type { DecoratedAction } from "@/lib/playbooks/decorate";
 
 function action(partial: Partial<DecoratedAction> = {}): DecoratedAction {
@@ -64,6 +66,7 @@ describe("deterministic next action", () => {
       ],
       documents: [],
       nextActions: [action()],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Request replacement Government-issued ID from borrower/);
     expect(next?.target).toBe("needs");
@@ -89,13 +92,17 @@ describe("deterministic next action", () => {
           title: "Request insurance binder",
           sourceType: "insurance",
           contactName: "Jordan Lee",
+          lastContactedAt: "2026-08-30T18:00:00.000Z",
+          nextFollowUpAt: "2026-08-31T12:00:00.000Z",
+          escalationAfterHours: 72,
           followUpDue: true,
         }),
       ],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Follow up with Jordan Lee for insurance binder/i);
     expect(next?.contactName).toBe("Jordan Lee");
-    expect(next?.dueAt).toBe("2026-08-29T18:00:00.000Z");
+    expect(next?.dueAt).toBe("2026-08-31T12:00:00.000Z");
   });
 
   it("asks to send the initial request when nobody has been contacted", () => {
@@ -111,6 +118,7 @@ describe("deterministic next action", () => {
       ],
       documents: [],
       nextActions: [action({ lastContactedAt: null, followUpDue: false })],
+      now: NOW,
     });
     expect(next?.action).toMatch(
       /Send initial request to Alex Rivera for government-issued id/i,
@@ -136,10 +144,14 @@ describe("deterministic next action", () => {
           title: "Request title commitment",
           sourceType: "title",
           contactName: "Taylor Reed",
+          lastContactedAt: "2026-08-28T12:00:00.000Z",
+          waitingSince: "2026-08-28T12:00:00.000Z",
+          escalationLevel: "loan_officer",
           followUpDue: true,
           escalationDue: true,
         }),
       ],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Escalate title commitment with Taylor Reed/i);
   });
@@ -161,9 +173,11 @@ describe("deterministic next action", () => {
           status: "in_progress",
           lastContactedAt: "2026-08-29T12:00:00.000Z",
           lastResponseAt: "2026-08-29T16:00:00.000Z",
+          escalationAfterHours: 96,
           followUpDue: false,
         }),
       ],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Review response from Alex Rivera/i);
     expect(next?.target).toBe("tasks");
@@ -192,6 +206,7 @@ describe("deterministic next action", () => {
           needDocumentType: "Government-issued ID",
         },
       ],
+      now: NOW,
     });
     expect(next?.action).toMatch(/mismatched insurance-binder\.pdf/i);
     expect(next?.target).toBe("documents");
@@ -209,7 +224,15 @@ describe("deterministic next action", () => {
         },
       ],
       documents: [],
-      nextActions: [action({ clientNeedId: "need-bank", lastContactedAt: "2026-08-29T12:00:00.000Z" })],
+      nextActions: [
+        action({
+          clientNeedId: "need-bank",
+          lastContactedAt: "2026-08-29T12:00:00.000Z",
+          nextFollowUpAt: "2026-09-04T18:00:00.000Z",
+          escalationAfterHours: 96,
+        }),
+      ],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Collect missing required Bank Statements/);
     expect(next?.target).toBe("needs");
@@ -230,6 +253,7 @@ describe("deterministic next action", () => {
         { id: "doc-1", documentType: "Bank Statements", status: "needs_review" },
       ],
       nextActions: [action({ clientNeedId: "need-bank" })],
+      now: NOW,
     });
     expect(next?.action).toMatch(/Review newly received bank statements/i);
     expect(next?.target).toBe("documents");

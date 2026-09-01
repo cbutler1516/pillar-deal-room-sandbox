@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { FilterToggle } from "@/components/ui/controls";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ActivityRow, DealContactRow } from "@/lib/data/deals";
+import { parseStaffInstant } from "@/lib/format";
 import { formatActivityClock } from "@/lib/ops/activity-display";
 import {
   buildDealTimeline,
@@ -24,26 +25,39 @@ export function DealTimeline({
   attempts,
   contacts = [],
   staffNames = {},
-  nowIso,
+  nowMs,
 }: {
   activity: ActivityRow[];
   attempts: CommunicationAttempt[];
   contacts?: DealContactRow[];
   staffNames?: Record<string, string>;
-  nowIso: string;
+  nowMs: number;
 }) {
   const [filter, setFilter] = useState<TimelineFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
-  const now = useMemo(() => new Date(nowIso), [nowIso]);
+  const now = useMemo(() => parseStaffInstant(nowMs), [nowMs]);
   const entries = useMemo(
     () =>
-      filterTimelineEntries(
-        buildDealTimeline({ activity, attempts, contacts, staffNames, now }),
-        filter,
-      ),
+      now
+        ? filterTimelineEntries(
+            buildDealTimeline({ activity, attempts, contacts, staffNames, now }),
+            filter,
+          )
+        : [],
     [activity, attempts, contacts, staffNames, filter, now],
   );
-  const days = useMemo(() => groupTimelineByDay(entries, now), [entries, now]);
+  const days = useMemo(
+    () => (now ? groupTimelineByDay(entries, now) : []),
+    [entries, now],
+  );
+
+  if (!now) {
+    return (
+      <p className="text-sm leading-6 text-ink-muted">
+        Timeline could not determine the staff clock.
+      </p>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@ import {
 } from "@/lib/communications/portal";
 import {
   buildContactedAttempt,
+  communicationInsertErrorMessage,
   buildResponseReceivedAttempt,
   isSimulatedAttempt,
   responseReceivedTaskPatch,
@@ -132,6 +133,17 @@ describe("communication records", () => {
     expect(row.direction).toBe("outbound");
     expect(row.outboundSent).toBe(false);
     expect(row.sandboxSimulated).toBe(false);
+  });
+
+  it("does not treat a missing ledger as a successful write", () => {
+    expect(
+      communicationInsertErrorMessage(
+        "Could not find the table 'public.communication_attempts' in the schema cache",
+      ),
+    ).toMatch(/ledger is unavailable/i);
+    expect(communicationInsertErrorMessage("duplicate key")).toBe(
+      "Unable to record this communication.",
+    );
   });
 
   it("does not auto-complete when a response is recorded", () => {
