@@ -24,6 +24,7 @@ import {
   type DocumentInboxFilter,
 } from "@/lib/documents/need-progress";
 import { formatReceivedAt, formatStatusLabel } from "@/lib/format";
+import { inspectorStickyClass } from "@/lib/ui/layout-chrome";
 
 const FILTERS: { id: DocumentInboxFilter; label: string }[] = [
   { id: "needs_review", label: "Needs review" },
@@ -190,7 +191,7 @@ export function DocumentsWorkspace({
           </ul>
           {selected ? (
             <div
-              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter lg:sticky lg:top-20 rounded-[14px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-card)]`}
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-card)]`}
             >
               <button
                 type="button"

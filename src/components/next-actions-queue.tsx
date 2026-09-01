@@ -7,6 +7,7 @@ import {
   QUEUE_ACCENT_EDGE,
   queueCardAccent,
   queueContextLine,
+  queueWorkCardLabel,
 } from "@/lib/ui/queue-card";
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
 
@@ -62,49 +63,59 @@ export function NextActionsQueue({
               row.dueAt && !row.reason.toLowerCase().includes("due")
                 ? formatFollowUpAt(row.dueAt)
                 : null;
+            const reason = `${row.reason}${due ? ` · ${due}` : ""}`;
             return (
               <li key={row.id}>
-                <article
-                  className={`${surfaceClass("card", true)} border-l-2 ${QUEUE_ACCENT_EDGE[accent]} ${
-                    compact ? "px-3.5 py-2.5" : "px-4 py-3"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <Link href={row.href} className="min-w-0 flex-1">
-                      <p className="text-[13px] font-semibold tracking-[0.04em] text-ink uppercase">
-                        {row.borrowerName}
-                      </p>
-                      {context ? (
-                        <p className="mt-0.5 text-xs leading-4 text-ink-muted">
-                          {context}
+                <article>
+                  <Link
+                    href={row.href}
+                    aria-label={queueWorkCardLabel({
+                      borrowerName: row.borrowerName,
+                      title: row.title,
+                      reason,
+                      actionLabel: row.actionLabel,
+                      ownerName: owner,
+                    })}
+                    className={`${surfaceClass("card", true)} block border-l-2 ${QUEUE_ACCENT_EDGE[accent]} ${
+                      compact ? "px-3.5 py-2.5" : "px-4 py-3"
+                    }`}
+                  >
+                    <div
+                      aria-hidden
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold tracking-[0.04em] text-ink uppercase">
+                          {row.borrowerName}
                         </p>
-                      ) : row.entityName &&
-                        row.entityName.trim() &&
-                        row.entityName !== row.borrowerName ? (
-                        <p className="mt-0.5 truncate text-xs leading-4 text-ink-muted">
-                          {row.entityName}
+                        {context ? (
+                          <p className="mt-0.5 text-xs leading-4 text-ink-muted">
+                            {context}
+                          </p>
+                        ) : row.entityName &&
+                          row.entityName.trim() &&
+                          row.entityName !== row.borrowerName ? (
+                          <p className="mt-0.5 truncate text-xs leading-4 text-ink-muted">
+                            {row.entityName}
+                          </p>
+                        ) : null}
+                        <p className="mt-1.5 text-sm leading-5 text-ink">{row.title}</p>
+                        <p
+                          className={`mt-0.5 text-xs leading-5 ${
+                            row.hot ? "text-warning" : "text-ink-muted"
+                          }`}
+                        >
+                          {reason}
                         </p>
-                      ) : null}
-                      <p className="mt-1.5 text-sm leading-5 text-ink">{row.title}</p>
-                      <p
-                        className={`mt-0.5 text-xs leading-5 ${
-                          row.hot ? "text-warning" : "text-ink-muted"
-                        }`}
-                      >
-                        {row.reason}
-                        {due ? ` · ${due}` : ""}
-                      </p>
-                    </Link>
-                    <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <StaffPresence name={owner} unassigned={!owner} size={24} />
-                      <Link
-                        href={row.href}
-                        className="text-xs font-medium text-pillar-teal hover:text-pillar-navy"
-                      >
-                        {row.actionLabel} →
-                      </Link>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1.5">
+                        <StaffPresence name={owner} unassigned={!owner} size={24} />
+                        <span className="text-xs font-medium text-pillar-teal">
+                          {row.actionLabel} →
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </article>
               </li>
             );

@@ -29,6 +29,7 @@ import {
 } from "@/components/workflow-controls";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { pageWidthClass } from "@/components/ui/styles";
+import { dealTabsStickyClass } from "@/lib/ui/layout-chrome";
 import { requireInternalUser } from "@/lib/auth/session";
 import { canUseDocumentIntake } from "@/lib/documents/authorization";
 import { canCreateProcessorTask } from "@/lib/playbooks/authorization";
@@ -191,7 +192,7 @@ export default async function DealDetailPage({
         }
       />
 
-      <div className="pointer-events-none sticky top-14 z-10 -mx-3 bg-workspace px-3 sm:-mx-5 sm:px-5">
+      <div className={dealTabsStickyClass}>
         <div className="pointer-events-auto">
           <DealTabNav dealId={deal.id} tab={tab} />
         </div>

@@ -33,7 +33,7 @@ export function AppShell({
 
   return (
     <div className="min-h-full bg-workspace">
-      <header className="sticky top-0 z-20 h-14 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
         <div className="flex h-full items-center justify-between gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3.5">
             <PillarMark size={32} decorative className="shrink-0" />
@@ -53,7 +53,7 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="px-3 pb-28 pt-5 sm:px-5 sm:pb-32 sm:pt-6">{children}</main>
+      <main className="px-3 pb-[var(--app-bottom-nav-space)] pt-5 sm:px-5 sm:pt-6">{children}</main>
 
       <nav
         aria-label="Application"

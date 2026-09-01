@@ -38,3 +38,14 @@ export function queueContextLine(input: {
   );
   return parts.length > 0 ? parts.join(" · ") : null;
 }
+
+export function queueWorkCardLabel(input: {
+  borrowerName: string;
+  title: string;
+  reason: string;
+  actionLabel: string;
+  ownerName?: string | null;
+}): string {
+  const owner = input.ownerName?.trim() || "Unassigned";
+  return `${input.borrowerName}. ${input.title}. ${input.reason}. ${owner}. ${input.actionLabel}`;
+}
