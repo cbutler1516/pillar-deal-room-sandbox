@@ -17,7 +17,7 @@ import type {
   DocumentIntelligenceDocumentResult,
   DocumentIntelligenceResult,
 } from "@/lib/document-intelligence/types";
-import { attachExistingAction } from "@/lib/documents/link-actions";
+import { attachExistingAction, detachExistingAction } from "@/lib/documents/link-actions";
 import { classifyDocumentAction } from "@/lib/workflow/actions";
 import {
   filterDocumentsForInbox,
@@ -154,10 +154,10 @@ export function DocumentsWorkspace({
                         focusRow(visible[index - 1].id);
                       }
                     }}
-                    className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[16px] border-l-[3px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                    className={`flex min-h-12 w-full items-start justify-between gap-3 rounded-[14px] border-l-[3px] px-3 py-2 text-left transition duration-200 motion-reduce:transition-none ${
                       active
-                        ? "border-l-pillar-teal bg-[linear-gradient(180deg,rgb(231_244_242/0.92)_0%,rgb(234_240_246/0.5)_100%)] shadow-[var(--shadow-elevated)]"
-                        : "border-l-transparent hover:bg-surface/80 hover:shadow-[var(--shadow-card)]"
+                        ? "border-l-pillar-teal bg-surface shadow-[var(--shadow-elevated)]"
+                        : "border-l-transparent hover:-translate-y-px hover:bg-surface hover:shadow-[var(--shadow-card)] motion-reduce:hover:translate-y-0"
                     }`}
                   >
                     <div className="flex min-w-0 items-start gap-3">
@@ -196,7 +196,7 @@ export function DocumentsWorkspace({
           </ul>
           {selected ? (
             <div
-              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[16px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#f7fafb_62%,rgb(231_244_242/0.45)_100%)] px-4 py-4 shadow-[var(--shadow-float)]`}
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[16px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-elevated)]`}
             >
               <button
                 type="button"
@@ -267,18 +267,33 @@ function DocumentDetailPanel({
     setMessage("Linked to Client Need without copying the file.");
   }
 
+  async function detach(clientNeedId: string) {
+    setError(null);
+    setMessage(null);
+    const formData = new FormData();
+    formData.set("dealId", dealId);
+    formData.set("documentId", document.id);
+    formData.set("clientNeedId", clientNeedId);
+    const result = await detachExistingAction(formData);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setMessage("Detached from Client Need. The file stays on the deal.");
+  }
+
   return (
-    <aside className="space-y-4">
+    <aside className="space-y-6">
       <div>
-        <h4 className="text-lg font-semibold tracking-tight break-all text-ink">
+        <h4 className="text-xl font-semibold tracking-tight break-all text-ink">
           {document.fileName}
         </h4>
         {intelligence ? (
-          <div className="mt-2">
+          <div className="mt-3">
             <DocumentIntelligenceDetail result={intelligence} />
           </div>
         ) : (
-          <p className="mt-1.5 text-sm leading-6 text-ink-muted">
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
             {document.documentType ?? "Unclassified"}
             {" · "}
             {document.linkedNeedIds.length === 0
@@ -297,63 +312,78 @@ function DocumentDetailPanel({
       />
 
       {canMutate ? (
-        <div className="space-y-5">
-          <form
-            action={async (formData) => {
-              formData.set("documentId", document.id);
-              const result = await classifyDocumentAction(formData);
-              if (result.error) {
-                setError(result.error);
-                return;
-              }
-              setMessage("Document type updated. This is not an underwriting decision.");
-            }}
-            className="space-y-2"
-          >
-            <label className="block text-xs font-medium text-ink-muted">
-              Document type
-              <input
-                name="documentType"
-                value={classification}
-                onChange={(event) => setClassification(event.target.value)}
-                className="mt-1 min-h-10 w-full rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
-              />
-            </label>
-            {intelligence?.classification.suggestedType ? (
-              <button
-                type="button"
-                className={buttonClass("ghost", "sm")}
-                onClick={() =>
-                  setClassification(intelligence.classification.suggestedType ?? "")
+        <div className="space-y-6">
+          <section className="space-y-2">
+            <form
+              action={async (formData) => {
+                formData.set("documentId", document.id);
+                const result = await classifyDocumentAction(formData);
+                if (result.error) {
+                  setError(result.error);
+                  return;
                 }
-              >
-                Use suggested type
-              </button>
-            ) : null}
-            {primary === "save" ? (
-              <button type="submit" className={buttonClass("accent")}>
-                Save classification
-              </button>
-            ) : (
-              <button type="submit" className={buttonClass("secondary", "sm")}>
-                Save classification
-              </button>
-            )}
-          </form>
+                setMessage("Document type updated. This is not an underwriting decision.");
+              }}
+              className="space-y-2"
+            >
+              <label className="block text-xs font-medium text-ink-muted">
+                Document type
+                <input
+                  name="documentType"
+                  value={classification}
+                  onChange={(event) => setClassification(event.target.value)}
+                  className="mt-1 min-h-10 w-full rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              {intelligence?.classification.suggestedType ? (
+                <button
+                  type="button"
+                  className={buttonClass("ghost", "sm")}
+                  onClick={() =>
+                    setClassification(intelligence.classification.suggestedType ?? "")
+                  }
+                >
+                  Use suggested type
+                </button>
+              ) : null}
+              {primary === "save" ? (
+                <button type="submit" className={buttonClass("accent")}>
+                  Save classification
+                </button>
+              ) : (
+                <button type="submit" className={buttonClass("secondary", "sm")}>
+                  Save classification
+                </button>
+              )}
+            </form>
+          </section>
 
-          <div>
+          <section className="space-y-2">
             <p className="text-xs font-medium text-ink-muted">Linked Needs</p>
-            <p className="mt-1 text-sm leading-6 text-ink">
-              {document.linkedNeedIds.length === 0
-                ? "Unlinked"
-                : document.linkedNeedIds.map(needLabel).join(" · ")}
-            </p>
+            {document.linkedNeedIds.length === 0 ? (
+              <p className="text-sm leading-6 text-ink-muted">Unlinked</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {document.linkedNeedIds.map((id) => (
+                  <li key={id} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-ink">{needLabel(id)}</span>
+                    <button
+                      type="button"
+                      className={buttonClass("ghost", "sm")}
+                      onClick={() => void detach(id)}
+                    >
+                      Detach
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             {attachable.length === 0 ? (
-              <p className="mt-2 text-sm leading-6 text-ink-muted">
+              <p className="text-sm leading-6 text-ink-muted">
                 This document is already linked to every Client Need on the deal.
               </p>
             ) : (
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <select
                   value={needId}
                   onChange={(event) => setNeedId(event.target.value)}
@@ -370,20 +400,23 @@ function DocumentDetailPanel({
                   type="button"
                   disabled={!needId}
                   onClick={() => void attach()}
-                  className={buttonClass(primary === "attach" ? "accent" : "secondary", primary === "attach" ? "md" : "sm")}
+                  className={buttonClass(
+                    primary === "attach" ? "accent" : "secondary",
+                    primary === "attach" ? "md" : "sm",
+                  )}
                 >
                   Attach to Need
                 </button>
               </div>
             )}
-          </div>
+          </section>
 
-          <div ref={statusRef}>
-            <p className="mb-2 text-xs font-medium text-ink-muted">Document status</p>
+          <section ref={statusRef} className="space-y-2">
+            <p className="text-xs font-medium text-ink-muted">Document status</p>
             {primary === "review" ? (
               <button
                 type="button"
-                className={`${buttonClass("accent")} mb-3`}
+                className={buttonClass("accent")}
                 onClick={() =>
                   statusRef.current
                     ?.querySelector<HTMLElement>("select, button")
@@ -394,12 +427,20 @@ function DocumentDetailPanel({
               </button>
             ) : null}
             <DocumentStatusControl documentId={document.id} status={document.status} />
-          </div>
+          </section>
         </div>
       ) : null}
 
-      {message ? <p className="text-sm text-pillar-teal">{message}</p> : null}
-      {error ? <p className="text-sm text-danger">{error}</p> : null}
+      {message ? (
+        <p className="text-sm text-pillar-teal" role="status" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
     </aside>
   );
 }

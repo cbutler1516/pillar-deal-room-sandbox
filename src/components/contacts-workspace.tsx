@@ -5,6 +5,7 @@ import { CopyTextButton } from "@/components/copy-text-button";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
 import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { buttonClass } from "@/components/ui/button";
+import { surfaceClass } from "@/components/ui/styles";
 import {
   archiveDealContactAction,
   createDealContactAction,
@@ -152,7 +153,7 @@ export function ContactsWorkspace({
                     return (
                       <li
                         key={contact.id}
-                        className="rounded-[14px] border border-line/70 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_100%)] px-3 py-3 shadow-[var(--shadow-card)]"
+                        className={`${surfaceClass("card", true)} px-3 py-3`}
                       >
                         <div className="flex items-start gap-3">
                           <StaffAvatar
@@ -199,36 +200,32 @@ export function ContactsWorkspace({
                               type="button"
                               className={buttonClass("ghost", "sm")}
                               onClick={() => {
-                                setOpenId(contact.id);
+                                setOpenId((current) =>
+                                  current === contact.id ? null : contact.id,
+                                );
                                 if (canMutate) {
                                   setEditId(contact.id);
                                 }
                               }}
                             >
-                              {open ? "Hide" : "View"}
+                              {open ? "Hide" : canMutate ? "View / Edit" : "View"}
                             </button>
+                            {canMutate && !contact.isPrimary ? (
+                              <button
+                                type="button"
+                                className={buttonClass("ghost", "sm")}
+                                onClick={() => {
+                                  const data = new FormData();
+                                  data.set("contactId", contact.id);
+                                  void submitPrimary(data);
+                                }}
+                              >
+                                Mark primary
+                              </button>
+                            ) : null}
                             {canMutate ? (
                               <OverflowMenu
                                 items={[
-                                  {
-                                    label: "Edit",
-                                    onClick: () => {
-                                      setOpenId(contact.id);
-                                      setEditId(contact.id);
-                                    },
-                                  },
-                                  ...(!contact.isPrimary
-                                    ? [
-                                        {
-                                          label: "Mark primary",
-                                          onClick: () => {
-                                            const data = new FormData();
-                                            data.set("contactId", contact.id);
-                                            void submitPrimary(data);
-                                          },
-                                        },
-                                      ]
-                                    : []),
                                   {
                                     label: "Archive",
                                     tone: "danger" as const,
@@ -298,7 +295,7 @@ function ContactForm({
         }
         onClose();
       }}
-      className="grid gap-2 rounded-xl bg-workspace p-3 sm:grid-cols-2"
+      className="grid gap-2 rounded-[16px] border border-line bg-surface p-3 sm:grid-cols-2"
     >
       <input type="hidden" name="dealId" value={dealId} />
       {existing ? <input type="hidden" name="contactId" value={existing.id} /> : null}

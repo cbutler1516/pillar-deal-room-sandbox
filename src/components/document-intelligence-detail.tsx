@@ -1,4 +1,5 @@
 import {
+  DOCUMENT_REVIEW_REQUIRED,
   documentIntelligenceExplanation,
   documentIntelligenceHeadline,
   documentNeedFitLabel,
@@ -23,6 +24,7 @@ export function DocumentIntelligenceDetail({
       <div>
         <p className="text-base font-semibold tracking-tight text-ink">{headline}</p>
         <p className="mt-2 text-sm leading-6 text-ink">{explanation}</p>
+        <p className="mt-1 text-sm leading-6 text-ink-muted">{DOCUMENT_REVIEW_REQUIRED}</p>
       </div>
 
       <dl className="space-y-3">
@@ -43,6 +45,7 @@ export function DocumentIntelligenceDetail({
           <InspectorField
             label="Confidence"
             value="Metadata is only a partial match"
+            quiet
           />
         ) : null}
       </dl>
@@ -70,14 +73,18 @@ export function DocumentIntelligenceDetail({
 function InspectorField({
   label,
   value,
+  quiet = false,
 }: {
   label: string;
   value: string;
+  quiet?: boolean;
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-ink">{value}</dd>
+      <dt className={`text-xs font-medium ${quiet ? "text-ink-muted/60" : "text-ink-muted"}`}>
+        {label}
+      </dt>
+      <dd className={`mt-1 text-sm ${quiet ? "text-ink-muted" : "text-ink"}`}>{value}</dd>
     </div>
   );
 }

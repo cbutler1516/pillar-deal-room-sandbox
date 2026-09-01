@@ -87,7 +87,7 @@ export function DealTimeline({
             <h3 className="mb-3 text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
               {day.label}
             </h3>
-            <ol className="relative space-y-2 border-l-2 border-line/80 pl-6">
+            <ol className="relative space-y-1.5 border-l border-line pl-6">
               {day.entries.map((entry) => {
                 const open = openId === entry.id;
                 const system = entry.actor === "System";
@@ -97,7 +97,7 @@ export function DealTimeline({
                   <li key={entry.id} className="relative">
                     <span
                       aria-hidden
-                      className={`absolute top-4 -left-[29px] h-2.5 w-2.5 rounded-full border ${
+                      className={`absolute top-3.5 -left-[25px] h-2 w-2 rounded-full border ${
                         system
                           ? "border-line bg-surface-muted"
                           : "border-pillar-teal/40 bg-pillar-teal-soft"
@@ -108,10 +108,10 @@ export function DealTimeline({
                       onClick={() =>
                         setOpenId(open || !entry.detail ? null : entry.id)
                       }
-                      className={`flex w-full items-start gap-3 rounded-[14px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                      className={`flex w-full items-start gap-3 rounded-[14px] px-2.5 py-2 text-left transition duration-200 motion-reduce:transition-none ${
                         system
-                          ? "hover:bg-surface-muted/60"
-                          : "border border-transparent bg-surface/70 shadow-[var(--shadow-card)] hover:-translate-y-px hover:shadow-[var(--shadow-elevated)] motion-reduce:hover:translate-y-0"
+                          ? "opacity-75 hover:bg-surface-muted/50 hover:opacity-100"
+                          : "bg-surface shadow-[var(--shadow-card)] hover:-translate-y-px hover:shadow-[var(--shadow-elevated)] motion-reduce:hover:translate-y-0"
                       }`}
                     >
                       <StaffAvatar
@@ -120,7 +120,7 @@ export function DealTimeline({
                         label={entry.actor}
                         kind={isStaff ? "staff" : "external"}
                       />
-                      <time className="w-16 shrink-0 pt-1 text-xs tabular-nums text-ink-muted">
+                      <time className="w-16 shrink-0 pt-1 text-[11px] tabular-nums text-ink-muted">
                         {formatActivityClock(entry.at, now)}
                       </time>
                       <div className="min-w-0 flex-1">
@@ -133,7 +133,7 @@ export function DealTimeline({
                           {entry.simulated ? " · Simulated" : ""}
                         </p>
                         {entry.context ? (
-                          <p className="mt-0.5 text-xs leading-5 text-ink-muted">
+                          <p className="mt-0.5 text-sm leading-6 text-ink-muted">
                             {entry.context}
                           </p>
                         ) : null}

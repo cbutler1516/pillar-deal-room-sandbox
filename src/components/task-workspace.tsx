@@ -141,7 +141,7 @@ export function TaskWorkspace({
               <input type="hidden" name="dealId" value={dealId} />
               <button
                 type="submit"
-                className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-muted"
+                className={buttonClass("secondary", "sm")}
               >
                 Generate {loanType ?? "loan type"} baseline
               </button>
@@ -336,7 +336,7 @@ function TaskDetail({
     task.status === "waiting";
 
   return (
-    <div className="mt-3 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3">
+    <div className="mt-1 space-y-4">
       {missing ? (
         <div className="rounded-xl border border-danger/20 bg-danger-soft px-3 py-2">
           <p className="text-sm font-medium text-danger">
@@ -582,7 +582,7 @@ function AddTaskForm({
         >
           Create from playbook
         </button>
-        <button type="button" onClick={onClose} className={actionClass}>
+        <button type="button" onClick={onClose} className={buttonClass("ghost", "sm")}>
           Cancel
         </button>
       </div>
@@ -599,7 +599,5 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const actionClass =
-  "rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-muted";
 const inputClass =
   "rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink";

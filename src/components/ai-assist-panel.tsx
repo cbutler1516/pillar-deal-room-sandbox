@@ -21,8 +21,8 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-medium tracking-[0.08em] text-ink-muted uppercase">
-        Processor Assist
+      <p className="text-[11px] font-medium tracking-[0.08em] text-ink-muted uppercase">
+        AI-assisted
       </p>
       <p className="text-sm leading-6 text-ink">{polishAssistSummary(result.dealSummary)}</p>
       {importantFlag ? (
@@ -35,7 +35,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
           {suggestions.map((item) => (
             <li key={item.action}>
               <p className="text-sm font-medium text-ink">{item.action}</p>
-              <p className="text-xs leading-5 text-ink-muted">{item.reason}</p>
+              <p className="text-sm leading-6 text-ink-muted">{item.reason}</p>
             </li>
           ))}
         </ul>
@@ -71,7 +71,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
                   <p className={`text-sm font-medium ${severityClass(flag.severity)}`}>
                     {flag.title}
                   </p>
-                  <p className="text-xs text-ink-muted">{flag.detail}</p>
+                  <p className="text-sm leading-6 text-ink-muted">{flag.detail}</p>
                 </li>
               ))}
             </ul>

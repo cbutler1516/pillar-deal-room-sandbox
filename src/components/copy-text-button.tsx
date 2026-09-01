@@ -27,7 +27,7 @@ export function CopyTextButton({
         window.setTimeout(() => setCopied(false), 1500);
       }}
     >
-      {copied ? "Copied" : label}
+      <span aria-live="polite">{copied ? "Copied" : label}</span>
     </button>
   );
 }

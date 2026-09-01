@@ -77,11 +77,14 @@ export function documentIntelligenceExplanation(
   }
   if (headline === "Replacement received" || headline === "Likely match") {
     return requested
-      ? `This looks like the requested ${requested}.`
-      : "This looks like the requested item.";
+      ? `This file appears consistent with the requested ${requested}.`
+      : "This file appears consistent with the requested item.";
   }
   return "This document still needs review.";
 }
+
+export const DOCUMENT_REVIEW_REQUIRED =
+  "Processor review is still required.";
 
 export function documentInspectorPrimaryAction(input: {
   documentType: string | null;

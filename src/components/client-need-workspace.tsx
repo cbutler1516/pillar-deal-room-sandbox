@@ -366,7 +366,7 @@ function NeedReviewPanel({
   }
 
   return (
-    <div className="ml-8 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3.5 transition duration-200 motion-reduce:transition-none">
+    <div className="ml-8 space-y-4 border-t border-line/70 pt-3.5 transition duration-200 motion-reduce:transition-none">
       {need.description ? (
         <p className="text-xs leading-5 text-ink-muted">{need.description}</p>
       ) : null}
@@ -403,8 +403,12 @@ function NeedReviewPanel({
                   <th className="px-3 py-2">Type</th>
                   <th className="px-3 py-2">Uploaded</th>
                   <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-ink-muted/70">AI class</th>
-                  <th className="px-3 py-2 text-ink-muted/70">Confidence</th>
+                  <th className="px-3 py-2 text-[10px] font-normal text-ink-muted/45">
+                    AI class
+                  </th>
+                  <th className="px-3 py-2 text-[10px] font-normal text-ink-muted/45">
+                    Confidence
+                  </th>
                   {canIntake ? <th className="px-3 py-2">Access</th> : null}
                   {canMutate ? <th className="px-3 py-2">Detach</th> : null}
                 </tr>
@@ -422,10 +426,13 @@ function NeedReviewPanel({
                     <td className="px-3 py-2">
                       <StatusChip status={doc.status} />
                     </td>
-                    <td className="px-3 py-2 text-xs text-ink-muted/70">
+                    <td className="px-3 py-2 text-[11px] text-ink-muted/45" title="Metadata only">
                       {doc.aiClassification ?? "—"}
                     </td>
-                    <td className="px-3 py-2 text-xs tabular-nums text-ink-muted/70">
+                    <td
+                      className="px-3 py-2 text-[11px] tabular-nums text-ink-muted/45"
+                      title="Metadata only"
+                    >
                       {formatPercent(doc.aiConfidence)}
                     </td>
                     {canIntake ? (

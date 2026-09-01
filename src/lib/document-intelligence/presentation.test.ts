@@ -83,7 +83,7 @@ describe("document intelligence presentation", () => {
 
   it("explains the intelligence state in plain language", () => {
     expect(documentIntelligenceExplanation(result())).toBe(
-      "This looks like the requested Insurance Binder.",
+      "This file appears consistent with the requested Insurance Binder.",
     );
   });
 

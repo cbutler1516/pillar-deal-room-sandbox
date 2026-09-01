@@ -218,7 +218,7 @@ export default async function DealDetailPage({
             }
             assist={
               assist ? (
-                <details className="px-1">
+                <details className="rounded-[16px] border border-line bg-surface px-5 py-4">
                   <summary className="cursor-pointer text-sm font-medium text-ink-muted">
                     Processor assist
                   </summary>
