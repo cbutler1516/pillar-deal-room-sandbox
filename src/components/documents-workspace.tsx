@@ -115,7 +115,7 @@ export function DocumentsWorkspace({
                 : "No documents are on this file yet."}
         </p>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.95fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.95fr)] lg:items-start">
           <ul
             className={`space-y-1 ${mobileDetail ? "hidden lg:block" : ""}`}
             role="listbox"
@@ -189,7 +189,9 @@ export function DocumentsWorkspace({
             })}
           </ul>
           {selected ? (
-            <div className={mobileDetail ? "" : "hidden lg:block"}>
+            <div
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter lg:sticky lg:top-20 rounded-[14px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-card)]`}
+            >
               <button
                 type="button"
                 className={`${buttonClass("ghost", "sm")} mb-3 lg:hidden`}

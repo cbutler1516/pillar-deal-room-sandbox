@@ -320,32 +320,51 @@ export default async function ProcessorQueuePage({
           Nothing needs your attention.
         </p>
       ) : (
-        <div className="space-y-8">
-          {QUEUE_TODAY_SECTIONS.map((section) => {
-            const rows = today[section.key];
-            if (rows.length === 0 && section.key === "new") {
-              return null;
-            }
-            return (
+        <div className="space-y-8 xl:grid xl:grid-cols-[minmax(0,1.4fr)_minmax(17rem,0.8fr)] xl:items-start xl:gap-8 xl:space-y-0">
+          <div className="space-y-8">
+            {QUEUE_TODAY_SECTIONS.filter((section) =>
+              section.key === "urgent" ||
+              section.key === "due_today" ||
+              section.key === "needs_review",
+            ).map((section) => (
               <NextActionsQueue
                 key={section.key}
-                rows={rows.map(toQueueRow)}
+                rows={today[section.key].map(toQueueRow)}
                 staffNames={staffNames}
                 title={section.label}
                 empty={
-                  section.key === "waiting"
-                    ? "Nobody is waiting on a reply."
-                    : section.key === "needs_review"
-                      ? "Nothing is ready to review."
-                      : section.key === "due_today"
-                        ? "Nothing else is due today."
-                        : section.key === "new"
-                          ? "No new files."
-                          : "No urgent items."
+                  section.key === "needs_review"
+                    ? "Nothing is ready to review."
+                    : section.key === "due_today"
+                      ? "Nothing else is due today."
+                      : "No urgent items."
                 }
               />
-            );
-          })}
+            ))}
+          </div>
+          <div className="space-y-8">
+            {QUEUE_TODAY_SECTIONS.filter(
+              (section) => section.key === "waiting" || section.key === "new",
+            ).map((section) => {
+              if (today[section.key].length === 0 && section.key === "new") {
+                return null;
+              }
+              return (
+                <NextActionsQueue
+                  key={section.key}
+                  rows={today[section.key].map(toQueueRow)}
+                  staffNames={staffNames}
+                  title={section.label}
+                  compact
+                  empty={
+                    section.key === "waiting"
+                      ? "Nobody is waiting on a reply."
+                      : "No new files."
+                  }
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

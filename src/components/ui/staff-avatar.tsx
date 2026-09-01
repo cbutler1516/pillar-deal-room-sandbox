@@ -19,12 +19,14 @@ export function StaffAvatar({
   size = 32,
   unassigned = false,
   label,
+  kind = "staff",
 }: {
   name?: string | null;
   avatarUrl?: string | null;
   size?: StaffAvatarSize;
   unassigned?: boolean;
   label?: string;
+  kind?: "staff" | "external";
 }) {
   const display = (name ?? "").trim();
   const title = label ?? (unassigned ? "Unassigned" : display || "Staff");
@@ -55,7 +57,10 @@ export function StaffAvatar({
     );
   }
 
-  const tone = STAFF_AVATAR_TONES[staffAvatarToneIndex(display)];
+  const tone =
+    kind === "external"
+      ? { bg: "bg-surface-muted", fg: "text-pillar-navy" }
+      : STAFF_AVATAR_TONES[staffAvatarToneIndex(display)];
   return (
     <span
       className={`${frame} ${tone.bg} ${tone.fg}`}
@@ -73,12 +78,14 @@ export function StaffPresence({
   size = 28,
   unassigned = false,
   label,
+  kind = "staff",
 }: {
   name?: string | null;
   avatarUrl?: string | null;
   size?: StaffAvatarSize;
   unassigned?: boolean;
   label?: string;
+  kind?: "staff" | "external";
 }) {
   const copy = unassigned || !name?.trim() ? "Unassigned" : (label ?? name);
   return (
@@ -89,6 +96,7 @@ export function StaffPresence({
         size={size}
         unassigned={unassigned || !name?.trim()}
         label={copy}
+        kind={kind}
       />
       <span className="truncate text-xs text-ink-muted">{copy}</span>
     </span>

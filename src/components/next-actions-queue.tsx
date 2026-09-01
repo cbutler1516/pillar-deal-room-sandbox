@@ -74,16 +74,15 @@ export function NextActionsQueue({
                       <p className="text-[13px] font-semibold tracking-[0.04em] text-ink uppercase">
                         {row.borrowerName}
                       </p>
-                      {row.entityName &&
-                      row.entityName.trim() &&
-                      row.entityName !== row.borrowerName ? (
-                        <p className="mt-0.5 truncate text-[11px] leading-4 text-ink-muted">
-                          {row.entityName}
-                        </p>
-                      ) : null}
                       {context ? (
-                        <p className="mt-0.5 text-[11px] leading-4 text-ink-muted">
+                        <p className="mt-0.5 text-xs leading-4 text-ink-muted">
                           {context}
+                        </p>
+                      ) : row.entityName &&
+                        row.entityName.trim() &&
+                        row.entityName !== row.borrowerName ? (
+                        <p className="mt-0.5 truncate text-xs leading-4 text-ink-muted">
+                          {row.entityName}
                         </p>
                       ) : null}
                       <p className="mt-1.5 text-sm leading-5 text-ink">{row.title}</p>
@@ -96,16 +95,14 @@ export function NextActionsQueue({
                         {due ? ` · ${due}` : ""}
                       </p>
                     </Link>
-                    <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <StaffPresence name={owner} unassigned={!owner} size={24} />
-                      {compact ? null : (
-                        <Link
-                          href={row.href}
-                          className="text-xs font-medium text-pillar-teal hover:text-pillar-navy"
-                        >
-                          {row.actionLabel} →
-                        </Link>
-                      )}
+                      <Link
+                        href={row.href}
+                        className="text-xs font-medium text-pillar-teal hover:text-pillar-navy"
+                      >
+                        {row.actionLabel} →
+                      </Link>
                     </div>
                   </div>
                 </article>

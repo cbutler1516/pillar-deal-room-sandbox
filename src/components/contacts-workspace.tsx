@@ -152,7 +152,12 @@ export function ContactsWorkspace({
                     return (
                       <li key={contact.id} className="py-3.5">
                         <div className="flex items-start gap-3">
-                          <StaffAvatar name={contact.name} size={32} label={contact.name} />
+                          <StaffAvatar
+                            name={contact.name}
+                            size={32}
+                            label={contact.name}
+                            kind="external"
+                          />
                           <button
                             type="button"
                             className="min-w-0 flex-1 text-left"

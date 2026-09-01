@@ -51,6 +51,10 @@ export function DealTimeline({
     () => (now ? groupTimelineByDay(entries, now) : []),
     [entries, now],
   );
+  const staffNameSet = useMemo(
+    () => new Set(Object.values(staffNames).filter(Boolean)),
+    [staffNames],
+  );
 
   if (!now) {
     return (
@@ -87,6 +91,8 @@ export function DealTimeline({
               {day.entries.map((entry) => {
                 const open = openId === entry.id;
                 const system = entry.actor === "System";
+                const actorName = entry.actor.split("→")[0]?.trim() ?? entry.actor;
+                const isStaff = staffNameSet.has(actorName);
                 return (
                   <li key={entry.id} className="relative">
                     <span
@@ -101,9 +107,10 @@ export function DealTimeline({
                       className="flex w-full items-start gap-3 rounded-[14px] px-2 py-2.5 text-left transition duration-200 hover:bg-surface-muted/70 motion-reduce:transition-none"
                     >
                       <StaffAvatar
-                        name={entry.actor.split("→")[0]?.trim() ?? entry.actor}
+                        name={actorName}
                         size={28}
                         label={entry.actor}
+                        kind={isStaff ? "staff" : "external"}
                       />
                       <time className="w-16 shrink-0 pt-1 text-xs tabular-nums text-ink-muted">
                         {formatActivityClock(entry.at, now)}
