@@ -17,6 +17,7 @@ import {
   formatFollowUpAt,
   formatStatusLabel,
   formatWaitingAge,
+  parseStaffInstant,
 } from "@/lib/format";
 import {
   completeTaskAction,
@@ -99,7 +100,7 @@ export function TaskWorkspace({
   attempts = [],
   staffNames = {},
   replacementNeedIds = [],
-  nowIso,
+  nowMs,
 }: {
   dealId: string;
   loanType: string | null;
@@ -116,11 +117,11 @@ export function TaskWorkspace({
   attempts?: CommunicationAttempt[];
   staffNames?: Record<string, string>;
   replacementNeedIds?: string[];
-  nowIso: string;
+  nowMs: number;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const now = new Date(nowIso);
+  const now = parseStaffInstant(nowMs) ?? new Date(nowMs);
 
   return (
     <div className="space-y-4">

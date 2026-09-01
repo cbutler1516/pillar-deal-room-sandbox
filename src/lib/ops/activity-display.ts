@@ -1,4 +1,9 @@
-import { formatInStaffZone, formatStatusLabel, staffCalendarDate } from "@/lib/format";
+import {
+  formatInStaffZone,
+  formatStatusLabel,
+  parseStaffInstant,
+  staffCalendarDate,
+} from "@/lib/format";
 
 export type ActivityDisplayInput = {
   eventType: string;
@@ -138,8 +143,12 @@ export function formatActivityAction(
 }
 
 export function formatActivityClock(iso: string, now = new Date()): string {
-  const date = new Date(iso);
-  const sameDay = staffCalendarDate(date) === staffCalendarDate(now);
+  const date = parseStaffInstant(iso);
+  const current = parseStaffInstant(now);
+  if (!date || !current) {
+    return "—";
+  }
+  const sameDay = staffCalendarDate(date) === staffCalendarDate(current);
   return formatInStaffZone(date, {
     hour: "numeric",
     minute: "2-digit",

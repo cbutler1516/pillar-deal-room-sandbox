@@ -71,4 +71,54 @@ describe("deal timeline", () => {
     expect(filterTimelineEntries(entries, "communications")).toHaveLength(1);
     expect(groupTimelineByDay(entries, now)[0].label).toBe("Today");
   });
+
+  it("skips invalid timestamps instead of crashing day groups", () => {
+    const now = new Date("2026-08-31T18:00:00.000Z");
+    expect(() =>
+      groupTimelineByDay(
+        [
+          {
+            id: "bad",
+            at: "",
+            actor: "Staff",
+            action: "Recorded activity",
+            target: null,
+            context: null,
+            kind: "workflow",
+            detail: null,
+            simulated: false,
+          },
+          {
+            id: "ok",
+            at: "2026-08-31T17:42:00.000Z",
+            actor: "Chris Butler",
+            action: "Requested replacement",
+            target: null,
+            context: null,
+            kind: "workflow",
+            detail: null,
+            simulated: false,
+          },
+        ],
+        now,
+      ),
+    ).not.toThrow();
+    const days = groupTimelineByDay(
+      [
+        {
+          id: "ok",
+          at: "2026-08-31T17:42:00.000Z",
+          actor: "Chris Butler",
+          action: "Requested replacement",
+          target: null,
+          context: null,
+          kind: "workflow",
+          detail: null,
+          simulated: false,
+        },
+      ],
+      new Date(Number.NaN),
+    );
+    expect(days[0]?.key).toBe("2026-08-31");
+  });
 });

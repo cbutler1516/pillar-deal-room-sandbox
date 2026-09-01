@@ -60,7 +60,7 @@ export default async function DealDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const tab = parseDealTab(typeof query.tab === "string" ? query.tab : undefined);
-  const nowIso = new Date().toISOString();
+  const nowMs = new Date().getTime();
   const { supabase, user, profile } = await requireInternalUser();
   const deal = await getDealById(supabase, id);
 
@@ -265,7 +265,7 @@ export default async function DealDetailPage({
             replacementNeedIds={needs
               .filter((need) => need.required && need.status === "rejected")
               .map((need) => need.id)}
-            nowIso={nowIso}
+            nowMs={nowMs}
           />
         </SurfaceCard>
       ) : null}
@@ -353,7 +353,7 @@ export default async function DealDetailPage({
             attempts={attempts}
             contacts={contacts}
             staffNames={staffNames}
-            nowIso={nowIso}
+            nowMs={nowMs}
           />
         </SurfaceCard>
       ) : null}

@@ -1,6 +1,24 @@
 /** Staff clocks stay in one zone so server HTML and the browser hydrate the same text. */
 export const STAFF_TIME_ZONE = "America/Los_Angeles";
 
+export function parseStaffInstant(value: unknown): Date | null {
+  if (value == null || value === "") {
+    return null;
+  }
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (typeof value === "string") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  return null;
+}
+
 export function formatInStaffZone(
   value: Date,
   options: Intl.DateTimeFormatOptions,

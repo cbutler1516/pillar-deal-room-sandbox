@@ -3,6 +3,7 @@ import {
   formatDealStatus,
   formatReceivedAt,
   formatStatusLabel,
+  parseStaffInstant,
   staffCalendarDate,
   staffHour,
 } from "@/lib/format";
@@ -30,5 +31,17 @@ describe("staff time zone", () => {
     expect(staffCalendarDate(eveningUtc)).toBe("2026-08-31");
     expect(staffHour(eveningUtc)).toBe(12);
     expect(formatLongDate(eveningUtc)).toBe("Monday, August 31, 2026");
+  });
+
+  it("parses staff instants and rejects invalid clocks", () => {
+    expect(parseStaffInstant("2026-08-31T19:11:00.000Z")?.toISOString()).toBe(
+      "2026-08-31T19:11:00.000Z",
+    );
+    expect(parseStaffInstant(Date.parse("2026-08-31T19:11:00.000Z"))?.toISOString()).toBe(
+      "2026-08-31T19:11:00.000Z",
+    );
+    expect(parseStaffInstant("")).toBeNull();
+    expect(parseStaffInstant("not-a-date")).toBeNull();
+    expect(parseStaffInstant(new Date(Number.NaN))).toBeNull();
   });
 });

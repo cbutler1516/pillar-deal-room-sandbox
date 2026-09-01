@@ -2,6 +2,7 @@ import type { DealStatus } from "@/lib/data/types";
 import {
   STAFF_TIME_ZONE,
   formatInStaffZone,
+  parseStaffInstant,
   staffCalendarDate,
   staffHour,
 } from "@/lib/staff-clock";
@@ -9,6 +10,7 @@ import {
 export {
   STAFF_TIME_ZONE,
   formatInStaffZone,
+  parseStaffInstant,
   staffCalendarDate,
   staffHour,
 };

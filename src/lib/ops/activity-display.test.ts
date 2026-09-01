@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatActivityDisplay } from "@/lib/ops/activity-display";
+import { formatActivityClock, formatActivityDisplay } from "@/lib/ops/activity-display";
 
 describe("activity display formatting", () => {
   it("formats who, did what, to what, and when", () => {
@@ -54,5 +54,12 @@ describe("activity display formatting", () => {
     });
     expect(display.didWhat).toBe("Requested an AI rewrite suggestion");
     expect(display.didWhat).not.toMatch(/sent|approved|completed/i);
+  });
+
+  it("does not throw when the activity clock is invalid", () => {
+    expect(formatActivityClock("", new Date("2026-08-31T18:00:00.000Z"))).toBe("—");
+    expect(formatActivityClock("2026-08-31T18:00:00.000Z", new Date(Number.NaN))).toBe(
+      "—",
+    );
   });
 });
