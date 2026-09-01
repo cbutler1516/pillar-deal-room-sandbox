@@ -110,7 +110,10 @@ export default async function DealsPage({
                   return (
                     <tr key={deal.id} className={tableRowClass}>
                       <td className="px-5 py-3.5">
-                        <Link href={`/deals/${deal.id}`} className={linkClass}>
+                        <Link
+                          href={`/deals/${deal.id}`}
+                          className={`${linkClass} rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30`}
+                        >
                           {deal.dealReference}
                         </Link>
                         <p className="text-xs text-ink-muted">{deal.borrowerName}</p>
@@ -128,7 +131,7 @@ export default async function DealsPage({
                       <td className="px-5 py-3.5">
                         <ProgressBar complete={docs.complete} total={docs.required} />
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 align-middle">
                         <StaffPresence
                           name={
                             deal.assignedProcessorId

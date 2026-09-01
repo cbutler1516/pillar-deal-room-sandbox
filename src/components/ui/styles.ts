@@ -54,6 +54,7 @@ export const btnCompactPrimaryClass =
 export const tableHeadClass =
   "text-[11px] font-medium text-ink-muted";
 
-export const tableRowClass = "border-t border-line/80 hover:bg-surface-muted/70";
+export const tableRowClass =
+  "border-t border-line/80 even:bg-surface-muted/30 hover:bg-pillar-teal-soft/35 focus-within:bg-pillar-teal-soft/45";
 
 export const linkClass = "font-medium text-ink transition hover:text-pillar-teal";

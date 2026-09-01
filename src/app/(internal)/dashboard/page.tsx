@@ -95,6 +95,7 @@ export default async function DashboardPage() {
         description="Highest-priority work"
         empty="You’re clear for now."
         compact
+        layout="grid"
         accent="urgent"
       />
 

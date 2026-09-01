@@ -4,8 +4,11 @@ import { humanizeWorkReason, polishAssistSummary } from "@/lib/ui/staff-copy";
 describe("staff copy", () => {
   it("rewrites Queue reasons into processor language", () => {
     expect(humanizeWorkReason("Replacement received")).toBe(
-      "Replacement document ready for review",
+      "Replacement ready for review",
     );
+    expect(humanizeWorkReason("Replacement needed")).toBe("Replacement still needed");
+    expect(humanizeWorkReason("Escalation due")).toBe("Follow-up is overdue");
+    expect(humanizeWorkReason("Unassigned file")).toBe("New unassigned file");
     expect(humanizeWorkReason("No initial contact with Jordan Lee")).toBe(
       "No request has been sent to Jordan Lee yet",
     );

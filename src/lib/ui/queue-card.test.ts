@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   queueCardAccent,
+  queueCardBody,
   queueContextLine,
   queueWorkCardLabel,
 } from "@/lib/ui/queue-card";
@@ -43,5 +44,28 @@ describe("queue card presentation", () => {
         ownerName: "Chris Butler",
       }),
     ).toContain("Chris Butler");
+  });
+
+  it("does not repeat loan type or Unassigned on new-file cards", () => {
+    expect(
+      queueCardBody({
+        title: "DSCR Purchase",
+        reason: "Unassigned file",
+        loanType: "DSCR Purchase",
+        queueSection: "new",
+        assigned: false,
+        actionLabel: "Claim",
+      }),
+    ).toEqual({ workItem: "New unassigned file", reason: null });
+    expect(
+      queueCardBody({
+        title: "Insurance",
+        reason: "Follow-up is overdue",
+        loanType: "Fix & Flip",
+        queueSection: "urgent",
+        assigned: true,
+        actionLabel: "Escalate",
+      }),
+    ).toEqual({ workItem: "Insurance", reason: "Follow-up is overdue" });
   });
 });

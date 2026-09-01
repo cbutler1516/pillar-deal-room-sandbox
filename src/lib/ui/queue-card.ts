@@ -1,4 +1,5 @@
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
+import { stripReasonCtaEcho } from "@/lib/ui/staff-copy";
 
 export type QueueCardAccent =
   | "urgent"
@@ -57,6 +58,37 @@ export function queueContextLine(input: {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
+export function queueCardBody(input: {
+  title: string;
+  reason: string;
+  loanType?: string | null;
+  queueSection?: string | null;
+  assigned: boolean;
+  actionLabel?: string;
+}): { workItem: string; reason: string | null } {
+  const title = input.title.trim();
+  const loan = input.loanType?.trim() ?? "";
+  const reason = stripReasonCtaEcho(input.reason, input.actionLabel).trim();
+  const titleIsLoan = Boolean(loan) && title.toLowerCase() === loan.toLowerCase();
+
+  if (input.queueSection === "new") {
+    return {
+      workItem: input.assigned ? "New file" : "New unassigned file",
+      reason: null,
+    };
+  }
+
+  if (titleIsLoan) {
+    return { workItem: reason || title, reason: null };
+  }
+
+  if (!reason || reason.toLowerCase() === title.toLowerCase()) {
+    return { workItem: title, reason: null };
+  }
+
+  return { workItem: title, reason };
+}
+
 export function queueWorkCardLabel(input: {
   borrowerName: string;
   title: string;
@@ -65,5 +97,8 @@ export function queueWorkCardLabel(input: {
   ownerName?: string | null;
 }): string {
   const owner = input.ownerName?.trim() || "Unassigned";
-  return `${input.borrowerName}. ${input.title}. ${input.reason}. ${owner}. ${input.actionLabel}`;
+  return [input.borrowerName, input.title, input.reason, owner, input.actionLabel]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(". ");
 }
