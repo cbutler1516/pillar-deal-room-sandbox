@@ -9,16 +9,18 @@ import { SandboxBadge } from "@/components/sandbox-badge";
 import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { displayName, type InternalProfile } from "@/lib/auth/authorization";
 import { formatRoleLabel } from "@/lib/auth/roles";
+import {
+  DESKTOP_APP_NAV,
+  MOBILE_APP_NAV,
+  isAppNavActive,
+} from "@/lib/ui/app-nav";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
-  { href: "/deals", label: "Deals", icon: DealsIcon },
-  { href: "/processor-queue", label: "Queue", icon: QueueIcon },
-] as const;
-
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+const NAV_ICONS = {
+  "/dashboard": DashboardIcon,
+  "/deals": DealsIcon,
+  "/processor-queue": QueueIcon,
+  "/tasks": TasksIcon,
+} as const;
 
 export function AppShell({
   profile,
@@ -34,7 +36,7 @@ export function AppShell({
   return (
     <div className="min-h-full bg-workspace">
       <header className="sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
-        <div className="flex h-full items-center justify-between gap-3 px-3 sm:px-5">
+        <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3.5">
             <PillarMark size={32} decorative className="shrink-0" />
             <p className="truncate text-sm font-semibold text-pillar-navy">
@@ -42,23 +44,23 @@ export function AppShell({
             </p>
             <SandboxBadge />
           </div>
-          <nav aria-label="Application" className="hidden lg:block">
-            <ul className="flex items-center gap-1">
-              {NAV.map((item) => {
-                const active = isActive(pathname, item.href);
-                const Icon = item.icon;
+          <nav aria-label="Primary" className="hidden lg:block">
+            <ul className="flex items-center gap-2">
+              {DESKTOP_APP_NAV.map((item) => {
+                const active = isAppNavActive(pathname, item.href);
+                const Icon = NAV_ICONS[item.href];
                 return (
                   <li key={item.href}>
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 ${
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 ${
                         active
                           ? "bg-pillar-teal-soft text-pillar-teal"
                           : "text-ink-muted hover:bg-surface-muted hover:text-ink"
                       }`}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
                       {item.label}
                     </Link>
                   </li>
@@ -66,7 +68,7 @@ export function AppShell({
               })}
             </ul>
           </nav>
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center justify-end gap-2">
             <StaffAvatar name={name} size={32} />
             <div className="hidden min-w-0 text-right sm:block">
               <p className="truncate text-xs font-medium text-ink">{name}</p>
@@ -85,9 +87,9 @@ export function AppShell({
       >
         <div className="flex items-center">
           <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">
-          {NAV.map((item) => {
-            const active = isActive(pathname, item.href);
-            const Icon = item.icon;
+          {MOBILE_APP_NAV.map((item) => {
+            const active = isAppNavActive(pathname, item.href);
+            const Icon = NAV_ICONS[item.href];
             return (
               <li key={item.href} className="min-w-0 flex-1">
                 <Link
@@ -99,7 +101,7 @@ export function AppShell({
                       : "text-ink-muted hover:bg-surface-muted hover:text-ink"
                   }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
                   <span className="max-w-full truncate text-[13px] font-medium">
                     {item.label}
                   </span>
@@ -207,6 +209,19 @@ function QueueIcon(props: SVGProps<SVGSVGElement>) {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TasksIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden {...props}>
+      <path
+        d="M4.4 5.2h2.2v2.2H4.4zM8.6 6.3h7M4.4 8.9h2.2v2.2H4.4zM8.6 10h7M4.4 12.6h2.2v2.2H4.4zM8.6 13.7h5.2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
       />
     </svg>
   );
