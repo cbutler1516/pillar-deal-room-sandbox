@@ -1,13 +1,13 @@
 export type SurfaceTone = "flat" | "card" | "elevated" | "floating";
 
 const PAPER =
-  "bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_58%,#f6f8fb_100%)]";
+  "bg-[linear-gradient(180deg,#ffffff_0%,#fcfdfe_52%,#f4f7fa_100%)]";
 
 const SURFACE: Record<SurfaceTone, string> = {
-  flat: "rounded-[14px] border border-transparent bg-transparent shadow-none",
-  card: `rounded-[14px] border border-line ${PAPER} shadow-[var(--shadow-card)]`,
-  elevated: `rounded-[14px] border border-line ${PAPER} shadow-[var(--shadow-elevated)]`,
-  floating: `rounded-[14px] border border-line bg-surface shadow-[var(--shadow-float)]`,
+  flat: "rounded-[16px] border border-transparent bg-transparent shadow-none",
+  card: `rounded-[16px] border border-line ${PAPER} shadow-[var(--shadow-card)]`,
+  elevated: `rounded-[16px] border border-line ${PAPER} shadow-[var(--shadow-elevated)]`,
+  floating: `rounded-[16px] border border-line bg-surface shadow-[var(--shadow-float)]`,
 };
 
 export function surfaceClass(
@@ -15,7 +15,7 @@ export function surfaceClass(
   clickable = false,
 ): string {
   const lift = clickable
-    ? "transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+    ? "transition duration-200 hover:-translate-y-[3px] hover:shadow-[var(--shadow-lift)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     : "";
   return `${SURFACE[tone]} ${lift}`.trim();
 }

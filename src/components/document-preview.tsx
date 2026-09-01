@@ -148,7 +148,7 @@ function PreviewCanvas({
   onMediaError: () => void;
 }) {
   const frame =
-    "overflow-hidden rounded-[12px] border border-line bg-[linear-gradient(180deg,#e8edf3_0%,#eef2f6_100%)] shadow-[inset_0_1px_0_rgb(255_255_255/0.55),var(--shadow-card)]";
+    "overflow-hidden rounded-[16px] border border-line bg-[linear-gradient(180deg,#c5ced9_0%,#d2dae4_100%)] shadow-[inset_0_1px_0_rgb(255_255_255/0.35),inset_0_8px_18px_rgb(11_31_58/0.08)]";
 
   if (display.mode === "loading") {
     return (

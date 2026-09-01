@@ -6,7 +6,7 @@ export const STAFF_AVATAR_TONES = [
   { bg: "bg-info-soft", fg: "text-info" },
   { bg: "bg-pillar-teal-soft", fg: "text-pillar-teal" },
   { bg: "bg-violet-soft", fg: "text-violet" },
-  { bg: "bg-warning-soft", fg: "text-warning" },
+  { bg: "bg-amber-soft", fg: "text-amber" },
 ] as const;
 
 const SANDBOX_STAFF_PHOTOS: Record<string, string> = {

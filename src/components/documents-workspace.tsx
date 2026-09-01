@@ -154,10 +154,10 @@ export function DocumentsWorkspace({
                         focusRow(visible[index - 1].id);
                       }
                     }}
-                    className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[14px] border-l-[3px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                    className={`flex min-h-14 w-full items-start justify-between gap-3 rounded-[16px] border-l-[3px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                       active
-                        ? "border-l-pillar-teal bg-[linear-gradient(180deg,rgb(231_244_242/0.8)_0%,rgb(234_240_246/0.4)_100%)] shadow-[var(--shadow-elevated)]"
-                        : "border-l-transparent hover:bg-surface-muted/80"
+                        ? "border-l-pillar-teal bg-[linear-gradient(180deg,rgb(231_244_242/0.92)_0%,rgb(234_240_246/0.5)_100%)] shadow-[var(--shadow-elevated)]"
+                        : "border-l-transparent hover:bg-surface/80 hover:shadow-[var(--shadow-card)]"
                     }`}
                   >
                     <div className="flex min-w-0 items-start gap-3">
@@ -196,7 +196,7 @@ export function DocumentsWorkspace({
           </ul>
           {selected ? (
             <div
-              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[14px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_70%,rgb(231_244_242/0.35)_100%)] px-4 py-4 shadow-[var(--shadow-elevated)]`}
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[16px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#f7fafb_62%,rgb(231_244_242/0.45)_100%)] px-4 py-4 shadow-[var(--shadow-float)]`}
             >
               <button
                 type="button"

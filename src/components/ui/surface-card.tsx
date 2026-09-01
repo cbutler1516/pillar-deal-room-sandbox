@@ -51,7 +51,7 @@ export function CardHeader({
   return (
     <div
       className={`flex flex-wrap items-start justify-between gap-2 ${
-        compact ? "mb-2" : "mb-4"
+        compact ? "mb-2" : "mb-4 border-b border-line/70 pb-2"
       }`}
     >
       <div>

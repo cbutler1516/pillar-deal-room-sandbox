@@ -5,11 +5,13 @@ import { surfaceClass } from "@/components/ui/styles";
 import { formatFollowUpAt } from "@/lib/format";
 import {
   QUEUE_ACCENT_EDGE,
+  QUEUE_FOOTER_TINT,
   QUEUE_SECTION_WASH,
   queueCardAccent,
   queueCardBody,
   queueContextLine,
   queueWorkCardLabel,
+  workActionChipClass,
   type QueueCardAccent,
 } from "@/lib/ui/queue-card";
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
@@ -53,7 +55,13 @@ export function NextActionsQueue({
   const tone = accent ?? (rows[0] ? queueCardAccent(rows[0].queueSection) : undefined);
   return (
     <section>
-      <div className={tone ? `-mx-1 mb-1 rounded-[10px] px-2 pt-1.5 ${QUEUE_SECTION_WASH[tone]}` : ""}>
+      <div
+        className={
+          tone
+            ? `-mx-1 mb-2 rounded-[12px] border border-line/70 px-2.5 py-1.5 ${QUEUE_SECTION_WASH[tone]}`
+            : "mb-2 border-y border-line/60 py-1.5"
+        }
+      >
       <CardHeader
         title={title}
         description={description}
@@ -138,7 +146,7 @@ function WorkCard({
           actionLabel: row.actionLabel,
           ownerName: owner,
         })}
-        className={`${surfaceClass("elevated", true)} block h-full border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/35 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 py-3`}
+        className={`${surfaceClass("elevated", true)} block h-full overflow-hidden border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
       >
         <div aria-hidden className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
           <p className="truncate text-[13px] font-semibold leading-4 tracking-[0.04em] text-ink uppercase">
@@ -157,9 +165,11 @@ function WorkCard({
               {reason}
             </p>
           ) : null}
-          <div className="mt-auto flex items-center justify-between gap-3 border-t border-line/80 pt-2.5">
+          <div
+            className={`-mx-3.5 mt-auto flex items-center justify-between gap-3 border-t border-line/70 px-3.5 py-2 ${QUEUE_FOOTER_TINT[accent]}`}
+          >
             <StaffPresence name={owner} unassigned={!owner} size={28} />
-            <span className="shrink-0 text-xs font-medium leading-4 text-pillar-teal">
+            <span className={workActionChipClass(row.actionLabel)}>
               {row.actionLabel} →
             </span>
           </div>

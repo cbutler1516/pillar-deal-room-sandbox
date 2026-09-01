@@ -72,7 +72,7 @@ export function DealWorkspaceHeader({
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
-    <div className="rounded-[14px] border border-line/80 bg-[linear-gradient(165deg,rgb(231_244_242/0.55)_0%,#ffffff_46%,rgb(234_240_246/0.4)_100%)] px-5 py-5 shadow-[var(--shadow-card)]">
+    <div className="rounded-[16px] border border-pillar-navy/12 bg-[linear-gradient(160deg,rgb(11_31_58/0.08)_0%,rgb(231_244_242/0.82)_30%,#ffffff_64%,rgb(234_240_246/0.55)_100%)] px-5 py-5 shadow-[var(--shadow-elevated)]">
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
           <div className="min-w-0 flex-1">
@@ -102,17 +102,19 @@ export function DealWorkspaceHeader({
         </div>
 
         {loanAmount !== "—" ? (
-          <div className="min-w-[8.5rem] rounded-[12px] border border-line/70 bg-surface/70 px-3.5 py-3">
-            <p className="text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
+          <div className="min-w-[8.5rem] rounded-[16px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#f4f7fa_100%)] px-4 py-3.5 shadow-[var(--shadow-card)]">
+            <p className="text-[1.85rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
               {loanAmount}
             </p>
-            <p className="mt-1.5 text-[11px] text-ink-muted">Loan request</p>
+            <p className="mt-1.5 text-[11px] tracking-wide text-ink-muted uppercase">
+              Loan request
+            </p>
           </div>
         ) : null}
 
         <div className="flex flex-col items-start gap-3 lg:items-end">
           <div className="flex items-center gap-2.5">
-            <StaffAvatar name={ownerName} unassigned={unassigned} size={40} />
+            <StaffAvatar name={ownerName} unassigned={unassigned} size={48} />
             <div className="min-w-0">
               <p className="text-sm font-medium text-ink">
                 {unassigned ? "Unassigned" : ownerName}
@@ -207,7 +209,7 @@ function DealProgressStrip({
             state === "future"
               ? "h-3.5 w-3.5 border-line bg-surface text-ink-muted shadow-[var(--shadow-card)]"
               : state === "current"
-                ? "h-4 w-4 border-2 border-pillar-teal bg-white shadow-[var(--shadow-elevated)] ring-4 ring-pillar-teal/22"
+                ? "h-[18px] w-[18px] border-2 border-pillar-teal bg-white shadow-[var(--shadow-elevated)] ring-4 ring-pillar-teal/28"
                 : "h-3.5 w-3.5 border-pillar-teal bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]";
           return (
             <li key={stage.key} className="relative flex flex-col items-center">
@@ -376,7 +378,7 @@ export function DealOverview({
 
       {nextAction && presentation ? (
         <section
-          className={`${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal bg-[linear-gradient(135deg,var(--pillar-teal-soft)_0%,rgb(234_240_246/0.55)_100%)] px-5 py-5`}
+          className={`${surfaceClass("floating")} border-l-4 border-l-pillar-teal bg-[linear-gradient(135deg,var(--pillar-teal-soft)_0%,#ffffff_55%,rgb(234_240_246/0.7)_100%)] px-5 py-5`}
         >
           <p className="text-[11px] font-semibold tracking-[0.08em] text-pillar-teal uppercase">
             Next action
@@ -456,7 +458,7 @@ export function DealOverview({
           <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
             Deal snapshot
           </h3>
-          <dl className={`${surfaceClass("card")} mt-4 grid grid-cols-2 divide-y divide-line overflow-hidden sm:grid-cols-4 sm:divide-x sm:divide-y-0`}>
+          <dl className={`${surfaceClass("elevated")} mt-4 grid grid-cols-2 divide-y divide-line overflow-hidden sm:grid-cols-4 sm:divide-x sm:divide-y-0`}>
             {snapshot.map((row) => (
               <div
                 key={row.label}

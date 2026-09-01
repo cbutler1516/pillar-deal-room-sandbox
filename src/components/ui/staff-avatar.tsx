@@ -19,7 +19,7 @@ const SIZE_CLASS: Record<StaffAvatarSize, string> = {
 };
 
 const DEPTH =
-  "shadow-[0_1px_3px_rgb(11_31_58/0.16)] ring-2 ring-offset-2 ring-offset-workspace";
+  "shadow-[0_2px_6px_rgb(11_31_58/0.2)] ring-2 ring-offset-2 ring-offset-workspace transition duration-200 hover:shadow-[0_3px_8px_rgb(11_31_58/0.26)] motion-reduce:transition-none";
 
 export function StaffAvatar({
   name,
@@ -56,7 +56,7 @@ export function StaffAvatar({
   }
 
   if (resolved && !failed) {
-    const photoClass = `${frame} object-cover ${DEPTH} ring-pillar-teal/40`;
+    const photoClass = `${frame} object-cover ${DEPTH} ring-pillar-teal/60 hover:ring-pillar-teal/85`;
     if (resolved.startsWith("/")) {
       return (
         <Image
@@ -89,7 +89,7 @@ export function StaffAvatar({
   return (
     <span
       className={`${frame} ${tone.bg} ${tone.fg} ${DEPTH} ${
-        kind === "staff" ? "ring-pillar-teal/25" : "ring-line"
+        kind === "staff" ? "ring-pillar-teal/40 hover:ring-pillar-teal/65" : "ring-slate/35"
       }`}
       title={title}
       aria-label={title}

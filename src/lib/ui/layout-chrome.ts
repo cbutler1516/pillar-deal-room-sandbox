@@ -18,4 +18,4 @@ export const inspectorStickyClass = [
 ].join(" ");
 
 export const dealTabsStickyClass =
-  "pointer-events-none sticky top-[var(--app-header-height)] z-10 -mx-3 bg-[rgb(232_237_243/0.88)] px-3 backdrop-blur-sm sm:-mx-5 sm:px-5";
+  "pointer-events-none sticky top-[var(--app-header-height)] z-10 -mx-3 bg-[rgb(212_219_230/0.9)] px-3 backdrop-blur-sm sm:-mx-5 sm:px-5";

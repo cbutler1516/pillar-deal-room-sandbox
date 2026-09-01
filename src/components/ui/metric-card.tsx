@@ -6,18 +6,25 @@ export type MetricAccent = "attention" | "waiting" | "review" | "ready";
 
 const ACCENT: Record<MetricAccent, string> = {
   attention:
-    "text-warning bg-[linear-gradient(180deg,var(--warning-soft)_0%,rgb(248_241_221/0.55)_100%)]",
+    "text-danger bg-[linear-gradient(180deg,var(--danger-soft)_0%,rgb(248_234_234/0.55)_100%)]",
   waiting:
-    "text-info bg-[linear-gradient(180deg,var(--info-soft)_0%,rgb(234_240_246/0.5)_100%)]",
+    "text-amber bg-[linear-gradient(180deg,var(--amber-soft)_0%,rgb(248_241_221/0.5)_100%)]",
   review:
-    "text-pillar-teal bg-[linear-gradient(180deg,var(--pillar-teal-soft)_0%,rgb(231_244_242/0.5)_100%)]",
+    "text-pillar-teal bg-[linear-gradient(180deg,var(--pillar-teal-soft)_0%,rgb(231_244_242/0.45)_100%)]",
   ready:
-    "text-success bg-[linear-gradient(180deg,var(--success-soft)_0%,rgb(232_245_238/0.5)_100%)]",
+    "text-success bg-[linear-gradient(180deg,var(--success-soft)_0%,rgb(232_245_238/0.45)_100%)]",
+};
+
+const WASH: Record<MetricAccent, string> = {
+  attention: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(248_234_234/0.28)_100%)]",
+  waiting: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(248_241_221/0.3)_100%)]",
+  review: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(231_244_242/0.32)_100%)]",
+  ready: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(232_245_238/0.28)_100%)]",
 };
 
 const TOP: Record<MetricAccent, string> = {
-  attention: "border-t-[3px] border-t-warning",
-  waiting: "border-t-[3px] border-t-info",
+  attention: "border-t-[3px] border-t-danger",
+  waiting: "border-t-[3px] border-t-amber",
   review: "border-t-[3px] border-t-pillar-teal",
   ready: "border-t-[3px] border-t-success",
 };
@@ -42,17 +49,17 @@ export function MetricCard({
           {value}
         </p>
         <span
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgb(255_255_255/0.7)] ${ACCENT[accent]}`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgb(255_255_255/0.75),0_1px_3px_rgb(11_31_58/0.08)] ${ACCENT[accent]}`}
           aria-hidden
         >
-          <MetricIcon accent={accent} className="h-3.5 w-3.5" />
+          <MetricIcon accent={accent} className="h-4 w-4" />
         </span>
       </div>
       <p className={`mt-1.5 leading-4 ${labelClass}`}>{label}</p>
       {hint ? <p className="mt-0.5 text-[11px] leading-4 text-ink-muted">{hint}</p> : null}
     </>
   );
-  const frame = `${surfaceClass("elevated", Boolean(href))} ${TOP[accent]} block px-3.5 py-2.5`;
+  const frame = `${surfaceClass("elevated", Boolean(href))} ${WASH[accent]} ${TOP[accent]} block px-3.5 py-2.5`;
   if (href) {
     return (
       <Link href={href} className={frame}>

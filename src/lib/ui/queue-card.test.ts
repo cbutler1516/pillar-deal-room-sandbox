@@ -4,9 +4,16 @@ import {
   queueCardBody,
   queueContextLine,
   queueWorkCardLabel,
+  workActionChipClass,
 } from "@/lib/ui/queue-card";
 
 describe("queue card presentation", () => {
+  it("treats Escalate as a semantic chip and other actions as teal pills", () => {
+    expect(workActionChipClass("Escalate")).toContain("text-danger");
+    expect(workActionChipClass("Review document")).toContain("text-pillar-teal");
+    expect(workActionChipClass("Get replacement")).toContain("bg-pillar-teal-soft");
+  });
+
   it("maps Queue Today sections to restrained accents", () => {
     expect(queueCardAccent("urgent")).toBe("urgent");
     expect(queueCardAccent("needs_review")).toBe("review");
