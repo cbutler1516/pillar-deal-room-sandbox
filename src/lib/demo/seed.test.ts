@@ -126,13 +126,16 @@ describe("idempotent demo seed", () => {
     expect(casey?.deal.assigned_processor_id).toBeNull();
     expect(casey?.tasks.filter((task) => task.source_type === "lender")).toHaveLength(3);
     expect(avery?.tasks.filter((task) => task.source_type === "lender")).toHaveLength(3);
+    const brooks = seeded.find((row) => row.deal.borrower_name === "Casey Brooks");
     expect(
-      seeded
-        .find((row) => row.deal.borrower_name === "Casey Brooks")
-        ?.tasks.some(
-          (task) => task.source_type === "lender" && task.status === "completed",
-        ),
+      brooks?.tasks.some(
+        (task) => task.source_type === "lender" && task.status === "completed",
+      ),
     ).toBe(true);
+    expect(brooks?.deal.application_intake).toMatchObject({
+      source: "sandbox_application",
+      purchasePrice: "2100000",
+    });
     expect(avery?.tasks.map((task) => task.playbook_key)).toEqual(
       expect.arrayContaining([
         "request_insurance_binder",

@@ -31,6 +31,6 @@ export const DEMO_GUIDE_STEPS = [
   },
   {
     title: "Open the ready file",
-    body: "Readiness is deterministic — not an AI guess.",
+    body: "Casey Brooks opens on Submission. Readiness is deterministic — not an AI guess.",
   },
 ] as const;

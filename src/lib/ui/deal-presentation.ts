@@ -117,9 +117,15 @@ export function dealSnapshotMetrics(input: {
 
 export function nextActionPresentation(input: {
   action: string;
-  target: "tasks" | "needs" | "documents" | "contacts" | "conditions";
+  target: "tasks" | "needs" | "documents" | "contacts" | "conditions" | "submission";
 }): { context: string; cta: string } {
   const action = input.action.toLowerCase();
+  if (input.target === "submission" || action.includes("prepare lender submission")) {
+    return {
+      context: "Required-now items are complete. Prepare the lender package from stored file facts.",
+      cta: "Open submission",
+    };
+  }
   if (action.includes("review replacement")) {
     return {
       context: "A replacement document has been received and needs processor review.",

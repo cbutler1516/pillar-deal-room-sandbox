@@ -79,6 +79,9 @@ export function humanizeWorkAction(row: {
   const action = row.recommendedAction.trim();
   const type = row.workType;
 
+  if (type === "ready_to_submit" || type === "near_ready" || row.target === "submission") {
+    return "Prepare submission";
+  }
   if (type === "escalation_due") {
     return "Follow up";
   }

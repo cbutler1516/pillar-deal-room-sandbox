@@ -87,6 +87,13 @@ describe("staff copy", () => {
         target: "tasks",
       }),
     ).toBe("Review file");
+    expect(
+      humanizeWorkAction({
+        recommendedAction: "Prepare submission",
+        workType: "ready_to_submit",
+        target: "submission",
+      }),
+    ).toBe("Prepare submission");
   });
 
   it("removes robotic assist phrasing without changing facts", () => {

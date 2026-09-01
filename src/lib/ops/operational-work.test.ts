@@ -484,6 +484,66 @@ describe("lender condition work", () => {
   });
 });
 
+describe("submission queue destinations", () => {
+  it("sends ready files to the Submission workspace", () => {
+    const items = collectOperationalWork({
+      deals: [
+        deal({
+          status: "ready_for_submission",
+          assignedProcessorId: "proc-1",
+        }),
+      ],
+      needs: [
+        need({
+          id: "need-id",
+          documentType: "Government-issued ID",
+          status: "approved",
+        }),
+      ],
+      documents: [],
+      tasks: [],
+      now: NOW,
+    });
+    const ready = items.filter((row) => row.workType === "ready_to_submit");
+    expect(ready).toHaveLength(1);
+    expect(ready[0]?.href).toContain("tab=submission");
+    expect(ready[0]?.recommendedAction).toBe("Prepare submission");
+    expect(ready[0]?.target).toBe("submission");
+  });
+
+  it("keeps condition work after submit and drops prepare-submission work", () => {
+    const items = collectOperationalWork({
+      deals: [deal({ status: "submitted", assignedProcessorId: "proc-1" })],
+      needs: [
+        need({
+          id: "need-earnest",
+          documentType: "Proof of earnest money",
+          status: "missing",
+        }),
+      ],
+      documents: [],
+      tasks: [
+        task({
+          id: "task-condition",
+          title: "Proof earnest money deposit",
+          sourceType: "lender",
+          playbookKey: "lender_condition",
+          taskKind: "request_document",
+          status: "open",
+          lastContactedAt: "2026-08-29T10:00:00.000Z",
+          nextFollowUpAt: "2026-08-30T10:00:00.000Z",
+          followUpIntervalHours: 24,
+          clientNeedId: "need-earnest",
+        }),
+      ],
+      now: NOW,
+    });
+    expect(items.some((row) => row.workType === "ready_to_submit")).toBe(false);
+    expect(items.some((row) => row.workType === "unassigned_file")).toBe(false);
+    expect(items.some((row) => row.sourceId === "task-condition")).toBe(true);
+  });
+});
+
 describe("waiting language", () => {
   it("says no request was sent instead of waiting on nobody", () => {
     const items = collectOperationalWork(caseyInput());

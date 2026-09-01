@@ -11,10 +11,10 @@ import {
   canClaimDeal,
   canMutateWorkflow,
   canUnclaimDeal,
-  evaluateSubmissionReadiness,
 } from "@/lib/ops/workflow";
 import { nextFollowUpFromCadence } from "@/lib/contacts/logic";
 import { assertSandboxGuard } from "@/lib/sandbox";
+import { readinessFromRows } from "@/lib/submission/readiness";
 import { logAuthorizedActivity } from "@/lib/workflow/activity";
 
 export type WorkflowResult = {
@@ -142,7 +142,7 @@ export async function updateDealStatusAction(
     return { error: "Deal not found." };
   }
 
-  if (status === "ready_for_submission") {
+  if (status === "ready_for_submission" || status === "submitted") {
     const [{ data: needs }, { data: tasks }] = await Promise.all([
       supabase
         .from("client_needs")
@@ -150,25 +150,27 @@ export async function updateDealStatusAction(
         .eq("deal_id", dealId),
       supabase
         .from("tasks")
-        .select("status, blocked_reason, timing, client_need_id")
+        .select(
+          "status, blocked_reason, timing, client_need_id, title, source_type, task_type, playbook_key",
+        )
         .eq("deal_id", dealId),
     ]);
-    const timingByNeed = new Map(
-      (tasks ?? [])
-        .filter((task) => task.client_need_id)
-        .map((task) => [task.client_need_id as string, task.timing as string | null]),
-    );
-    const readiness = evaluateSubmissionReadiness({
+    const readiness = readinessFromRows({
       needs: (needs ?? []).map((need) => ({
+        id: need.id,
         required: Boolean(need.required),
         status: need.status,
         documentType: need.document_type,
-        timing: timingByNeed.get(need.id) ?? null,
       })),
       tasks: (tasks ?? []).map((task) => ({
         status: task.status,
         blockedReason: task.blocked_reason,
         timing: task.timing,
+        clientNeedId: task.client_need_id,
+        title: task.title,
+        sourceType: task.source_type,
+        taskType: task.task_type,
+        playbookKey: task.playbook_key,
       })),
     });
     if (!readiness.ready) {

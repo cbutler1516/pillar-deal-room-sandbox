@@ -212,6 +212,16 @@ export function nextActionFromWorkItem(
         href,
         target,
       };
+    case "ready_to_submit":
+    case "near_ready":
+      return {
+        action: "Prepare lender submission",
+        source: row.loanType,
+        contactName: null,
+        dueAt: null,
+        href,
+        target,
+      };
     default:
       return {
         action: row.reason,
