@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { QueueActionBar } from "@/components/queue-actions/queue-action-bar";
 import { StaffPresence } from "@/components/ui/staff-avatar";
 import { CardHeader } from "@/components/ui/surface-card";
 import { surfaceClass } from "@/components/ui/styles";
 import { formatFollowUpAt } from "@/lib/format";
+import type { QueueActionPlan } from "@/lib/queue-actions/derive";
 import {
   QUEUE_ACCENT_EDGE,
   QUEUE_FOOTER_TINT,
@@ -11,7 +13,6 @@ import {
   queueCardBody,
   queueContextLine,
   queueWorkCardLabel,
-  workActionChipClass,
   type QueueCardAccent,
 } from "@/lib/ui/queue-card";
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
@@ -31,6 +32,7 @@ export type QueueDisplayRow = {
   assignedProcessorId?: string | null;
   queueSection?: QueueTodaySection | string | null;
   dueAt?: string | null;
+  actionPlan?: QueueActionPlan;
 };
 
 export function NextActionsQueue({
@@ -42,6 +44,7 @@ export function NextActionsQueue({
   compact = false,
   accent,
   layout = "list",
+  interactive = true,
 }: {
   rows: QueueDisplayRow[];
   staffNames?: Record<string, string>;
@@ -51,6 +54,7 @@ export function NextActionsQueue({
   compact?: boolean;
   accent?: QueueCardAccent;
   layout?: "list" | "grid";
+  interactive?: boolean;
 }) {
   const tone = accent ?? (rows[0] ? queueCardAccent(rows[0].queueSection) : undefined);
   return (
@@ -62,17 +66,17 @@ export function NextActionsQueue({
             : "mb-2 border-y border-line/60 py-1.5"
         }
       >
-      <CardHeader
-        title={title}
-        description={description}
-        meta={rows.length}
-        accent={tone}
-        compact={compact}
-      />
+        <CardHeader
+          title={title}
+          description={description}
+          meta={rows.length}
+          accent={tone}
+          compact={compact}
+        />
       </div>
       {rows.length === 0 ? (
         <p className="rounded-[14px] border border-dashed border-line bg-surface-muted/50 px-3 py-5 text-sm leading-6 text-ink-muted">
-          {empty}
+          {empty === "Nothing needs your attention." ? "You're caught up here." : empty}
         </p>
       ) : (
         <ul
@@ -90,7 +94,12 @@ export function NextActionsQueue({
               : null;
             return (
               <li key={row.id} className={layout === "grid" ? "min-w-0" : undefined}>
-                <WorkCard row={row} owner={owner} tall={layout === "grid"} />
+                <WorkCard
+                  row={row}
+                  owner={owner}
+                  tall={layout === "grid"}
+                  interactive={interactive}
+                />
               </li>
             );
           })}
@@ -104,10 +113,12 @@ function WorkCard({
   row,
   owner,
   tall,
+  interactive,
 }: {
   row: QueueDisplayRow;
   owner: string | null;
   tall: boolean;
+  interactive: boolean;
 }) {
   const accent = queueCardAccent(row.queueSection);
   const context =
@@ -134,21 +145,24 @@ function WorkCard({
     actionLabel: row.actionLabel,
   });
   const reason = body.reason;
+  const useActions = interactive && row.actionPlan;
 
   return (
-    <article className={tall ? "h-full" : undefined}>
-      <Link
-        href={row.href}
-        aria-label={queueWorkCardLabel({
-          borrowerName: row.borrowerName,
-          title: body.workItem,
-          reason: reason ?? "",
-          actionLabel: row.actionLabel,
-          ownerName: owner,
-        })}
-        className={`${surfaceClass("elevated", true)} block h-full overflow-hidden border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
-      >
-        <div aria-hidden className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
+    <article
+      className={`${surfaceClass("elevated")} relative overflow-hidden border-l-[3px] ${QUEUE_ACCENT_EDGE[accent]} ${tall ? "h-full" : ""}`}
+    >
+      <div className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
+        <Link
+          href={row.href}
+          className="block px-3.5 pt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40"
+          aria-label={queueWorkCardLabel({
+            borrowerName: row.borrowerName,
+            title: body.workItem,
+            reason: reason ?? "",
+            actionLabel: row.actionLabel,
+            ownerName: owner,
+          })}
+        >
           <p className="truncate text-[13px] font-semibold leading-4 tracking-[0.04em] text-ink uppercase">
             {row.borrowerName}
           </p>
@@ -165,16 +179,24 @@ function WorkCard({
               {reason}
             </p>
           ) : null}
-          <div
-            className={`-mx-3.5 mt-auto flex items-center justify-between gap-3 border-t border-line/70 px-3.5 py-2 ${QUEUE_FOOTER_TINT[accent]}`}
-          >
-            <StaffPresence name={owner} unassigned={!owner} size={28} />
-            <span className={workActionChipClass(row.actionLabel)}>
+        </Link>
+        <div
+          className={`-mx-0 mt-auto flex items-center justify-between gap-3 border-t border-line/70 px-3.5 py-2 ${QUEUE_FOOTER_TINT[accent]}`}
+        >
+          <StaffPresence name={owner} unassigned={!owner} size={28} />
+          {useActions ? (
+            <QueueActionBar
+              plan={row.actionPlan!}
+              actionLabel={row.actionLabel}
+              href={row.href}
+            />
+          ) : (
+            <Link href={row.href} className="text-xs font-medium text-pillar-teal">
               {row.actionLabel} →
-            </span>
-          </div>
+            </Link>
+          )}
         </div>
-      </Link>
+      </div>
     </article>
   );
 }

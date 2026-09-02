@@ -7,6 +7,7 @@ import {
 } from "@/lib/ops/operational-work";
 import { staffCalendarDate } from "@/lib/format";
 import { contactRoleFromText, humanizeWorkAction, humanizeWorkReason } from "@/lib/ui/staff-copy";
+import { deriveQueueActionPlan, type QueueActionPlan } from "@/lib/queue-actions/derive";
 
 export { QUEUE_TODAY_SECTIONS };
 export type { QueueTodaySection };
@@ -113,7 +114,7 @@ export function taskPrimaryActionLabel(input: {
 
 export function workQueueRow(
   row: OperationalWorkItem,
-  extra: { location?: string | null } = {},
+  extra: { location?: string | null; canMutate?: boolean } = {},
 ): {
   id: string;
   dealId: string;
@@ -129,6 +130,7 @@ export function workQueueRow(
   assignedProcessorId: string | null;
   queueSection: QueueTodaySection;
   dueAt: string | null;
+  actionPlan: QueueActionPlan;
 } {
   return {
     id: row.id,
@@ -145,5 +147,8 @@ export function workQueueRow(
     assignedProcessorId: row.assignedProcessorId,
     queueSection: row.queueSection,
     dueAt: row.dueAt,
+    actionPlan: deriveQueueActionPlan(row, {
+      canMutate: extra.canMutate ?? true,
+    }),
   };
 }
