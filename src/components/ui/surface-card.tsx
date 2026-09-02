@@ -33,6 +33,35 @@ export function SurfaceCard({
   );
 }
 
+/**
+ * Editorial section header for unboxed composition.
+ * Use instead of SurfaceCard when a region should read as part of the page
+ * rather than a floating card.
+ */
+export function SectionHeader({
+  title,
+  meta,
+  actions,
+}: {
+  title: string;
+  meta?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2">
+      <div className="flex items-baseline gap-2.5">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+          {title}
+        </h3>
+        {meta != null ? (
+          <span className="text-xs tabular-nums text-ink-muted">{meta}</span>
+        ) : null}
+      </div>
+      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+    </div>
+  );
+}
+
 export function CardHeader({
   title,
   description,

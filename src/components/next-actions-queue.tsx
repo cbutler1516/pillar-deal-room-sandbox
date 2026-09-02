@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StaffPresence } from "@/components/ui/staff-avatar";
+import { StaffAvatar, StaffPresence } from "@/components/ui/staff-avatar";
 import { CardHeader } from "@/components/ui/surface-card";
 import { surfaceClass } from "@/components/ui/styles";
 import { formatFollowUpAt } from "@/lib/format";
@@ -58,8 +58,8 @@ export function NextActionsQueue({
       <div
         className={
           tone
-            ? `-mx-1 mb-2 rounded-[12px] border border-line/70 px-2.5 py-1.5 ${QUEUE_SECTION_WASH[tone]}`
-            : "mb-2 border-y border-line/60 py-1.5"
+            ? `mb-2 border-b border-line px-0 py-1.5 ${QUEUE_SECTION_WASH[tone]}`
+            : "mb-2 border-b border-line py-1.5"
         }
       >
       <CardHeader
@@ -71,7 +71,7 @@ export function NextActionsQueue({
       />
       </div>
       {rows.length === 0 ? (
-        <p className="rounded-[14px] border border-dashed border-line bg-surface-muted/50 px-3 py-5 text-sm leading-6 text-ink-muted">
+        <p className="border border-dashed border-line bg-stone/50 px-3 py-5 text-sm leading-6 text-ink-muted">
           {empty}
         </p>
       ) : (
@@ -79,9 +79,7 @@ export function NextActionsQueue({
           className={
             layout === "grid"
               ? "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
-              : compact
-                ? "space-y-2"
-                : "space-y-2.5"
+              : "divide-y divide-line border-y border-line"
           }
         >
           {rows.map((row) => {
@@ -90,13 +88,82 @@ export function NextActionsQueue({
               : null;
             return (
               <li key={row.id} className={layout === "grid" ? "min-w-0" : undefined}>
-                <WorkCard row={row} owner={owner} tall={layout === "grid"} />
+                {layout === "grid" ? (
+                  <WorkCard row={row} owner={owner} tall />
+                ) : (
+                  <WorkRow row={row} owner={owner} />
+                )}
               </li>
             );
           })}
         </ul>
       )}
     </section>
+  );
+}
+
+/** Dense ledger row — default Queue presentation. */
+function WorkRow({ row, owner }: { row: QueueDisplayRow; owner: string | null }) {
+  const accent = queueCardAccent(row.queueSection);
+  const context =
+    queueContextLine({ loanType: row.loanType, location: row.location }) ??
+    (row.entityName && row.entityName.trim() && row.entityName !== row.borrowerName
+      ? row.entityName
+      : null);
+  const due =
+    row.dueAt && !row.reason.toLowerCase().includes("due")
+      ? formatFollowUpAt(row.dueAt)
+      : null;
+  const body = queueCardBody({
+    title: row.title,
+    reason: `${row.reason}${due ? ` · ${due}` : ""}`,
+    loanType: row.loanType,
+    queueSection: row.queueSection,
+    assigned: Boolean(owner),
+    actionLabel: row.actionLabel,
+  });
+
+  return (
+    <Link
+      href={row.href}
+      aria-label={queueWorkCardLabel({
+        borrowerName: row.borrowerName,
+        title: body.workItem,
+        reason: body.reason ?? "",
+        actionLabel: row.actionLabel,
+        ownerName: owner,
+      })}
+      className={`flex items-center gap-3 border-l-2 px-3 py-2.5 transition hover:bg-stone focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]}`}
+    >
+      <span aria-hidden className="contents">
+        <StaffAvatar name={owner} unassigned={!owner} size={28} />
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-baseline gap-x-2">
+            <span className="truncate text-[13px] font-semibold tracking-[0.02em] text-ink uppercase">
+              {row.borrowerName}
+            </span>
+            {context ? (
+              <span className="truncate text-[11px] text-ink-muted">{context}</span>
+            ) : null}
+          </span>
+          <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+            <span className="truncate text-[13px] text-ink">{body.workItem}</span>
+            {body.reason ? (
+              <span
+                className={`truncate text-[11px] ${
+                  row.hot ? "text-warning" : "text-ink-muted"
+                }`}
+              >
+                {body.reason}
+              </span>
+            ) : null}
+          </span>
+        </span>
+        <span className={workActionChipClass(row.actionLabel)}>
+          {row.actionLabel} →
+        </span>
+      </span>
+    </Link>
   );
 }
 
@@ -146,7 +213,7 @@ function WorkCard({
           actionLabel: row.actionLabel,
           ownerName: owner,
         })}
-        className={`${surfaceClass("elevated", true)} block h-full overflow-hidden border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
+        className={`${surfaceClass("card", true)} block h-full overflow-hidden border-l-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
       >
         <div aria-hidden className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
           <p className="truncate text-[13px] font-semibold leading-4 tracking-[0.04em] text-ink uppercase">

@@ -59,7 +59,7 @@ export function AttachExistingPanel({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-line bg-surface-muted p-3">
+    <div className="space-y-3 rounded-[10px] border border-line bg-surface-muted p-3">
       <p className="text-xs font-medium text-ink">Attach existing</p>
       <p className="text-[11px] text-ink-muted">
         Same-deal metadata only. Linking does not copy or re-upload a file.
@@ -127,7 +127,7 @@ export function AttachExistingPanel({
         type="button"
         disabled={selected.length === 0}
         onClick={() => void attach()}
-        className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+        className="rounded-[8px] bg-mineral px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
       >
         Attach selected
       </button>

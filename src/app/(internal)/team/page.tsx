@@ -70,12 +70,10 @@ export default async function TeamPage() {
 
 function UnassignedCard({ row }: { row: TeamWorkloadRow }) {
   return (
-    <section
-      className={`${surfaceClass("elevated")} border-l-4 border-l-rose-400 px-5 py-4`}
-    >
+    <section className="border-l-2 border-danger bg-stone/40 px-5 py-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <StaffAvatar unassigned size={48} label="Unassigned work" />
+          <StaffAvatar unassigned size={40} label="Unassigned work" />
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-ink">Unassigned</h3>
             <p className="mt-0.5 text-xs text-ink-muted">
@@ -104,10 +102,12 @@ function WorkloadCard({ row }: { row: TeamWorkloadRow }) {
   return (
     <article className={`${surfaceClass("card")} px-4 py-4`}>
       <div className="flex items-start gap-3">
-        <StaffAvatar name={row.name} size={48} label={`${row.name}, ${row.role}`} />
+        <StaffAvatar name={row.name} size={40} label={`${row.name}, ${row.role}`} />
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-ink">{row.name}</h3>
-          <p className="text-xs text-ink-muted">{row.role}</p>
+          <p className="text-[11px] uppercase tracking-[0.08em] text-ink-muted">
+            {row.role}
+          </p>
         </div>
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -133,7 +133,9 @@ function Count({
 }) {
   return (
     <div>
-      <dt className="text-[11px] text-ink-muted">{label}</dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+        {label}
+      </dt>
       <dd className="mt-0.5 font-semibold tabular-nums text-ink">{value}</dd>
     </div>
   );

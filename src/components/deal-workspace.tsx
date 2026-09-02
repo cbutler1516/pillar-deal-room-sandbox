@@ -3,9 +3,9 @@ import { StatusChip } from "@/components/status-chip";
 import { TabList } from "@/components/ui/controls";
 import { PropertyThumb } from "@/components/ui/property-thumb";
 import { StaffAvatar } from "@/components/ui/staff-avatar";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
+import { SectionHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
-import { labelClass, surfaceClass } from "@/components/ui/styles";
+import { labelClass } from "@/components/ui/styles";
 import {
   applicationIntakeFromUnknown,
   intakeDisplayGroups,
@@ -75,12 +75,12 @@ export function DealWorkspaceHeader({
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
-    <div className="rounded-[16px] border border-pillar-navy/12 bg-[linear-gradient(160deg,rgb(11_31_58/0.08)_0%,rgb(231_244_242/0.82)_30%,#ffffff_64%,rgb(234_240_246/0.55)_100%)] px-5 py-5 shadow-[var(--shadow-elevated)]">
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+    <div className="border-b border-line pb-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
           <div className="min-w-0 flex-1">
             <p className={labelClass}>{deal.dealReference}</p>
-            <h2 className="mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink uppercase">
+            <h2 className="font-display mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink">
               {deal.borrowerName}
             </h2>
             {deal.entityName ? (
@@ -105,7 +105,7 @@ export function DealWorkspaceHeader({
         </div>
 
         {loanAmount !== "—" ? (
-          <div className="min-w-[8.5rem] rounded-[16px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#f4f7fa_100%)] px-4 py-3.5 shadow-[var(--shadow-card)]">
+          <div className="min-w-[8.5rem] border-l-2 border-accent pl-4">
             <p className="text-[1.85rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
               {loanAmount}
             </p>
@@ -204,16 +204,16 @@ function DealProgressStrip({
       <ol className="relative grid grid-cols-4 gap-2">
         <span
           aria-hidden
-          className="absolute top-[8px] right-4 left-4 h-[2px] rounded-full bg-line"
+          className="absolute top-[6px] right-4 left-4 h-px bg-line"
         />
         {DEAL_PROGRESS_STAGES.map((stage, index) => {
           const state = dealProgressState(status, index);
           const tone =
             state === "future"
-              ? "h-3.5 w-3.5 border-line bg-surface text-ink-muted shadow-[var(--shadow-card)]"
+              ? "h-2.5 w-2.5 border-line bg-surface text-ink-muted"
               : state === "current"
-                ? "h-[18px] w-[18px] border-2 border-pillar-teal bg-white shadow-[var(--shadow-elevated)] ring-4 ring-pillar-teal/28"
-                : "h-3.5 w-3.5 border-pillar-teal bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]";
+                ? "h-3.5 w-3.5 border-2 border-mineral bg-surface ring-4 ring-mineral/12"
+                : "h-2.5 w-2.5 border-mineral bg-mineral text-white";
           return (
             <li key={stage.key} className="relative flex flex-col items-center">
               <span
@@ -223,7 +223,7 @@ function DealProgressStrip({
               <span
                 className={`mt-2 text-center text-[11px] leading-4 ${
                   state === "current"
-                    ? "font-semibold text-pillar-teal"
+                    ? "font-semibold text-mineral"
                     : state === "future"
                       ? "text-ink-muted"
                       : "text-ink"
@@ -243,9 +243,9 @@ function DealProgressStrip({
               ? ` · ${reviewCount} still need review`
               : ""}
           </p>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line/90">
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-line">
             <div
-              className="h-1.5 rounded-full bg-[linear-gradient(90deg,var(--pillar-teal)_0%,var(--aqua)_100%)] transition-[width] duration-200 motion-reduce:transition-none"
+              className="h-1 rounded-full bg-mineral transition-[width] duration-160 motion-reduce:transition-none"
               style={{ width: `${ratio}%` }}
             />
           </div>
@@ -397,8 +397,8 @@ export function DealOverview({
       <DealProgressStrip status={deal.status} received={received} reviewCount={reviewCount} />
 
       {deal.status === "submitted" && submittedLabel ? (
-        <section className={`${surfaceClass("card")} border-l-4 border-l-pillar-navy px-5 py-4`}>
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+        <section className="border-l-2 border-pillar-ink bg-stone/40 px-5 py-4">
+          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
             Submitted
           </p>
           <p className="mt-2 text-sm leading-6 text-ink">{submittedLabel}</p>
@@ -409,13 +409,11 @@ export function DealOverview({
       ) : null}
 
       {nextAction && presentation ? (
-        <section
-          className={`${surfaceClass("floating")} border-l-4 border-l-pillar-teal bg-[linear-gradient(135deg,var(--pillar-teal-soft)_0%,#ffffff_55%,rgb(234_240_246/0.7)_100%)] px-5 py-5`}
-        >
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-pillar-teal uppercase">
+        <section className="border-l-2 border-accent bg-stone/40 px-5 py-5">
+          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
             Next action
           </p>
-          <h3 className="mt-2 text-xl font-semibold tracking-tight text-ink">
+          <h3 className="font-display mt-2 text-xl font-semibold tracking-tight text-ink">
             {nextAction.action}
           </h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
@@ -424,13 +422,13 @@ export function DealOverview({
               ? ` Follow-up ${formatFollowUpAt(nextAction.dueAt)}.`
               : ""}
           </p>
-          <a href={nextAction.href} className={`${buttonClass("accent")} mt-5`}>
+          <a href={nextAction.href} className={`${buttonClass("primary")} mt-5`}>
             {presentation.cta} →
           </a>
         </section>
       ) : (
-        <section className={`${surfaceClass("card")} px-5 py-5`}>
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+        <section className="border-l-2 border-line bg-stone/30 px-5 py-5">
+          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
             Next action
           </p>
           <p className="mt-2 text-sm leading-6 text-ink-muted">
@@ -439,20 +437,20 @@ export function DealOverview({
         </section>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SurfaceCard>
-          <CardHeader title="Current blockers" />
+      <div className="grid gap-8 lg:grid-cols-2">
+        <section>
+          <SectionHeader title="Current blockers" />
           {blockers.length === 0 && rejectedNeeds.length === 0 ? (
             <p className="text-sm text-ink-muted">Nothing is blocking this file.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-line">
               {rejectedNeeds.map((need) => (
-                <li key={need.id} className="text-sm text-danger">
+                <li key={need.id} className="py-2 text-sm text-danger">
                   Replacement {need.documentType} needed
                 </li>
               ))}
               {blockers.slice(0, 6).map((task) => (
-                <li key={task.id} className="text-sm text-ink">
+                <li key={task.id} className="py-2 text-sm text-ink">
                   {task.title}
                   <span className="mt-0.5 block text-xs text-ink-muted">
                     {task.contactMissing
@@ -467,29 +465,29 @@ export function DealOverview({
               ))}
             </ul>
           )}
-        </SurfaceCard>
+        </section>
 
-        <SurfaceCard>
-          <CardHeader title="Waiting on" />
+        <section>
+          <SectionHeader title="Waiting on" />
           {waitingOn.labels.length === 0 ? (
             <p className="text-sm leading-6 text-ink-muted">{waitingOn.empty}</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-line">
               {waitingOn.labels.map((label) => (
-                <li key={label} className="text-sm text-ink">
+                <li key={label} className="py-2 text-sm text-ink">
                   {label}
                 </li>
               ))}
             </ul>
           )}
-        </SurfaceCard>
+        </section>
       </div>
 
       {openConditions > 0 || conditions.cleared > 0 ? (
-        <section className={`${surfaceClass("card")} px-5 py-4`}>
+        <section className="border-y border-line px-0 py-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
+              <h3 className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
                 Conditions
               </h3>
               <p className="mt-2 text-sm text-ink">
@@ -511,19 +509,14 @@ export function DealOverview({
 
       {snapshot.length > 0 ? (
         <section>
-          <h3 className="text-[11px] font-semibold tracking-[0.08em] text-ink-muted uppercase">
-            Deal snapshot
-          </h3>
-          <dl className={`${surfaceClass("elevated")} mt-4 grid grid-cols-2 divide-y divide-line overflow-hidden sm:grid-cols-4 sm:divide-x sm:divide-y-0`}>
+          <SectionHeader title="Transaction snapshot" />
+          <dl className="grid grid-cols-2 divide-y divide-line border-y border-line sm:grid-cols-4 sm:divide-x sm:divide-y-0">
             {snapshot.map((row) => (
-              <div
-                key={row.label}
-                className="px-4 py-4"
-              >
-                <dt className="text-[11px] tracking-wide text-ink-muted uppercase">
+              <div key={row.label} className="px-4 py-4 first:pl-0">
+                <dt className="text-[11px] tracking-[0.08em] text-ink-muted uppercase">
                   {row.label}
                 </dt>
-                <dd className="mt-2 text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
+                <dd className="mt-2 text-[1.5rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
                   {row.value}
                 </dd>
               </div>
@@ -534,7 +527,7 @@ export function DealOverview({
 
       {assist}
 
-      <details className="group rounded-[14px] border border-line bg-surface px-5 py-4">
+      <details className="group rounded-[10px] border border-line bg-surface px-5 py-4">
         <summary className="cursor-pointer text-sm font-semibold text-ink">
           File details
         </summary>
@@ -570,7 +563,7 @@ export function DealOverview({
       </details>
 
       {resolvedIntake ? (
-        <details className="group rounded-[14px] border border-line bg-surface">
+        <details className="group rounded-[10px] border border-line bg-surface">
           <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-ink">
             Application intake
           </summary>
@@ -581,7 +574,7 @@ export function DealOverview({
       ) : null}
 
       {attempts.length > 0 ? (
-        <details className="group rounded-[14px] border border-line bg-surface px-5 py-4">
+        <details className="group rounded-[10px] border border-line bg-surface px-5 py-4">
           <summary className="cursor-pointer text-sm font-semibold text-ink">
             Recent communications
           </summary>

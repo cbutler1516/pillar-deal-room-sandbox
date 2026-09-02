@@ -124,6 +124,28 @@ export function ContactsWorkspace({
         />
       ) : null}
 
+      {active.length > 0 ? (
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-y border-line py-2.5">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            Directory
+          </span>
+          <span className="text-xs text-ink">
+            <span className="font-semibold tabular-nums">{active.length}</span>{" "}
+            {active.length === 1 ? "contact" : "contacts"}
+          </span>
+          {groups
+            .filter((group) => group.rows.length > 0)
+            .map((group) => (
+              <span key={group.key} className="text-xs text-ink-muted">
+                {group.label}{" "}
+                <span className="font-medium tabular-nums text-ink">
+                  {group.rows.length}
+                </span>
+              </span>
+            ))}
+        </div>
+      ) : null}
+
       {active.length === 0 && !showAdd ? (
         <p className="text-sm leading-6 text-ink-muted">
           No people are on this file yet.
@@ -136,7 +158,7 @@ export function ContactsWorkspace({
           }
           return (
             <section key={group.key}>
-              <h4 className="mb-1 text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              <h4 className="mb-1.5 text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
                 {group.label}
               </h4>
               {group.rows.length === 0 ? (
@@ -144,7 +166,7 @@ export function ContactsWorkspace({
                   No {group.label.toLowerCase()} on file.
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="divide-y divide-line border-y border-line">
                   {group.rows.map((contact) => {
                     const open = openId === contact.id;
                     const method =
@@ -152,12 +174,16 @@ export function ContactsWorkspace({
                     return (
                       <li
                         key={contact.id}
-                        className="rounded-[14px] border border-line/70 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_100%)] px-3 py-3 shadow-[var(--shadow-card)]"
+                        className={`border-l-2 px-3 py-2.5 transition ${
+                          open
+                            ? "border-l-mineral bg-stone"
+                            : "border-l-transparent hover:bg-stone/60"
+                        }`}
                       >
                         <div className="flex items-start gap-3">
                           <StaffAvatar
                             name={contact.name}
-                            size={40}
+                            size={32}
                             label={contact.name}
                             kind="external"
                           />
@@ -178,7 +204,7 @@ export function ContactsWorkspace({
                                 </span>
                               ) : null}
                             </p>
-                            <p className="mt-0.5 text-sm leading-6 text-ink-muted">
+                            <p className="mt-0.5 text-xs leading-5 text-ink-muted">
                               {[
                                 contactTypeLabel(contact.contactType),
                                 contact.company,
@@ -186,7 +212,7 @@ export function ContactsWorkspace({
                                 .filter(Boolean)
                                 .join(" · ")}
                             </p>
-                            <p className="text-sm leading-6 text-ink">{method}</p>
+                            <p className="text-xs leading-5 text-ink-muted">{method}</p>
                           </button>
                           <div className="flex shrink-0 flex-wrap items-center gap-1">
                             {contact.email ? (
@@ -298,7 +324,7 @@ function ContactForm({
         }
         onClose();
       }}
-      className="grid gap-2 rounded-xl bg-workspace p-3 sm:grid-cols-2"
+      className="grid gap-2 rounded-[10px] bg-stone p-3 sm:grid-cols-2"
     >
       <input type="hidden" name="dealId" value={dealId} />
       {existing ? <input type="hidden" name="contactId" value={existing.id} /> : null}

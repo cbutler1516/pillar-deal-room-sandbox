@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import type { MorningBriefResult } from "@/lib/command-center/derive";
-import { surfaceClass } from "@/components/ui/styles";
 
 export function MorningBriefPanel({ brief }: { brief: MorningBriefResult }) {
   const [open, setOpen] = useState(false);
   return (
-    <section className={`${surfaceClass("card")} px-4 py-3`}>
+    <section className="border-l-2 border-accent bg-stone/40 px-4 py-3">
       <button
         type="button"
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center justify-between gap-3 text-left"
       >
-        <span className="text-sm font-medium text-ink">AI-assisted morning brief</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+          AI-assisted morning brief
+        </span>
         <span className="text-xs text-ink-muted">{open ? "Hide" : "Show"}</span>
       </button>
       {open ? (

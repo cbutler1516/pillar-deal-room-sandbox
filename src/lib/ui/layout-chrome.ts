@@ -1,12 +1,12 @@
 /**
  * App chrome tokens. Values must match :root in globals.css.
- * Inspector sticks below header + deal tabs and stops above the bottom nav.
- * On lg+ the primary nav moves into the header, so bottom reserve shrinks.
+ * Desktop: dark left rail, no top header — deal tabs stick to workspace top.
+ * Mobile: slim dark top bar; inspector stops above the bottom nav.
  */
-export const APP_HEADER_HEIGHT = "3.5rem";
+export const APP_HEADER_HEIGHT = "3.25rem";
 export const DEAL_TABS_HEIGHT = "2.75rem";
 export const CHROME_GAP = "0.25rem";
-export const APP_BOTTOM_NAV_SPACE = "8rem";
+export const APP_BOTTOM_NAV_SPACE = "5.5rem";
 export const APP_BOTTOM_NAV_SPACE_DESKTOP = "1.5rem";
 
 export const inspectorStickyClass = [
@@ -18,4 +18,4 @@ export const inspectorStickyClass = [
 ].join(" ");
 
 export const dealTabsStickyClass =
-  "pointer-events-none sticky top-[var(--app-header-height)] z-10 -mx-3 bg-[rgb(212_219_230/0.9)] px-3 backdrop-blur-sm sm:-mx-5 sm:px-5";
+  "pointer-events-none sticky top-[var(--app-header-height)] z-10 -mx-3 bg-paper/90 px-3 backdrop-blur-sm sm:-mx-5 sm:px-5";

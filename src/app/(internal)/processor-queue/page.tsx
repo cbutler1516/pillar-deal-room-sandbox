@@ -4,7 +4,14 @@ import { StatusChip } from "@/components/status-chip";
 import { StaffPresence } from "@/components/ui/staff-avatar";
 import { TaskBoard } from "@/components/task-board";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchField, SegmentedControl, SelectField } from "@/components/ui/controls";
+import {
+  ChipGroup,
+  FilterChip,
+  SearchField,
+  SegmentedControl,
+  SelectField,
+  Toolbar,
+} from "@/components/ui/controls";
 import { CardHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
@@ -223,102 +230,94 @@ export default async function ProcessorQueuePage({
         </Link>
       </div>
 
-      <details className="group" open={work !== "all" || assignment !== "all" || Boolean(bucket) || Boolean(source)}>
-        <summary className="cursor-pointer text-sm font-medium text-ink-muted">
-          Filter
-        </summary>
-        <form className="mt-3 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <SearchField
-              name="q"
-              defaultValue={query}
-              placeholder="Search borrower, entity, property, file ID"
-              className="min-w-56 flex-1"
-            />
-            <SelectField name="assignment" defaultValue={assignment}>
-              <option value="all">All</option>
-              <option value="mine">Mine</option>
-              <option value="unassigned">Unassigned</option>
-              {staff.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {staffDisplayName(person)}
-                </option>
+      <Toolbar
+        chips={
+          <>
+            <ChipGroup label="Status">
+              {(
+                [
+                  ["urgent", "Urgent"],
+                  ["due_today", "Due today"],
+                  ["review", "Review"],
+                  ["waiting", "Waiting"],
+                  ["new", "New"],
+                  ["ready", "Ready"],
+                ] as const
+              ).map(([value, label]) => (
+                <FilterChip
+                  key={value}
+                  active={bucket === value}
+                  href={hrefWithQuery("/processor-queue", queryState, {
+                    bucket: bucket === value ? undefined : value,
+                    work: undefined,
+                  })}
+                >
+                  {label}
+                </FilterChip>
               ))}
-            </SelectField>
-            <SelectField name="work" defaultValue={work}>
-              {WORK_FILTERS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+            </ChipGroup>
+            <span aria-hidden className="mx-1 h-4 w-px bg-line" />
+            <ChipGroup label="Source">
+              {(
+                [
+                  ["borrower", "Borrower"],
+                  ["title", "Title"],
+                  ["insurance", "Insurance"],
+                  ["lender", "Lender"],
+                ] as const
+              ).map(([value, label]) => (
+                <FilterChip
+                  key={value}
+                  active={source === value}
+                  href={hrefWithQuery("/processor-queue", queryState, {
+                    source: source === value ? undefined : value,
+                  })}
+                >
+                  {label}
+                </FilterChip>
               ))}
-            </SelectField>
-            <SelectField name="urgency" defaultValue={urgency}>
-              <option value="all">All urgency</option>
-              <option value="exceptions">Exceptions first</option>
-              <option value="aging">Aging 7+ days</option>
-            </SelectField>
-            {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
-            {bucket ? <input type="hidden" name="bucket" value={bucket} /> : null}
-            {source ? <input type="hidden" name="source" value={source} /> : null}
-            <button type="submit" className={buttonClass("accent", "sm")}>
-              Apply
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="text-xs text-ink-muted">Status:</span>
-            {(
-              [
-                ["urgent", "Urgent"],
-                ["due_today", "Due today"],
-                ["review", "Review"],
-                ["waiting", "Waiting"],
-                ["new", "New"],
-                ["ready", "Ready"],
-              ] as const
-            ).map(([value, label]) => (
-              <Link
-                key={value}
-                href={hrefWithQuery("/processor-queue", queryState, {
-                  bucket: bucket === value ? undefined : value,
-                  work: undefined,
-                })}
-                className={`rounded-full border px-2.5 py-1 text-xs ${
-                  bucket === value
-                    ? "border-pillar-teal bg-pillar-teal-soft text-ink"
-                    : "border-line text-ink-muted hover:border-pillar-teal/40"
-                }`}
-              >
-                {label}
-              </Link>
+            </ChipGroup>
+          </>
+        }
+      >
+        <form className="flex flex-1 flex-wrap items-center gap-2">
+          <SearchField
+            name="q"
+            compact
+            defaultValue={query}
+            placeholder="Search borrower, entity, property, file ID"
+            className="min-w-56 flex-1"
+          />
+          <SelectField name="assignment" compact defaultValue={assignment}>
+            <option value="all">All</option>
+            <option value="mine">Mine</option>
+            <option value="unassigned">Unassigned</option>
+            {staff.map((person) => (
+              <option key={person.id} value={person.id}>
+                {staffDisplayName(person)}
+              </option>
             ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="text-xs text-ink-muted">Source:</span>
-            {(
-              [
-                ["borrower", "Borrower"],
-                ["title", "Title"],
-                ["insurance", "Insurance"],
-                ["lender", "Lender"],
-              ] as const
-            ).map(([value, label]) => (
-              <Link
-                key={value}
-                href={hrefWithQuery("/processor-queue", queryState, {
-                  source: source === value ? undefined : value,
-                })}
-                className={`rounded-full border px-2.5 py-1 text-xs ${
-                  source === value
-                    ? "border-pillar-teal bg-pillar-teal-soft text-ink"
-                    : "border-line text-ink-muted hover:border-pillar-teal/40"
-                }`}
-              >
-                {label}
-              </Link>
+          </SelectField>
+          <SelectField name="work" compact defaultValue={work}>
+            {WORK_FILTERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
-          </div>
+          </SelectField>
+          <SelectField name="urgency" compact defaultValue={urgency}>
+            <option value="all">All urgency</option>
+            <option value="exceptions">Exceptions first</option>
+            <option value="aging">Aging 7+ days</option>
+          </SelectField>
+          {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
+          {bucket ? <input type="hidden" name="bucket" value={bucket} /> : null}
+          {source ? <input type="hidden" name="source" value={source} /> : null}
+          <button type="submit" className={buttonClass("secondary", "sm")}>
+            Apply
+          </button>
         </form>
-      </details>
+      </Toolbar>
 
       {view === "board" ? (
         <TaskBoard rows={boardRows} />

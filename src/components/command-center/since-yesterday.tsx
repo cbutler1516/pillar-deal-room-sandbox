@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
+import { SectionHeader } from "@/components/ui/surface-card";
 import { linkClass } from "@/components/ui/styles";
 import type { SinceYesterdayCounts } from "@/lib/command-center/since-yesterday";
 
@@ -11,8 +11,8 @@ export function SinceYesterdaySection({
   summary: string;
 }) {
   return (
-    <SurfaceCard tone="elevated">
-      <CardHeader title="Since yesterday" />
+    <section>
+      <SectionHeader title="Since yesterday" />
       {counts.lines.length === 0 ? (
         <p className="text-sm text-ink-muted">No notable changes since yesterday.</p>
       ) : (
@@ -35,6 +35,6 @@ export function SinceYesterdaySection({
           </ul>
         </>
       )}
-    </SurfaceCard>
+    </section>
   );
 }

@@ -218,7 +218,7 @@ export function ClientNeedsWorkspace({
                     {!open && action ? (
                       <button
                         type="button"
-                        className="shrink-0 text-xs font-medium text-pillar-teal hover:text-pillar-navy"
+                        className="shrink-0 text-xs font-medium text-mineral hover:text-pillar-teal"
                         onClick={() => {
                           if (action === "request" && need.status === "missing") {
                             void runNeedStatus(need.id, "requested");
@@ -366,7 +366,7 @@ function NeedReviewPanel({
   }
 
   return (
-    <div className="ml-8 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3.5 transition duration-200 motion-reduce:transition-none">
+    <div className="ml-8 space-y-4 rounded-[10px] bg-surface-muted px-3 py-3.5 transition duration-200 motion-reduce:transition-none">
       {need.description ? (
         <p className="text-xs leading-5 text-ink-muted">{need.description}</p>
       ) : null}

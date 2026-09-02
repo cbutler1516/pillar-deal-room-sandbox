@@ -97,18 +97,18 @@ export function SubmissionWorkspace({
         <p className="mt-1 text-lg font-semibold text-ink">Lender submission package</p>
       </div>
       <section
-        className={`${surfaceClass("elevated")} border-l-4 px-5 py-5 ${
+        className={`border-l-2 bg-stone/40 px-5 py-5 ${
           submitted
-            ? "border-l-pillar-navy"
+            ? "border-l-pillar-ink"
             : ready
-              ? "border-l-pillar-teal"
-              : "border-l-rose-400"
+              ? "border-l-mineral"
+              : "border-l-danger"
         }`}
       >
         <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
           Submission readiness
         </p>
-        <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+        <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight text-ink">
           {submitted
             ? "Submitted"
             : ready
@@ -122,7 +122,7 @@ export function SubmissionWorkspace({
               ? "All required-now items have been approved or waived."
               : `${blockerCount} item${blockerCount === 1 ? "" : "s"} need attention before this file should be submitted.`}
         </p>
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-5 grid gap-4 border-t border-line pt-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Borrower" value={borrowerName} />
           <Fact label="Entity" value={entityName ?? "Not provided"} />
           <Fact label="Property" value={propertyLabel || "Not provided"} />
@@ -132,7 +132,9 @@ export function SubmissionWorkspace({
             value={loanAmount == null ? "Not provided" : formatCurrency(loanAmount)}
           />
           <div>
-            <dt className="text-[11px] text-ink-muted">Processor</dt>
+            <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-muted">
+              Processor
+            </dt>
             <dd className="mt-1">
               <StaffPresence name={processorName} unassigned={!processorName} />
             </dd>
@@ -392,8 +394,8 @@ export function SubmissionWorkspace({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[11px] text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-ink">{value}</dd>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-muted">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-ink">{value}</dd>
     </div>
   );
 }

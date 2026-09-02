@@ -10,7 +10,7 @@ export function ProgressBar({
     <div className="min-w-24">
       <div className="h-2 overflow-hidden rounded-full bg-workspace">
         <div
-          className="h-full rounded-full bg-pillar-teal"
+          className="h-full rounded-full bg-mineral"
           style={{ width: `${percent}%` }}
         />
       </div>

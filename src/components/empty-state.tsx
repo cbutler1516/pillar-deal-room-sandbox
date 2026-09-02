@@ -6,9 +6,9 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-[14px] border border-dashed border-line bg-[linear-gradient(180deg,#eef2f6_0%,#e8edf3_100%)] px-4 py-8">
+    <div className="border border-dashed border-line bg-stone/40 px-4 py-8">
       <span
-        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface text-slate shadow-[var(--shadow-card)]"
+        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-[8px] border border-line bg-surface text-slate"
         aria-hidden
       >
         <EmptyMark />

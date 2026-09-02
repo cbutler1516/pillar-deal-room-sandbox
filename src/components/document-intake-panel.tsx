@@ -11,6 +11,7 @@ import {
   createFictitiousTestBlob,
   uploadBlobToProviderSession,
 } from "@/lib/documents/direct-upload";
+import { buttonClass } from "@/components/ui/button";
 import { SANDBOX_MIME_TYPES } from "@/lib/documents/types";
 import type { DocumentMetadataRecord, SafeUploadSession, TemporaryAccess } from "@/lib/documents/types";
 
@@ -150,11 +151,11 @@ export function DocumentIntakePanel({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-line bg-workspace px-5 py-5">
+    <div className="space-y-4 rounded-[12px] border border-line bg-stone px-5 py-5">
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-pillar-teal-soft text-pillar-teal"
+          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-pillar-teal-soft text-pillar-teal"
         >
           <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none">
             <path
@@ -236,7 +237,7 @@ export function DocumentIntakePanel({
         </div>
 
       {sandboxMock ? (
-        <div className="rounded-xl border border-dashed border-pillar-teal/40 bg-pillar-teal-soft/40 px-3 py-3">
+        <div className="rounded-[10px] border border-dashed border-pillar-teal/40 bg-pillar-teal-soft/40 px-3 py-3">
           <p className="text-[11px] font-semibold tracking-wide text-pillar-teal uppercase">
             SANDBOX — Simulated Upload
           </p>
@@ -248,7 +249,7 @@ export function DocumentIntakePanel({
             type="button"
             disabled={pending}
             onClick={() => void simulateUpload()}
-            className="mt-2 rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
+            className={`${buttonClass("accent", "sm")} mt-2`}
           >
             Simulate Upload
           </button>
@@ -260,7 +261,7 @@ export function DocumentIntakePanel({
           type="button"
           disabled={pending}
           onClick={() => void createSession()}
-          className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-navy-soft disabled:opacity-50"
+          className={buttonClass("primary", "sm")}
         >
           Create upload session
         </button>
@@ -268,7 +269,7 @@ export function DocumentIntakePanel({
           type="button"
           disabled={!session || pending}
           onClick={() => void sendTestDocument()}
-          className="rounded-lg border border-pillar-teal bg-surface px-3 py-1.5 text-xs font-medium text-pillar-teal hover:bg-pillar-teal-soft disabled:opacity-50"
+          className={buttonClass("secondary", "sm")}
         >
           {session && !session.simulated
             ? "Upload test document"
@@ -278,14 +279,14 @@ export function DocumentIntakePanel({
           type="button"
           disabled={!session || !simulated || pending}
           onClick={() => void completeSession()}
-          className="rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
+          className={buttonClass("accent", "sm")}
         >
           Complete upload
         </button>
       </div>
 
       {session ? (
-        <dl className="grid gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink-muted sm:grid-cols-2">
+        <dl className="grid gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 text-xs text-ink-muted sm:grid-cols-2">
           <div>
             <dt className="text-ink-muted">Provider</dt>
             <dd className="font-medium text-ink">{session.provider}</dd>
@@ -314,7 +315,7 @@ export function DocumentIntakePanel({
       ) : null}
 
       {result ? (
-        <div className="space-y-2 rounded-xl border border-line px-3 py-2">
+        <div className="space-y-2 rounded-[10px] border border-line px-3 py-2">
           <p className="text-xs font-semibold text-ink">
             Document metadata recorded
           </p>
@@ -352,7 +353,7 @@ export function DocumentIntakePanel({
             type="button"
             disabled={pending}
             onClick={() => void requestAccess()}
-            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-muted"
+            className={buttonClass("secondary", "sm")}
           >
             Request temporary access
           </button>
@@ -360,7 +361,7 @@ export function DocumentIntakePanel({
       ) : null}
 
       {access ? (
-        <div className="rounded-xl border border-dashed border-line px-3 py-2 text-xs text-ink-muted">
+        <div className="rounded-[10px] border border-dashed border-line px-3 py-2 text-xs text-ink-muted">
           <p className="font-medium text-ink">{access.label}</p>
           <p className="mt-1">
             {access.simulated
@@ -374,7 +375,7 @@ export function DocumentIntakePanel({
               href={access.url}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block text-pillar-navy underline"
+              className="mt-1 inline-block text-mineral underline"
             >
               Open temporary view
             </a>
@@ -416,7 +417,7 @@ export function TemporaryAccessControl({
       <button
         type="button"
         onClick={() => void requestAccess()}
-        className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-muted"
+        className={buttonClass("secondary", "sm")}
       >
         Temp Access
       </button>
@@ -430,7 +431,7 @@ export function TemporaryAccessControl({
               href={access.url}
               target="_blank"
               rel="noreferrer"
-              className="text-pillar-navy underline"
+              className="text-mineral underline"
             >
               Open temporary view
             </a>

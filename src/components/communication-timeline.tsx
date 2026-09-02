@@ -29,7 +29,7 @@ export function CommunicationTimeline({
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-medium text-ink">{item.title}</p>
                 {item.simulated ? (
-                  <span className="rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning">
+                  <span className="rounded-[6px] bg-warning-soft px-1.5 py-0.5 text-[10px] font-semibold text-warning">
                     Simulated
                   </span>
                 ) : null}

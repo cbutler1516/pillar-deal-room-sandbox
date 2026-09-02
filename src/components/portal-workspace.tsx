@@ -6,6 +6,7 @@ import {
   createPortalUploadSessionAction,
 } from "@/lib/application/portal-actions";
 import type { PortalDeal } from "@/lib/application/portal-data";
+import { PillarMark } from "@/components/brand/pillar-logo";
 import { SandboxBadge } from "@/components/sandbox-badge";
 import { buttonClass } from "@/components/ui/button";
 import { surfaceClass } from "@/components/ui/styles";
@@ -80,14 +81,32 @@ export function PortalWorkspace({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8">
-      <div className={`${surfaceClass("elevated")} px-5 py-5`}>
+    <>
+      <header className="bg-pillar-ink">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3 px-4 py-5">
+          <div className="flex items-center gap-3.5">
+            <PillarMark size={28} decorative className="shrink-0 brightness-0 invert" />
+            <div>
+              <p className="font-display text-lg font-semibold leading-none tracking-tight text-white">
+                PILLAR
+              </p>
+              <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-white/55">
+                Private Lending
+              </p>
+            </div>
+          </div>
+          <SandboxBadge className="border-white/20 text-white/55" />
+        </div>
+      </header>
+
+      <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-10">
+      <div className="border-b border-line pb-8">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] tracking-[0.14em] text-ink-muted uppercase">
-              Borrower portal
+              Your loan file
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+            <h1 className="font-display mt-2 text-[2rem] font-semibold leading-tight tracking-tight text-ink">
               {deal.borrowerName}
             </h1>
             {deal.entityName ? (
@@ -98,18 +117,17 @@ export function PortalWorkspace({
                 "Business-purpose loan"}
             </p>
           </div>
-          <SandboxBadge />
         </div>
-        <ol className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <ol className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {PORTAL_PROGRESS_STEPS.map((step) => {
             const active = step.key === current;
             return (
               <li
                 key={step.key}
-                className={`rounded-[12px] px-3 py-2 text-xs ${
+                className={`rounded-[8px] border px-3 py-2 text-xs ${
                   active
-                    ? "bg-pillar-teal-soft font-semibold text-pillar-teal"
-                    : "bg-surface-muted text-ink-muted"
+                    ? "border-mineral font-semibold text-mineral"
+                    : "border-line text-ink-muted"
                 }`}
               >
                 {step.label}
@@ -120,9 +138,12 @@ export function PortalWorkspace({
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold text-ink">What we need from you</h2>
-        <p className="mt-1 text-xs text-ink-muted">
-          Upload only the items in Action needed. Our team reviews the rest.
+        <h2 className="font-display text-xl font-semibold tracking-tight text-ink">
+          What we need from you
+        </h2>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-ink-muted">
+          Upload only the items marked Action needed. Our team reviews everything
+          else and will reach out if anything changes.
         </p>
       </section>
 
@@ -208,10 +229,11 @@ export function PortalWorkspace({
         >
           Upload document
         </button>
-        {message ? <p className="text-xs text-pillar-teal">{message}</p> : null}
+        {message ? <p className="text-xs text-mineral">{message}</p> : null}
         {error ? <p className="text-xs text-danger">{error}</p> : null}
       </section>
-    </div>
+      </div>
+    </>
   );
 }
 

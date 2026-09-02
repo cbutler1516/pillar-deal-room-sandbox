@@ -95,7 +95,7 @@ export function ApplicationForm() {
           <p className="text-[11px] uppercase tracking-[0.14em] text-ink-muted">
             Business-purpose lending
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-pillar-navy">
+          <h1 className="mt-1 font-display text-2xl font-semibold text-ink">
             Deal Room application
           </h1>
           <p className="mt-2 text-sm text-ink-muted">
@@ -111,7 +111,7 @@ export function ApplicationForm() {
             key={item.id}
             className={
               index === step
-                ? "rounded-md bg-pillar-navy px-2 py-1 font-medium text-white"
+                ? "rounded-[6px] bg-pillar-ink px-2 py-1 font-medium text-white"
                 : "rounded-md border border-line px-2 py-1 text-ink-muted"
             }
           >

@@ -70,7 +70,7 @@ export function ConditionsWorkspace({
       ) : null}
 
       {rows.length === 0 ? (
-        <p className="rounded-[16px] border border-dashed border-line bg-surface-muted/50 px-4 py-6 text-sm text-ink-muted">
+        <p className="border border-dashed border-line bg-stone/40 px-4 py-6 text-sm text-ink-muted">
           No lender conditions on this file yet.
         </p>
       ) : (

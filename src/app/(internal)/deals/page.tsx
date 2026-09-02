@@ -3,11 +3,9 @@ import { EmptyState } from "@/components/empty-state";
 import { ProgressBar } from "@/components/progress-bar";
 import { StatusChip } from "@/components/status-chip";
 import { PageHeader } from "@/components/ui/page-header";
-import { SurfaceCard } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { SearchField, SelectField } from "@/components/ui/controls";
 import {
-  linkClass,
   pageWidthClass,
   tableHeadClass,
   tableRowClass,
@@ -52,7 +50,7 @@ export default async function DealsPage({
         description="Find a file by borrower, status, or loan type."
       />
 
-      <SurfaceCard>
+      <div className="border-y border-line py-3">
         <form className="grid gap-3 md:grid-cols-4">
           <SearchField
             name="q"
@@ -86,7 +84,7 @@ export default async function DealsPage({
             </button>
           </div>
         </form>
-      </SurfaceCard>
+      </div>
 
       {deals.length === 0 ? (
         <EmptyState
@@ -94,20 +92,19 @@ export default async function DealsPage({
           description="Clear filters or seed the sandbox demo set if the inventory is empty."
         />
       ) : (
-        <SurfaceCard padded={false}>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className={tableHeadClass}>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-[13px]">
+              <thead className={`${tableHeadClass} border-y border-line bg-stone/50`}>
                 <tr>
-                  <th className="px-5 py-3 font-medium">Deal</th>
-                  <th className="px-5 py-3 font-medium">Loan Type</th>
-                  <th className="px-5 py-3 font-medium">Amount</th>
-                  <th className="px-5 py-3 font-medium">Property</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Next action</th>
-                  <th className="px-5 py-3 font-medium">Documents</th>
-                  <th className="px-5 py-3 font-medium">Processor</th>
-                  <th className="px-5 py-3 font-medium">Updated</th>
+                  <th className="px-4 py-2.5 font-medium">Deal</th>
+                  <th className="px-4 py-2.5 font-medium">Loan Type</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Amount</th>
+                  <th className="px-4 py-2.5 font-medium">Property</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
+                  <th className="px-4 py-2.5 font-medium">Next action</th>
+                  <th className="px-4 py-2.5 font-medium">Documents</th>
+                  <th className="px-4 py-2.5 font-medium">Processor</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Updated</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,38 +113,43 @@ export default async function DealsPage({
                   const top = topWorkItemForDeal(workItems, deal.id);
                   return (
                     <tr key={deal.id} className={tableRowClass}>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         <Link
                           href={`/deals/${deal.id}`}
-                          className={`${linkClass} rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30`}
+                          className="font-medium text-ink transition hover:text-mineral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40"
                         >
-                          {deal.dealReference}
+                          {deal.borrowerName}
                         </Link>
-                        <p className="text-xs text-ink-muted">{deal.borrowerName}</p>
+                        <p className="mt-0.5 text-[11px] tabular-nums text-ink-muted">
+                          {deal.dealReference}
+                        </p>
                       </td>
-                      <td className="px-5 py-3.5 text-ink">{deal.loanType ?? "—"}</td>
-                      <td className="px-5 py-3.5 text-ink">
+                      <td className="px-4 py-3 text-ink-muted">{deal.loanType ?? "—"}</td>
+                      <td className="px-4 py-3 text-right font-medium tabular-nums text-ink">
                         {formatCurrency(deal.loanAmount)}
                       </td>
-                      <td className="px-5 py-3.5 text-ink">
+                      <td className="px-4 py-3 text-ink-muted">
                         {formatProperty(deal.propertyCity, deal.propertyState)}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         <StatusChip status={deal.status} />
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         {top ? (
-                          <Link href={top.href} className={`text-xs ${linkClass}`}>
+                          <Link
+                            href={top.href}
+                            className="text-[13px] font-medium text-mineral transition hover:text-pillar-teal"
+                          >
                             {humanizeWorkAction(top)}
                           </Link>
                         ) : (
-                          <span className="text-xs text-ink-muted">—</span>
+                          <span className="text-ink-muted">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         <ProgressBar complete={docs.complete} total={docs.required} />
                       </td>
-                      <td className="px-5 py-3.5 align-middle">
+                      <td className="px-4 py-3 align-middle">
                         <StaffPresence
                           name={
                             deal.assignedProcessorId
@@ -157,16 +159,15 @@ export default async function DealsPage({
                           unassigned={!deal.assignedProcessorId}
                         />
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-ink-muted">
+                      <td className="px-4 py-3 text-right text-[11px] tabular-nums text-ink-muted">
                         {formatTimestamp(deal.updatedAt)}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
-          </div>
-        </SurfaceCard>
+          </table>
+        </div>
       )}
     </div>
   );

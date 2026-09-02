@@ -17,7 +17,7 @@ export default async function ApplicationReceivedPage({
     <div className="flex min-h-full items-center justify-center bg-workspace px-4 py-12">
       <div className="w-full max-w-lg space-y-4 rounded-[10px] border border-line bg-surface p-8">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-pillar-navy">
+          <h1 className="font-display text-2xl font-semibold text-ink">
             Application received
           </h1>
           <SandboxBadge />
