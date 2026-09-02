@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { NextActionsQueue } from "@/components/next-actions-queue";
 import { StatusChip } from "@/components/status-chip";
-import { StaffPresence } from "@/components/ui/staff-avatar";
 import { TaskBoard } from "@/components/task-board";
 import { PageHeader } from "@/components/ui/page-header";
 import {
@@ -12,7 +11,6 @@ import {
   SelectField,
   Toolbar,
 } from "@/components/ui/controls";
-import { CardHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
@@ -202,7 +200,7 @@ export default async function ProcessorQueuePage({
     <div className={`${pageWidthClass} space-y-8`}>
       <PageHeader
         title="Queue"
-        description="Today’s work, in the order it should be handled."
+        description="Work in rank order."
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -356,44 +354,50 @@ export default async function ProcessorQueuePage({
 
             return (
               <section key={section.key}>
-                <CardHeader title={section.label} meta={rows.length} />
+                <div className="mb-2 flex items-baseline justify-between gap-3 border-b border-line pb-2">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                    {section.label}
+                  </h3>
+                  <span className="text-[11px] tabular-nums text-ink-muted">{rows.length}</span>
+                </div>
                 {rows.length === 0 ? (
-                  <p className="text-sm leading-6 text-ink-muted">
+                  <p className="py-3 text-sm leading-6 text-ink-muted">
                     Nothing in this lane.
                   </p>
                 ) : (
                   <ul className="divide-y divide-line border-y border-line">
                     {rows.map((deal) => (
-                      <li
-                        key={`${section.key}-${deal.id}`}
-                        className="flex flex-wrap items-center justify-between gap-3 py-4"
-                      >
-                        <div>
-                          <Link href={`/deals/${deal.id}`} className={`text-sm ${linkClass}`}>
-                            {deal.borrowerName}
-                          </Link>
-                          <p className="text-sm leading-6 text-ink-muted">
-                            {deal.loanType} · {formatCurrency(deal.loanAmount)} ·{" "}
-                            {formatProperty(deal.propertyCity, deal.propertyState)}
-                          </p>
-                          <p className="text-xs text-ink-muted">
-                            {deal.priority.label}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
+                      <li key={`${section.key}-${deal.id}`}>
+                        <Link
+                          href={`/deals/${deal.id}`}
+                          className="flex items-center gap-4 border-l-2 border-l-transparent px-3 py-2 transition hover:border-l-mineral hover:bg-stone/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[13px] font-semibold text-ink">
+                              {deal.borrowerName}
+                            </span>
+                            <span className="mt-0.5 block truncate text-[11px] text-ink-muted">
+                              {deal.loanType} · {formatProperty(deal.propertyCity, deal.propertyState)}
+                              {deal.priority.label ? ` · ${deal.priority.label}` : ""}
+                            </span>
+                          </span>
+                          <span className="hidden w-28 shrink-0 text-right text-[13px] font-medium tabular-nums text-ink sm:block">
+                            {formatCurrency(deal.loanAmount)}
+                          </span>
+                          <span className="hidden min-w-24 shrink-0 truncate text-[11px] text-ink-muted md:block">
+                            {deal.assignedProcessorId
+                              ? staffNames[deal.assignedProcessorId] ?? "Unassigned"
+                              : "Unassigned"}
+                          </span>
                           <StatusChip status={deal.status} />
-                          <StaffPresence
-                            name={
-                              deal.assignedProcessorId
-                                ? staffNames[deal.assignedProcessorId]
-                                : null
-                            }
-                            unassigned={!deal.assignedProcessorId}
-                          />
-                          <span className="text-ink-muted">
+                          <span
+                            className={`w-16 shrink-0 text-right text-[11px] tabular-nums ${
+                              deal.ageDays >= 7 ? "text-warning" : "text-ink-muted"
+                            }`}
+                          >
                             {formatAgeDays(deal.ageDays)}
                           </span>
-                        </div>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -407,51 +411,32 @@ export default async function ProcessorQueuePage({
           Nothing needs your attention.
         </p>
       ) : (
-        <div className="space-y-8 xl:grid xl:grid-cols-[minmax(0,1.4fr)_minmax(17rem,0.8fr)] xl:items-start xl:gap-8 xl:space-y-0">
-          <div className="space-y-8">
-            {QUEUE_TODAY_SECTIONS.filter((section) =>
-              section.key === "urgent" ||
-              section.key === "due_today" ||
-              section.key === "needs_review",
-            ).map((section) => (
+        <div className="space-y-8">
+          {QUEUE_TODAY_SECTIONS.map((section) => {
+            if (today[section.key].length === 0 && section.key === "new") {
+              return null;
+            }
+            return (
               <NextActionsQueue
                 key={section.key}
                 rows={today[section.key].map(toQueueRow)}
                 staffNames={staffNames}
                 title={section.label}
+                compact
                 empty={
                   section.key === "needs_review"
                     ? "Nothing is ready to review."
                     : section.key === "due_today"
                       ? "Nothing else is due today."
-                      : "No urgent items."
+                      : section.key === "waiting"
+                        ? "Nobody is waiting on a reply."
+                        : section.key === "new"
+                          ? "No new files."
+                          : "No urgent items."
                 }
               />
-            ))}
-          </div>
-          <div className="space-y-8">
-            {QUEUE_TODAY_SECTIONS.filter(
-              (section) => section.key === "waiting" || section.key === "new",
-            ).map((section) => {
-              if (today[section.key].length === 0 && section.key === "new") {
-                return null;
-              }
-              return (
-                <NextActionsQueue
-                  key={section.key}
-                  rows={today[section.key].map(toQueueRow)}
-                  staffNames={staffNames}
-                  title={section.label}
-                  compact
-                  empty={
-                    section.key === "waiting"
-                      ? "Nobody is waiting on a reply."
-                      : "No new files."
-                  }
-                />
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
       )}
     </div>

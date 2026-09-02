@@ -1,4 +1,5 @@
 import { applicationIntakeFromUnknown } from "@/lib/application/intake";
+import { formatCurrency } from "@/lib/format";
 import type { DealStatus } from "@/lib/data/types";
 
 export const DEAL_PROGRESS_STAGES = [
@@ -92,26 +93,58 @@ export function dealSnapshotMetrics(input: {
   const loan = parsePositiveMoney(input.loanAmount) ?? parsePositiveMoney(intake?.requestedLoan);
   const loanType = (input.loanType ?? "").toLowerCase();
   const metrics: SnapshotMetric[] = [];
+  const purchase = parsePositiveMoney(intake?.purchasePrice);
+  const value = parsePositiveMoney(intake?.currentValue);
+  const rehab = parsePositiveMoney(intake?.rehabBudget);
+  const arv = parsePositiveMoney(intake?.estimatedArv);
+  const rent = parsePositiveMoney(intake?.monthlyRent);
+  const collateral = purchase ?? value;
 
-  function push(label: string, raw: string | number | null | undefined) {
-    const amount = parsePositiveMoney(raw);
+  function pushMoney(label: string, amount: number | null) {
     if (amount == null) {
       return;
     }
-    metrics.push({ label, value: formatCompactMoney(amount) });
+    metrics.push({ label, value: formatCurrency(amount) });
+  }
+
+  function pushRatio(
+    label: string,
+    numerator: number | null,
+    denominator: number | null,
+  ) {
+    if (numerator == null || denominator == null || denominator <= 0) {
+      return;
+    }
+    metrics.push({
+      label,
+      value: `${Math.round((numerator / denominator) * 100)}%`,
+    });
   }
 
   if (loanType.includes("dscr")) {
-    push("Value", intake?.currentValue);
-    push("Loan", loan);
-    push("Rent", intake?.monthlyRent);
+    pushMoney("Requested loan", loan);
+    pushMoney("Current value", value);
+    pushMoney("Monthly rent", rent);
+    pushRatio("LTV", loan, collateral);
+    if (intake?.targetClosingDate) {
+      metrics.push({ label: "Closing", value: intake.targetClosingDate });
+    }
     return metrics;
   }
 
-  push("Purchase", intake?.purchasePrice);
-  push("Rehab", intake?.rehabBudget);
-  push("ARV", intake?.estimatedArv);
-  push("Loan", loan);
+  pushMoney("Requested loan", loan);
+  pushMoney("Purchase price", purchase);
+  pushMoney("ARV", arv);
+  pushMoney("Rehab", rehab);
+  pushRatio("LTV", loan, collateral);
+  pushRatio(
+    "LTC",
+    loan,
+    purchase != null && rehab != null ? purchase + rehab : null,
+  );
+  if (intake?.targetClosingDate) {
+    metrics.push({ label: "Closing", value: intake.targetClosingDate });
+  }
   return metrics;
 }
 

@@ -11,7 +11,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
       <div>
         <h2 className={pageTitleClass}>{title}</h2>
         {description ? <p className={pageLeadClass}>{description}</p> : null}

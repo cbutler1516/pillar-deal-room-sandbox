@@ -66,31 +66,26 @@ export default async function DashboardPage({
   const teamMode = manager && view === "team";
 
   return (
-    <div className={`${pageWidthClass} space-y-6`}>
-      <div className="border-b border-line pb-5">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-          <div className="flex min-w-0 items-center gap-4">
-            <StaffAvatar name={displayName(profile)} size={48} />
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.08em] text-ink-muted">
-                {formatLongDate(now)}
-              </p>
-              <h2 className="font-display mt-1 text-[1.75rem] font-semibold leading-none tracking-tight text-ink">
-                {greetingForNow(now)}, {firstName}
-              </h2>
-            </div>
-          </div>
-          <p className="max-w-xl text-sm leading-6 text-ink-muted">
+    <div className={`${pageWidthClass} space-y-10`}>
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-line pb-6">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-ink-muted">
+            {formatLongDate(now)}
+          </p>
+          <h2 className="font-display mt-2 text-[2rem] font-semibold leading-none tracking-tight text-ink">
+            {greetingForNow(now)}, {firstName}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
             {board.summaryLine}
           </p>
         </div>
-      </div>
-
-      {manager ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <ManagerViewToggle mode={teamMode ? "team" : "mine"} />
+        <div className="flex items-center gap-3">
+          <StaffAvatar name={displayName(profile)} size={40} />
+          {manager ? (
+            <ManagerViewToggle mode={teamMode ? "team" : "mine"} />
+          ) : null}
         </div>
-      ) : null}
+      </div>
 
       {teamMode ? (
         <TeamOverviewSection
@@ -100,50 +95,48 @@ export default async function DashboardPage({
         />
       ) : (
         <>
+          <MyNextFiveSection
+            items={board.myNextFive}
+            staffNames={staffNames}
+            locationByDeal={locationByDeal}
+          />
+
           <TodayStrip counts={board.todayStrip} assignment="mine" />
 
-          <div className="space-y-8 lg:hidden">
-            <MyNextFiveSection
-              items={board.myNextFive}
-              staffNames={staffNames}
-              locationByDeal={locationByDeal}
-            />
+          {board.morningBrief ? (
+            <div className="hidden lg:block">
+              <MorningBriefPanel brief={board.morningBrief} />
+            </div>
+          ) : null}
+
+          <div className="space-y-10 lg:hidden">
             <DocumentReviewInboxSection rows={board.documentInbox.slice(0, 3)} />
             <WaitingOnSection rows={board.waitingOn.slice(0, 4)} />
           </div>
 
-          <div className="hidden space-y-8 lg:block">
-            <MyNextFiveSection
-              items={board.myNextFive}
-              staffNames={staffNames}
-              locationByDeal={locationByDeal}
-            />
-
-            {board.morningBrief ? (
-              <MorningBriefPanel brief={board.morningBrief} />
-            ) : null}
-
-            <div className="grid gap-8 xl:grid-cols-2">
+          <div className="hidden space-y-10 lg:block">
+            <div className="grid gap-10 xl:grid-cols-2">
               <StuckFilesSection rows={board.stuckFiles} />
               <WaitingOnSection rows={board.waitingOn} />
             </div>
 
-            <div className="grid gap-8 xl:grid-cols-2">
+            <div className="grid gap-10 xl:grid-cols-2">
               <RecentResponsesSection rows={board.recentResponses} />
               <DocumentReviewInboxSection rows={board.documentInbox} />
             </div>
 
-            <div className="grid gap-8 xl:grid-cols-3">
-              <ConditionsSection snapshot={board.conditions} />
+            <div className="grid gap-10 xl:grid-cols-2">
               <ReadyToSubmitSection
                 rows={board.readyToSubmit}
                 staffNames={staffNames}
               />
-              <SinceYesterdaySection
-                counts={board.sinceYesterday}
-                summary={board.sinceYesterdaySummary}
-              />
+              <ConditionsSection snapshot={board.conditions} />
             </div>
+
+            <SinceYesterdaySection
+              counts={board.sinceYesterday}
+              summary={board.sinceYesterdaySummary}
+            />
 
             {manager ? (
               <UnassignedSection

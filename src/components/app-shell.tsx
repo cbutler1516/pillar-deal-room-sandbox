@@ -44,25 +44,24 @@ export function AppShell({
   return (
     <div className="min-h-full bg-paper lg:flex">
       <aside className="print-hide hidden lg:flex lg:h-screen lg:w-[var(--app-rail-width)] lg:shrink-0 lg:flex-col lg:sticky lg:top-0 bg-pillar-ink text-white">
-        <div className="flex items-start gap-3 border-b border-white/10 px-4 py-5">
-          <PillarMark size={28} decorative className="shrink-0 brightness-0 invert" />
-          <div className="min-w-0">
-            <p className="font-display text-[17px] font-semibold leading-none tracking-tight">
-              PILLAR
-            </p>
-            <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-white/55">
-              Private Lending
-            </p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-accent">
-              Deal Room
-            </p>
-          </div>
+        <div className="px-5 pt-7 pb-6">
+          <PillarMark size={30} decorative className="brightness-0 invert" />
+          <p className="font-display mt-4 text-[1.35rem] font-semibold leading-none tracking-tight">
+            PILLAR
+          </p>
+          <p className="mt-2.5 text-[10px] uppercase tracking-[0.18em] text-white/42">
+            Private Lending
+          </p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-accent">
+            Deal Room
+          </p>
         </div>
-        <nav aria-label="Primary" className="flex-1 px-2 py-4">
-          <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.14em] text-white/35">
+        <div className="mx-5 h-px bg-white/10" />
+        <nav aria-label="Primary" className="flex-1 py-5">
+          <p className="px-5 pb-2 text-[10px] uppercase tracking-[0.18em] text-white/32">
             Work
           </p>
-          <ul className="space-y-0.5">
+          <ul>
             {DESKTOP_APP_NAV.map((item) => {
               const active = isAppNavActive(pathname, item.href);
               const Icon = NAV_ICONS[item.href];
@@ -71,19 +70,19 @@ export function AppShell({
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`group relative flex h-9 items-center gap-2.5 rounded-[8px] px-3 text-[13px] font-medium transition ${
+                    className={`group relative flex h-10 items-center gap-3 px-5 text-[13px] font-medium ${
                       active
-                        ? "bg-white/8 text-white"
-                        : "text-white/60 hover:bg-white/6 hover:text-white"
+                        ? "bg-white/[0.07] text-white"
+                        : "text-white/55 hover:bg-white/[0.04] hover:text-white"
                     }`}
                   >
                     <span
                       aria-hidden
-                      className={`absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full ${
+                      className={`absolute inset-y-0 left-0 w-[2px] ${
                         active ? "bg-accent" : "bg-transparent"
                       }`}
                     />
-                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
                     {item.label}
                   </Link>
                 </li>
@@ -91,44 +90,34 @@ export function AppShell({
             })}
           </ul>
         </nav>
-        <div className="mt-auto space-y-3 border-t border-white/10 px-4 py-4">
-          <div className="flex items-center gap-2">
-            <SandboxBadge className="border-white/20 text-white/55" />
+        <div className="mt-auto border-t border-white/10 px-4 py-4">
+          <div className="mb-3 flex items-center gap-2">
+            <SandboxBadge className="border-white/15 text-white/45" />
             {demoGuide ? <DemoGuide {...demoGuide} /> : null}
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <StaffAvatar name={name} size={32} />
-              <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-white">{name}</p>
-                <p className="text-[11px] text-white/50">{role}</p>
-              </div>
-            </div>
-            <AccountMenu name={name} role={role} dark />
-          </div>
+          <AccountMenu name={name} role={role} />
         </div>
       </aside>
 
-      <div className="min-w-0 flex-1">
-        <header className="print-hide sticky top-0 z-20 flex h-[var(--app-header-height)] items-center justify-between gap-3 border-b border-line bg-pillar-ink px-3 text-white lg:hidden">
+      <div className="min-w-0 flex-1 border-l border-transparent lg:border-pillar-navy">
+        <header className="print-hide sticky top-0 z-20 flex h-[var(--app-header-height)] items-center justify-between gap-3 border-b border-white/10 bg-pillar-ink px-3 text-white lg:hidden">
           <div className="flex min-w-0 items-center gap-2.5">
             <PillarMark size={22} decorative className="shrink-0 brightness-0 invert" />
             <div className="min-w-0">
               <p className="font-display text-sm font-semibold leading-none">PILLAR</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-[0.12em] text-white/50">
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-accent">
                 Deal Room
               </p>
             </div>
-            <SandboxBadge className="border-white/20 text-white/55" />
+            <SandboxBadge className="border-white/15 text-white/45" />
           </div>
           <div className="flex items-center gap-2">
             {demoGuide ? <DemoGuide {...demoGuide} /> : null}
-            <StaffAvatar name={name} size={28} />
-            <AccountMenu name={name} role={role} dark />
+            <AccountMenu name={name} role={role} compact />
           </div>
         </header>
 
-        <main className="px-3 pb-[var(--app-bottom-nav-space)] pt-4 sm:px-5 sm:pt-6">
+        <main className="px-[var(--app-workspace-pad-x)] pb-[var(--app-bottom-nav-space)] pt-[var(--app-workspace-pad-y)]">
           {children}
         </main>
       </div>
@@ -146,12 +135,20 @@ export function AppShell({
                 <Link
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-10 flex-col items-center justify-center gap-0.5 rounded-[8px] px-2 py-1.5 text-center ${
-                    active ? "text-mineral" : "text-ink-muted hover:text-ink"
+                  className={`relative flex min-h-10 flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-center ${
+                    active ? "text-ink" : "text-ink-muted hover:text-ink"
                   }`}
                 >
+                  {active ? (
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-6 top-0 h-[2px] bg-accent"
+                    />
+                  ) : null}
                   <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="truncate text-[11px] font-medium">{item.label}</span>
+                  <span className="truncate text-[10px] font-medium uppercase tracking-[0.1em]">
+                    {item.label}
+                  </span>
                 </Link>
               </li>
             );
@@ -165,11 +162,11 @@ export function AppShell({
 function AccountMenu({
   name,
   role,
-  dark = false,
+  compact = false,
 }: {
   name: string;
   role: string;
-  dark?: boolean;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -202,22 +199,30 @@ function AccountMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account menu"
         className={
-          dark
-            ? "inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-white/15 bg-white/5 px-2 text-xs font-medium text-white hover:bg-white/10"
-            : "inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-line bg-surface px-2 text-xs font-medium text-ink hover:bg-stone"
+          compact
+            ? "inline-flex items-center rounded-[8px] p-0.5 hover:bg-white/10"
+            : "flex w-full items-center gap-2.5 rounded-[8px] px-1 py-1 text-left hover:bg-white/6"
         }
         onClick={() => setOpen((value) => !value)}
       >
-        <span>Account</span>
-        <span aria-hidden className="opacity-60">
-          ▾
-        </span>
+        <StaffAvatar name={name} size={compact ? 28 : 32} />
+        {compact ? null : (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-medium text-white">{name}</span>
+            <span className="block text-[11px] text-white/45">{role}</span>
+          </span>
+        )}
       </button>
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-1 min-w-48 rounded-[12px] border border-line bg-surface p-2 text-ink shadow-[var(--shadow-float)]"
+          className={
+            compact
+              ? "absolute right-0 top-full z-30 mt-2 min-w-48 rounded-[10px] border border-line bg-surface p-2 text-ink shadow-[var(--shadow-float)]"
+              : "absolute left-0 bottom-full z-30 mb-2 min-w-48 rounded-[10px] border border-line bg-surface p-2 text-ink shadow-[var(--shadow-float)]"
+          }
         >
           <div className="border-b border-line px-2.5 py-2">
             <p className="text-xs font-medium text-ink">{name}</p>

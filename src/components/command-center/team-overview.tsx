@@ -1,9 +1,13 @@
 import Link from "next/link";
-import { StaffAvatar } from "@/components/ui/staff-avatar";
-import { buttonClass } from "@/components/ui/button";
-import { surfaceClass } from "@/components/ui/styles";
+import { SectionHeader } from "@/components/ui/surface-card";
+import {
+  tableHeadClass,
+  tableRowClass,
+  tableCellClass,
+} from "@/components/ui/styles";
 import type { TeamOverviewTotals } from "@/lib/command-center/derive";
 import type { TeamWorkloadRow } from "@/lib/team/workload";
+import { FactLedger } from "@/components/ui/fact-ledger";
 
 export function TeamOverviewSection({
   totals,
@@ -15,89 +19,87 @@ export function TeamOverviewSection({
   unassigned: TeamWorkloadRow;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <section>
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-          Team overview
-        </h3>
-        <dl className="mt-3 grid grid-cols-2 divide-x divide-line border-y border-line sm:grid-cols-3 lg:grid-cols-6">
-          <TeamStat label="Active work" value={totals.totalActiveWork} />
-          <TeamStat label="Unassigned" value={totals.unassigned} />
-          <TeamStat label="Urgent" value={totals.urgent} />
-          <TeamStat label="Review" value={totals.review} />
-          <TeamStat label="Waiting" value={totals.waiting} />
-          <TeamStat label="Ready" value={totals.ready} />
-        </dl>
+        <SectionHeader title="Team context" />
+        <FactLedger
+          columns={2}
+          rows={[
+            { label: "Active work", value: totals.totalActiveWork },
+            { label: "Unassigned", value: totals.unassigned },
+            { label: "Urgent", value: totals.urgent },
+            { label: "Review", value: totals.review },
+            { label: "Waiting", value: totals.waiting },
+            { label: "Ready", value: totals.ready },
+          ]}
+        />
       </section>
 
-      <section className="border-l-2 border-danger bg-stone/40 px-4 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <StaffAvatar unassigned size={40} />
-            <div>
-              <h3 className="text-sm font-semibold text-ink">Unassigned</h3>
-              <p className="text-xs text-ink-muted">
-                {unassigned.activeFiles} unclaimed file
-                {unassigned.activeFiles === 1 ? "" : "s"}
-              </p>
-            </div>
+      {unassigned.activeFiles > 0 ? (
+        <section className="flex flex-wrap items-baseline justify-between gap-3 border-y border-line py-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+              Unassigned
+            </p>
+            <p className="mt-1 text-sm text-ink">
+              {unassigned.activeFiles} unclaimed file
+              {unassigned.activeFiles === 1 ? "" : "s"}
+            </p>
           </div>
-          <Link href={unassigned.href} className={buttonClass("accent", "sm")}>
-            View unassigned
+          <Link href={unassigned.href} className="text-[13px] font-medium text-mineral">
+            View unassigned →
           </Link>
+        </section>
+      ) : null}
+
+      <section>
+        <SectionHeader title="Workload" />
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-[13px]">
+            <thead className={`${tableHeadClass} border-y border-line`}>
+              <tr>
+                <th className={`${tableCellClass} font-medium`}>Owner</th>
+                <th className={`${tableCellClass} text-right font-medium`}>Load</th>
+                <th className={`${tableCellClass} text-right font-medium`}>Urgent</th>
+                <th className={`${tableCellClass} text-right font-medium`}>Review</th>
+                <th className={`${tableCellClass} text-right font-medium`}>Waiting</th>
+                <th className={`${tableCellClass} text-right font-medium`}>Ready</th>
+                <th className={`${tableCellClass} font-medium`}> </th>
+              </tr>
+            </thead>
+            <tbody>
+              {workloadRows.map((row) => (
+                <tr key={row.id} className={tableRowClass}>
+                  <td className={tableCellClass}>
+                    <p className="font-medium text-ink">{row.name}</p>
+                    <p className="text-[11px] text-ink-muted">{row.role}</p>
+                  </td>
+                  <td className={`${tableCellClass} text-right tabular-nums`}>
+                    {row.activeFiles}
+                  </td>
+                  <td className={`${tableCellClass} text-right tabular-nums`}>
+                    {row.urgent}
+                  </td>
+                  <td className={`${tableCellClass} text-right tabular-nums`}>
+                    {row.documentsToReview}
+                  </td>
+                  <td className={`${tableCellClass} text-right tabular-nums`}>
+                    {row.waiting}
+                  </td>
+                  <td className={`${tableCellClass} text-right tabular-nums`}>
+                    {row.ready}
+                  </td>
+                  <td className={`${tableCellClass} text-right`}>
+                    <Link href={row.href} className="text-[11px] font-medium text-mineral">
+                      View →
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
-
-      <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {workloadRows.map((row) => (
-          <li key={row.id}>
-            <article className={`${surfaceClass("card")} px-4 py-4`}>
-              <div className="flex items-start gap-3">
-                <StaffAvatar name={row.name} size={40} />
-                <div>
-                  <h3 className="text-sm font-semibold text-ink">{row.name}</h3>
-                  <p className="text-xs text-ink-muted">{row.role}</p>
-                </div>
-              </div>
-              <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <TeamStat label="Current load" value={row.activeFiles} compact />
-                <TeamStat label="Urgent" value={row.urgent} compact />
-                <TeamStat label="Review" value={row.documentsToReview} compact />
-                <TeamStat label="Waiting" value={row.waiting} compact />
-                <TeamStat label="Ready" value={row.ready} compact />
-              </dl>
-              <Link href={row.href} className={`${buttonClass("secondary", "sm")} mt-3`}>
-                View work
-              </Link>
-            </article>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function TeamStat({
-  label,
-  value,
-  compact,
-}: {
-  label: string;
-  value: number;
-  compact?: boolean;
-}) {
-  if (compact) {
-    return (
-      <div>
-        <dt className="text-[11px] text-ink-muted">{label}</dt>
-        <dd className="mt-0.5 font-semibold tabular-nums text-ink">{value}</dd>
-      </div>
-    );
-  }
-  return (
-    <div className="px-4 py-3">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-muted">{label}</dt>
-      <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">{value}</dd>
     </div>
   );
 }

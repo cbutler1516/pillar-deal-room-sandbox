@@ -1,19 +1,17 @@
 import type { ReactNode } from "react";
+import { FactLedger } from "@/components/ui/fact-ledger";
 import { StatusChip } from "@/components/status-chip";
 import { TabList } from "@/components/ui/controls";
 import { PropertyThumb } from "@/components/ui/property-thumb";
-import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { SectionHeader } from "@/components/ui/surface-card";
-import { buttonClass } from "@/components/ui/button";
 import { labelClass } from "@/components/ui/styles";
 import {
   applicationIntakeFromUnknown,
   intakeDisplayGroups,
 } from "@/lib/application/intake";
-import { CommunicationTimeline } from "@/components/communication-timeline";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import type { ClientNeedRow, DealDetail, DocumentRow, TaskRow } from "@/lib/data/deals";
-import { formatCurrency, formatFollowUpAt, formatProperty } from "@/lib/format";
+import { formatCurrency, formatFollowUpAt, formatProperty, formatTimestamp } from "@/lib/format";
 import {
   deriveDealNextAction,
   type NextActionMismatch,
@@ -29,7 +27,7 @@ import { conditionSummary } from "@/lib/conditions/model";
 import {
   DEAL_PROGRESS_STAGES,
   countRequiredItemsReceived,
-  dealProgressState,
+  dealProgressIndex,
   dealSnapshotMetrics,
   nextActionPresentation,
 } from "@/lib/ui/deal-presentation";
@@ -68,36 +66,25 @@ export function DealWorkspaceHeader({
   ownerName?: string | null;
 }) {
   const cityState = formatProperty(deal.propertyCity, deal.propertyState);
-  const locationLine = [deal.loanType, cityState !== "—" ? cityState : null]
-    .filter(Boolean)
-    .join(" · ");
   const unassigned = !ownerName;
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
     <div className="border-b border-line pb-6">
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
           <div className="min-w-0 flex-1">
             <p className={labelClass}>{deal.dealReference}</p>
-            <h2 className="font-display mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink">
+            <h2 className="font-display mt-1.5 text-[2.15rem] leading-none font-semibold tracking-tight text-ink">
               {deal.borrowerName}
             </h2>
             {deal.entityName ? (
-              <p className="mt-2 text-sm text-ink">{deal.entityName}</p>
+              <p className="mt-2.5 text-sm text-ink">{deal.entityName}</p>
             ) : null}
-            {locationLine ? (
-              <p className="mt-1 text-sm text-ink-muted">{locationLine}</p>
-            ) : null}
-            {deal.propertyAddress ? (
-              <p className="mt-3 text-sm leading-6 text-ink">
-                {deal.propertyAddress}
-                {cityState !== "—" ? (
-                  <>
-                    <br />
-                    {cityState}
-                  </>
-                ) : null}
+            {deal.propertyAddress || cityState !== "—" ? (
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                {deal.propertyAddress || cityState}
+                {deal.propertyAddress && cityState !== "—" ? ` · ${cityState}` : ""}
               </p>
             ) : null}
           </div>
@@ -105,32 +92,31 @@ export function DealWorkspaceHeader({
         </div>
 
         {loanAmount !== "—" ? (
-          <div className="min-w-[8.5rem] border-l-2 border-accent pl-4">
-            <p className="text-[1.85rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
+          <div className="min-w-[9rem] border-l-2 border-accent pl-5">
+            <p className="text-[2rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
               {loanAmount}
             </p>
-            <p className="mt-1.5 text-[11px] tracking-wide text-ink-muted uppercase">
-              Loan request
+            <p className="mt-2 text-[10px] tracking-[0.14em] text-ink-muted uppercase">
+              Requested loan
             </p>
           </div>
         ) : null}
-
-        <div className="flex flex-col items-start gap-3 lg:items-end">
-          <div className="flex items-center gap-2.5">
-            <StaffAvatar name={ownerName} unassigned={unassigned} size={48} />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-ink">
-                {unassigned ? "Unassigned" : ownerName}
-              </p>
-              <p className="text-[11px] text-ink-muted">Processor</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            <StatusChip status={deal.status} />
-            {actions}
-          </div>
-        </div>
       </div>
+
+      <dl className="mt-5 grid grid-cols-2 gap-x-6 border-t border-line pt-4 sm:grid-cols-4">
+        <HeaderItem label="Loan type" value={deal.loanType} />
+        <div>
+          <dt className="text-[11px] text-ink-muted">Status</dt>
+          <dd className="mt-0.5">
+            <StatusChip status={deal.status} />
+          </dd>
+        </div>
+        <HeaderItem label="Owner" value={unassigned ? "Unassigned" : ownerName} />
+        <HeaderItem label="File ID" value={deal.dealReference} />
+      </dl>
+      {actions ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -194,64 +180,17 @@ function DealProgressStrip({
   received: { received: number; required: number };
   reviewCount: number;
 }) {
-  const ratio =
-    received.required > 0
-      ? Math.min(100, Math.round((received.received / received.required) * 100))
-      : 0;
+  const current =
+    DEAL_PROGRESS_STAGES[dealProgressIndex(status)]?.label ?? "Application";
 
   return (
-    <section>
-      <ol className="relative grid grid-cols-4 gap-2">
-        <span
-          aria-hidden
-          className="absolute top-[6px] right-4 left-4 h-px bg-line"
-        />
-        {DEAL_PROGRESS_STAGES.map((stage, index) => {
-          const state = dealProgressState(status, index);
-          const tone =
-            state === "future"
-              ? "h-2.5 w-2.5 border-line bg-surface text-ink-muted"
-              : state === "current"
-                ? "h-3.5 w-3.5 border-2 border-mineral bg-surface ring-4 ring-mineral/12"
-                : "h-2.5 w-2.5 border-mineral bg-mineral text-white";
-          return (
-            <li key={stage.key} className="relative flex flex-col items-center">
-              <span
-                className={`relative z-10 rounded-full border ${tone}`}
-                aria-current={state === "current" ? "step" : undefined}
-              />
-              <span
-                className={`mt-2 text-center text-[11px] leading-4 ${
-                  state === "current"
-                    ? "font-semibold text-mineral"
-                    : state === "future"
-                      ? "text-ink-muted"
-                      : "text-ink"
-                }`}
-              >
-                {stage.label}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-      {received.required > 0 ? (
-        <div className="mt-4">
-          <p className="text-xs text-ink-muted">
-            {received.received} of {received.required} required items received
-            {reviewCount > 0
-              ? ` · ${reviewCount} still need review`
-              : ""}
-          </p>
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-line">
-            <div
-              className="h-1 rounded-full bg-mineral transition-[width] duration-160 motion-reduce:transition-none"
-              style={{ width: `${ratio}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
-    </section>
+    <p className="text-[12px] text-ink-muted">
+      {current}
+      {received.required > 0
+        ? ` · ${received.received} of ${received.required} required items received`
+        : ""}
+      {reviewCount > 0 ? ` · ${reviewCount} still need review` : ""}
+    </p>
   );
 }
 
@@ -393,12 +332,12 @@ export function DealOverview({
   const openConditions = conditions.open + conditions.received + conditions.waiting + conditions.review;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <DealProgressStrip status={deal.status} received={received} reviewCount={reviewCount} />
 
       {deal.status === "submitted" && submittedLabel ? (
-        <section className="border-l-2 border-pillar-ink bg-stone/40 px-5 py-4">
-          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
+        <section className="border-l-2 border-pillar-ink pl-5">
+          <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase">
             Submitted
           </p>
           <p className="mt-2 text-sm leading-6 text-ink">{submittedLabel}</p>
@@ -409,41 +348,114 @@ export function DealOverview({
       ) : null}
 
       {nextAction && presentation ? (
-        <section className="border-l-2 border-accent bg-stone/40 px-5 py-5">
-          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
-            Next action
-          </p>
-          <h3 className="font-display mt-2 text-xl font-semibold tracking-tight text-ink">
-            {nextAction.action}
-          </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
-            {presentation.context}
-            {nextAction.dueAt
-              ? ` Follow-up ${formatFollowUpAt(nextAction.dueAt)}.`
-              : ""}
-          </p>
-          <a href={nextAction.href} className={`${buttonClass("primary")} mt-5`}>
-            {presentation.cta} →
-          </a>
+        <section className="flex gap-5">
+          <span aria-hidden className="w-[2px] shrink-0 bg-accent" />
+          <div className="min-w-0 flex-1 py-0.5">
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase">
+              Next action
+            </p>
+            <h3 className="font-display mt-2 text-[1.65rem] font-semibold leading-tight tracking-tight text-ink">
+              {nextAction.action}
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
+              {presentation.context}
+            </p>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <a
+                href={nextAction.href}
+                className="text-[13px] font-medium text-mineral transition hover:text-pillar-teal"
+              >
+                {presentation.cta} →
+              </a>
+              {nextAction.dueAt ? (
+                <span className="text-[11px] tabular-nums text-ink-muted">
+                  Follow-up {formatFollowUpAt(nextAction.dueAt)}
+                </span>
+              ) : null}
+            </div>
+          </div>
         </section>
       ) : (
-        <section className="border-l-2 border-line bg-stone/30 px-5 py-5">
-          <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
-            Next action
-          </p>
-          <p className="mt-2 text-sm leading-6 text-ink-muted">
-            Nothing needs your attention.
-          </p>
+        <section className="flex gap-5">
+          <span aria-hidden className="w-[2px] shrink-0 bg-line" />
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase">
+              Next action
+            </p>
+            <p className="mt-2 text-sm leading-6 text-ink-muted">
+              Nothing needs your attention.
+            </p>
+          </div>
         </section>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      {snapshot.length > 0 ? (
+        <section>
+          <SectionHeader title="Transaction snapshot" />
+          <FactLedger rows={snapshot} />
+        </section>
+      ) : null}
+
+      <section>
+        <SectionHeader title="Submission readiness" />
+        <FactLedger
+          rows={[
+            {
+              label: "Required items",
+              value:
+                readiness.requiredCount > 0
+                  ? `${readiness.satisfiedCount} of ${readiness.requiredCount} ready`
+                  : "No required items",
+            },
+            { label: "Required now", value: requiredNow },
+            { label: "Missing contacts", value: missingContacts },
+            { label: "Follow-ups overdue", value: followUps },
+          ]}
+          columns={2}
+        />
+        {readiness.attention.length > 0 ? (
+          <ul className="mt-3 divide-y divide-line border-b border-line">
+            {readiness.attention.map((item) => (
+              <li key={`${item.kind}-${item.label}`} className="py-2 text-sm text-danger">
+                {item.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+
+      {openConditions > 0 || conditions.cleared > 0 ? (
+        <section>
+          <SectionHeader
+            title="Conditions"
+            actions={
+              <a
+                href={`/deals/${deal.id}?tab=conditions`}
+                className="text-[11px] font-medium text-mineral"
+              >
+                View →
+              </a>
+            }
+          />
+          <FactLedger
+            columns={2}
+            rows={[
+              { label: "Open", value: openConditions },
+              { label: "Received", value: conditions.received },
+              { label: "Waiting", value: conditions.waiting },
+              { label: "Need review", value: conditions.review },
+            ]}
+          />
+        </section>
+      ) : null}
+
+      <div className="grid gap-10 lg:grid-cols-2">
         <section>
           <SectionHeader title="Current blockers" />
           {blockers.length === 0 && rejectedNeeds.length === 0 ? (
             <p className="text-sm text-ink-muted">Nothing is blocking this file.</p>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-line border-y border-line">
               {rejectedNeeds.map((need) => (
                 <li key={need.id} className="py-2 text-sm text-danger">
                   Replacement {need.documentType} needed
@@ -472,7 +484,7 @@ export function DealOverview({
           {waitingOn.labels.length === 0 ? (
             <p className="text-sm leading-6 text-ink-muted">{waitingOn.empty}</p>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-line border-y border-line">
               {waitingOn.labels.map((label) => (
                 <li key={label} className="py-2 text-sm text-ink">
                   {label}
@@ -483,103 +495,48 @@ export function DealOverview({
         </section>
       </div>
 
-      {openConditions > 0 || conditions.cleared > 0 ? (
-        <section className="border-y border-line px-0 py-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h3 className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
-                Conditions
-              </h3>
-              <p className="mt-2 text-sm text-ink">
-                {openConditions} open
-                {conditions.received > 0 ? ` · ${conditions.received} received` : ""}
-                {conditions.waiting > 0 ? ` · ${conditions.waiting} waiting` : ""}
-                {conditions.review > 0 ? ` · ${conditions.review} need review` : ""}
-              </p>
-            </div>
-            <a
-              href={`/deals/${deal.id}?tab=conditions`}
-              className={buttonClass("secondary", "sm")}
-            >
-              View conditions
-            </a>
-          </div>
-        </section>
-      ) : null}
-
-      {snapshot.length > 0 ? (
+      {attempts.length > 0 ? (
         <section>
-          <SectionHeader title="Transaction snapshot" />
-          <dl className="grid grid-cols-2 divide-y divide-line border-y border-line sm:grid-cols-4 sm:divide-x sm:divide-y-0">
-            {snapshot.map((row) => (
-              <div key={row.label} className="px-4 py-4 first:pl-0">
-                <dt className="text-[11px] tracking-[0.08em] text-ink-muted uppercase">
-                  {row.label}
-                </dt>
-                <dd className="mt-2 text-[1.5rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
-                  {row.value}
-                </dd>
-              </div>
+          <SectionHeader title="Recent activity" />
+          <ul className="divide-y divide-line border-y border-line">
+            {attempts.slice(0, 5).map((attempt) => (
+              <li
+                key={attempt.id}
+                className="flex items-baseline justify-between gap-4 py-2.5"
+              >
+                <span className="min-w-0 truncate text-sm text-ink">
+                  {attempt.subject || attempt.channel}
+                </span>
+                <span className="shrink-0 text-[11px] tabular-nums text-ink-muted">
+                  {formatTimestamp(attempt.attemptedAt)}
+                </span>
+              </li>
             ))}
-          </dl>
+          </ul>
         </section>
       ) : null}
 
       {assist}
 
-      <details className="group rounded-[10px] border border-line bg-surface px-5 py-4">
-        <summary className="cursor-pointer text-sm font-semibold text-ink">
+      <details className="group border-y border-line py-4">
+        <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
           File details
         </summary>
         <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <HeaderItem label="Purpose" value={deal.loanPurpose} />
           <HeaderItem label="Credit" value={deal.creditBand} />
           <HeaderItem label="Experience" value={deal.experience} />
-          <HeaderItem
-            label="Required now"
-            value={String(requiredNow)}
-          />
-          <HeaderItem label="Missing contacts" value={String(missingContacts)} />
-          <HeaderItem label="Follow-ups overdue" value={String(followUps)} />
           <HeaderItem label="Escalations" value={String(escalations)} />
-          <HeaderItem
-            label="Submission"
-            value={
-              readiness.requiredCount > 0
-                ? `${readiness.satisfiedCount} of ${readiness.requiredCount} ready`
-                : "No required items"
-            }
-          />
         </dl>
-        {readiness.attention.length > 0 ? (
-          <ul className="mt-4 space-y-1">
-            {readiness.attention.map((item) => (
-              <li key={`${item.kind}-${item.label}`} className="text-sm text-danger">
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </details>
 
       {resolvedIntake ? (
-        <details className="group rounded-[10px] border border-line bg-surface">
-          <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-ink">
+        <details className="group border-b border-line py-4">
+          <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
             Application intake
           </summary>
-          <div className="border-t border-line px-5 py-4">
-            <ApplicationIntakeCard intake={resolvedIntake} loanType={deal.loanType} />
-          </div>
-        </details>
-      ) : null}
-
-      {attempts.length > 0 ? (
-        <details className="group rounded-[10px] border border-line bg-surface px-5 py-4">
-          <summary className="cursor-pointer text-sm font-semibold text-ink">
-            Recent communications
-          </summary>
           <div className="mt-4">
-            <CommunicationTimeline attempts={attempts} />
+            <ApplicationIntakeCard intake={resolvedIntake} loanType={deal.loanType} />
           </div>
         </details>
       ) : null}

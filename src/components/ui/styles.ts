@@ -27,9 +27,9 @@ export const cardPadClass = "px-5 py-4";
 export const pageWidthClass = "mx-auto w-full max-w-[1600px]";
 
 export const pageTitleClass =
-  "font-display text-[1.5rem] font-semibold tracking-tight text-ink";
+  "font-display text-[1.75rem] font-semibold tracking-tight text-ink";
 
-export const pageLeadClass = "mt-2 max-w-2xl text-sm leading-6 text-ink-muted";
+export const pageLeadClass = "mt-1.5 max-w-2xl text-sm leading-6 text-ink-muted";
 
 export const sectionTitleClass =
   "text-[15px] font-semibold tracking-tight text-ink";
@@ -58,9 +58,11 @@ export const btnCompactPrimaryClass =
   "inline-flex items-center justify-center rounded-[8px] bg-mineral px-2.5 py-1 text-xs font-medium text-white transition hover:bg-pillar-teal disabled:cursor-not-allowed disabled:opacity-60";
 
 export const tableHeadClass =
-  "text-[11px] font-medium uppercase tracking-[0.06em] text-ink-muted";
+  "text-[10px] font-medium uppercase tracking-[0.12em] text-ink-muted";
 
 export const tableRowClass =
-  "border-t border-line/80 hover:bg-stone/80 focus-within:bg-stone";
+  "border-t border-line/80 hover:bg-stone/70 focus-within:bg-stone";
+
+export const tableCellClass = "px-3 py-[0.7rem] align-middle";
 
 export const linkClass = "font-medium text-ink transition hover:text-pillar-teal";
