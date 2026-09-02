@@ -56,7 +56,7 @@ export function buildMorningBrief(input: {
   }
   for (const row of input.readyToSubmit.slice(0, 1)) {
     if (!highlights.some((line) => line.startsWith(row.borrowerName))) {
-      highlights.push(`${row.borrowerName} is ready to submit.`);
+      highlights.push(`${row.borrowerName} is ready to send.`);
     }
   }
 
@@ -73,7 +73,7 @@ export function buildMorningBrief(input: {
     text: `${lead}\n${highlights.slice(0, 3).join("\n")}`,
     highlights: highlights.slice(0, 3),
     disclaimer:
-      "AI-assisted summary only — derived from live queue state. No actions are taken automatically.",
+      "Suggestion only — from live file state. No actions are taken automatically.",
     canExecute: false,
   };
 }

@@ -14,10 +14,12 @@ describe("status language", () => {
     expect(formatStatusLabel("new")).toBe("New file");
     expect(formatStatusLabel("collecting_documents")).toBe("Collecting documents");
     expect(formatStatusLabel("processor_review")).toBe("In processor review");
-    expect(formatDealStatus("ready_for_submission")).toBe("Ready to submit");
+    expect(formatDealStatus("ready_for_submission")).toBe("Ready to send");
     expect(formatDealStatus("submitted")).toBe("Submitted");
     expect(formatStatusLabel("waiting")).toBe("Waiting");
     expect(formatStatusLabel("replacement_needed")).toBe("Replacement needed");
+    expect(formatStatusLabel("required_now")).toBe("Needed now");
+    expect(formatStatusLabel("required_later")).toBe("Needed later");
     expect(formatStatusLabel("needs_review")).toBe("Needs review");
   });
 });

@@ -21,7 +21,7 @@ export function TeamOverviewSection({
   return (
     <div className="space-y-8">
       <section>
-        <SectionHeader title="Team context" />
+        <SectionHeader title="Team" />
         <FactLedger
           columns={2}
           rows={[
@@ -30,7 +30,7 @@ export function TeamOverviewSection({
             { label: "Urgent", value: totals.urgent },
             { label: "Review", value: totals.review },
             { label: "Waiting", value: totals.waiting },
-            { label: "Ready", value: totals.ready },
+            { label: "Ready to send", value: totals.ready },
           ]}
         />
       </section>

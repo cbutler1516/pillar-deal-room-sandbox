@@ -6,6 +6,8 @@ import {
   portalNeedStatusLabel,
   portalProgressStep,
   portalReceivedCopy,
+  PORTAL_NEED_GROUPS,
+  PORTAL_PROGRESS_STEPS,
 } from "@/lib/portal/presentation";
 
 const base = {
@@ -49,6 +51,7 @@ describe("borrower portal need grouping", () => {
 describe("borrower portal copy", () => {
   it("uses short explanations and honest CTAs", () => {
     expect(portalNeedStatusLabel("rejected")).toBe("Replacement needed");
+    expect(portalNeedStatusLabel("needs_review")).toBe("Being reviewed");
     expect(portalNeedExplanation({ ...base, status: "rejected" })).toContain(
       "could not be accepted",
     );
@@ -66,6 +69,12 @@ describe("borrower portal copy", () => {
         expectedDocumentCount: 2,
       }),
     ).toBe("2 of 2 received");
+    expect(PORTAL_NEED_GROUPS.find((group) => group.key === "required_later")?.label).toBe(
+      "Needed later",
+    );
+    expect(PORTAL_PROGRESS_STEPS.find((step) => step.key === "review")?.label).toBe(
+      "Being reviewed",
+    );
   });
 });
 

@@ -8,7 +8,7 @@ export function WaitingOnSection({ rows }: { rows: WaitingOnRow[] }) {
   }
   return (
     <section>
-      <SectionHeader title="Waiting" meta={rows.reduce((sum, row) => sum + row.count, 0)} />
+      <SectionHeader title="Waiting for" meta={rows.reduce((sum, row) => sum + row.count, 0)} />
       <ul>
         {rows.map((row) => (
           <CommandRow

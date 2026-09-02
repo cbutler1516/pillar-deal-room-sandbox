@@ -45,8 +45,8 @@ export default async function TeamPage() {
   return (
     <div className={`${pageWidthClass} space-y-6`}>
       <PageHeader
-        title="Team workload"
-        description="Who owns what across the processing team. Counts come from live file work — not scores."
+        title="Team"
+        description="Who owns which files."
       />
 
       <UnassignedCard row={workload.unassigned} />

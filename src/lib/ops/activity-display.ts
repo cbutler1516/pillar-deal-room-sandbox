@@ -25,7 +25,7 @@ const EVENT_ACTIONS: Record<string, string> = {
   deal_claimed: "Assigned the file",
   deal_unclaimed: "Unassigned the file",
   deal_status_changed: "Changed deal status",
-  client_need_status_changed: "Updated Client Need",
+  client_need_status_changed: "Updated request",
   document_upload_session_created: "Started a document upload",
   document_metadata_recorded: "Uploaded a document",
   document_status_changed: "Updated document status",
@@ -142,7 +142,7 @@ export function formatActivityAction(
     if (metadata.to === "received" || metadata.to === "needs_review") {
       return "Marked received";
     }
-    return "Updated Client Need";
+    return "Updated request";
   }
   if (eventType === "task_escalated") {
     const level = metadata.to ?? metadata.escalation_level ?? "loan officer";
@@ -168,7 +168,7 @@ export function formatActivityAction(
     if (metadata.capability === "rewrite_communication") {
       return "Requested an AI rewrite suggestion";
     }
-    return "Requested AI assist";
+    return "Requested a file summary";
   }
   return EVENT_ACTIONS[eventType] ?? titleCase(eventType);
 }

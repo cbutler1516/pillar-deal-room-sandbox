@@ -78,9 +78,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
       "Please provide a current government-issued photo ID for the borrower on {{deal_reference}}.",
     requestSummary: "Request a government-issued photo ID.",
     instructions:
-      "Request a current government-issued photo ID. Confirm the name matches the borrower. Link the file to the Government-issued ID Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request a current government-issued photo ID. Confirm the name matches the borrower. Link the file to the Government-issued ID request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the ID is received, reviewed, and the Client Need is approved or explicitly accepted. This is not a KYC legal determination.",
+      "Complete when the ID is received, reviewed, and the request is approved or explicitly accepted. This is not a KYC legal determination.",
   }),
   documentRequest({
     playbookKey: "request_construction_plans",
@@ -92,9 +92,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Construction Plans",
     needMatchAliases: ["plans", "architectural"],
     instructions:
-      "Request current construction plans. Confirm they are for this property. Link them to the Construction Plans Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request current construction plans. Confirm they are for this property. Link them to the Construction Plans request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the plans are received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when the plans are received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_construction_budget",
@@ -106,9 +106,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Construction Budget",
     needMatchAliases: ["construction budget"],
     instructions:
-      "Request a line-item construction budget. Confirm it covers the planned work. Link it to the Construction Budget Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request a line-item construction budget. Confirm it covers the planned work. Link it to the Construction Budget request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when a usable budget is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when a usable budget is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_permits",
@@ -120,9 +120,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Permits",
     needMatchAliases: ["permit"],
     instructions:
-      "Request permit evidence or a written status. Confirm the property address. Link files to the Permits Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request permit evidence or a written status. Confirm the property address. Link files to the Permits request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when permit evidence or status is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when permit evidence or status is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_land_documentation",
@@ -134,9 +134,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Land Documentation",
     needMatchAliases: ["land", "deed"],
     instructions:
-      "Request evidence of land ownership or the land contract. Confirm the parcel matches the deal. Link it to the Land Documentation Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request evidence of land ownership or the land contract. Confirm the parcel matches the deal. Link it to the Land Documentation request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when land documentation is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when land documentation is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_construction_schedule",
@@ -148,9 +148,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Construction Schedule",
     needMatchAliases: ["construction schedule"],
     instructions:
-      "Request a construction schedule. Confirm start and completion estimates. Link it to the Construction Schedule Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request a construction schedule. Confirm start and completion estimates. Link it to the Construction Schedule request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the schedule is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when the schedule is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_bank_statements",
@@ -167,9 +167,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     requestSummary:
       "Request the most recent {{expected_months}} months of complete bank statements.",
     instructions:
-      "Confirm the Client Need months (for example, most recent 2 months). Contact the borrower and request complete statements for each required month. When files arrive, verify every page is present, the account holder matches the borrower or entity, and the statement period is correct. Link each statement to the Bank Statements Client Need. If pages or months are missing, follow up the same day. If there is no complete package within 24 hours, follow up. Escalate to the LO after 48 hours.",
+      "Confirm the requested months (for example, most recent 2 months). Contact the borrower and request complete statements for each required month. When files arrive, verify every page is present, the account holder matches the borrower or entity, and the statement period is correct. Link each statement to the Bank Statements request. If pages or months are missing, follow up the same day. If there is no complete package within 24 hours, follow up. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the expected statements are received, the processor has reviewed them, and the related Client Need is approved or explicitly accepted. This is not an underwriting decision.",
+      "Complete when the expected statements are received, the processor has reviewed them, and the related request is approved or explicitly accepted. This is not an underwriting decision.",
   }),
   documentRequest({
     playbookKey: "request_pay_stubs",
@@ -185,9 +185,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
       "Please provide your most recent {{expected_document_count}} pay stubs.",
     requestSummary: "Request the most recent {{expected_document_count}} pay stubs.",
     instructions:
-      "Confirm the lookback (for example, most recent 30 days). Request each stub covering that window. Check pay dates, employer name, and that YTD figures are readable. Link every stub to the Pay Stubs Client Need. Follow up if a date is missing. Escalate to the LO after 48 hours with no complete set.",
+      "Confirm the lookback (for example, most recent 30 days). Request each stub covering that window. Check pay dates, employer name, and that YTD figures are readable. Link every stub to the Pay Stubs request. Follow up if a date is missing. Escalate to the LO after 48 hours with no complete set.",
     completionSummary:
-      "Complete when all expected stubs are received, reviewed, and the Pay Stubs Client Need is approved or explicitly accepted. No income conclusion is made here.",
+      "Complete when all expected stubs are received, reviewed, and the Pay Stubs request is approved or explicitly accepted. No income conclusion is made here.",
   }),
   documentRequest({
     playbookKey: "request_entity_documents",
@@ -199,9 +199,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Entity Documents",
     needMatchAliases: ["entity"],
     instructions:
-      "Ask the borrower for articles, operating agreement, and good-standing evidence as applicable. Confirm the entity name matches the deal. Link each file to the Entity Documents Client Need. Follow up in 24 hours if the package is incomplete. Escalate to the LO after 48 hours.",
+      "Ask the borrower for articles, operating agreement, and good-standing evidence as applicable. Confirm the entity name matches the deal. Link each file to the Entity Documents request. Follow up in 24 hours if the package is incomplete. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the entity package is received, reviewed, and the Entity Documents Client Need is approved or explicitly accepted.",
+      "Complete when the entity package is received, reviewed, and the Entity Documents request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_purchase_agreement",
@@ -213,9 +213,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Purchase Agreement",
     needMatchAliases: ["purchase agreement", "psa"],
     instructions:
-      "Request the fully executed purchase agreement. Confirm buyer, seller, property address, and signatures. Link the file to the Purchase Agreement Client Need. Follow up in 24 hours if unsigned or missing pages. Escalate to the LO after 48 hours.",
+      "Request the fully executed purchase agreement. Confirm buyer, seller, property address, and signatures. Link the file to the Purchase Agreement request. Follow up in 24 hours if unsigned or missing pages. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the executed agreement is received, reviewed, and the Purchase Agreement Client Need is approved or explicitly accepted.",
+      "Complete when the executed agreement is received, reviewed, and the Purchase Agreement request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_rehab_budget",
@@ -227,9 +227,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Rehab Budget",
     needMatchAliases: ["rehab budget"],
     instructions:
-      "Request a line-item rehab budget for this Fix & Flip. Confirm it covers the planned work and matches the property. Link it to the Rehab Budget Client Need. Follow up in 24 hours if only a lump sum is sent. Escalate to the LO after 48 hours.",
+      "Request a line-item rehab budget for this Fix & Flip. Confirm it covers the planned work and matches the property. Link it to the Rehab Budget request. Follow up in 24 hours if only a lump sum is sent. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when a usable budget is received, reviewed, and the Rehab Budget Client Need is approved or explicitly accepted.",
+      "Complete when a usable budget is received, reviewed, and the Rehab Budget request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_scope_of_work",
@@ -241,9 +241,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Scope of Work",
     needMatchAliases: ["scope of work"],
     instructions:
-      "Request a written scope of work describing the rehab. Confirm it is property-specific. Link it to the Scope of Work Client Need. Follow up in 24 hours if it is generic or incomplete. Escalate to the LO after 48 hours.",
+      "Request a written scope of work describing the rehab. Confirm it is property-specific. Link it to the Scope of Work request. Follow up in 24 hours if it is generic or incomplete. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the scope is received, reviewed, and the Scope of Work Client Need is approved or explicitly accepted.",
+      "Complete when the scope is received, reviewed, and the Scope of Work request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_lease_rent_schedule",
@@ -255,9 +255,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Lease / Rent Schedule",
     needMatchAliases: ["lease", "rent schedule"],
     instructions:
-      "Request the current lease or rent schedule. Confirm tenant, rent amount, and property address. Link the file to the Lease / Rent Schedule Client Need. Follow up in 24 hours if unsigned or expired. Escalate to the LO after 48 hours.",
+      "Request the current lease or rent schedule. Confirm tenant, rent amount, and property address. Link the file to the Lease / Rent Schedule request. Follow up in 24 hours if unsigned or expired. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the lease/schedule is received, reviewed, and the related Client Need is approved or explicitly accepted. Do not calculate DSCR here.",
+      "Complete when the lease/schedule is received, reviewed, and the related request is approved or explicitly accepted. Do not calculate DSCR here.",
   }),
   documentRequest({
     playbookKey: "request_mortgage_statement",
@@ -269,9 +269,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Mortgage Statement",
     needMatchAliases: ["mortgage statement"],
     instructions:
-      "For refinance files, request the current mortgage statement. Confirm the property and unpaid balance are visible. Link it to the Mortgage Statement Client Need. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "For refinance files, request the current mortgage statement. Confirm the property and unpaid balance are visible. Link it to the Mortgage Statement request. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the statement is received, reviewed, and the Mortgage Statement Client Need is approved or explicitly accepted.",
+      "Complete when the statement is received, reviewed, and the Mortgage Statement request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_rent_roll",
@@ -283,9 +283,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Rent Roll",
     needMatchAliases: ["rent roll"],
     instructions:
-      "Request a current rent roll. Confirm unit count and that occupied units show rent. Link it to the Rent Roll Client Need. Follow up in 24 hours if units are missing. Escalate to the LO after 48 hours.",
+      "Request a current rent roll. Confirm unit count and that occupied units show rent. Link it to the Rent Roll request. Follow up in 24 hours if units are missing. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the rent roll is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when the rent roll is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_t12",
@@ -297,9 +297,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "T12",
     needMatchAliases: ["t12"],
     instructions:
-      "Request the trailing-12 operating statement. Confirm the property name and period. Link it to the T12 Client Need. Follow up in 24 hours if the period is wrong. Escalate to the LO after 48 hours.",
+      "Request the trailing-12 operating statement. Confirm the property name and period. Link it to the T12 request. Follow up in 24 hours if the period is wrong. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the T12 is received, reviewed, and the Client Need is approved or explicitly accepted. Do not underwrite cash flow here.",
+      "Complete when the T12 is received, reviewed, and the request is approved or explicitly accepted. Do not underwrite cash flow here.",
   }),
   documentRequest({
     playbookKey: "request_pfs",
@@ -311,9 +311,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "PFS",
     needMatchAliases: ["pfs", "personal financial"],
     instructions:
-      "Request the sponsor PFS. Confirm it is signed and dated. Link it to the PFS Client Need. Follow up in 24 hours if unsigned. Escalate to the LO after 48 hours.",
+      "Request the sponsor PFS. Confirm it is signed and dated. Link it to the PFS request. Follow up in 24 hours if unsigned. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the PFS is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when the PFS is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_sreo",
@@ -325,9 +325,9 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Schedule of Real Estate Owned",
     needMatchAliases: ["sreo", "real estate owned"],
     instructions:
-      "Request the SREO. Confirm properties and balances are listed. Link it to the SREO Client Need. Follow up in 24 hours if incomplete. Escalate to the LO after 48 hours.",
+      "Request the SREO. Confirm properties and balances are listed. Link it to the SREO request. Follow up in 24 hours if incomplete. Escalate to the LO after 48 hours.",
     completionSummary:
-      "Complete when the SREO is received, reviewed, and the Client Need is approved or explicitly accepted.",
+      "Complete when the SREO is received, reviewed, and the request is approved or explicitly accepted.",
   }),
   documentRequest({
     playbookKey: "request_closing_protection_letter",
@@ -342,7 +342,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     requestTemplate: "Please provide the Closing Protection Letter for {{property_address}}.",
     requestSummary: "Request the Closing Protection Letter for {{property_address}}.",
     instructions:
-      "Identify the title contact. Request a Closing Protection Letter for this property and borrower/entity. When received, attach it to the deal and link it to the CPL Client Need if one exists. Review names, property, and file reference. If no response within 24 hours, follow up. Escalate to the LO after 48 hours.",
+      "Identify the title contact. Request a Closing Protection Letter for this property and borrower/entity. When received, attach it to the deal and link it to the CPL request if one exists. Review names, property, and file reference. If no response within 24 hours, follow up. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the CPL is received, linked, and the processor marks it accepted. This is not a title-insurance legal opinion.",
   }),
@@ -357,7 +357,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Preliminary Title Report",
     needMatchAliases: ["title report", "prelim"],
     instructions:
-      "Ask title for the preliminary title report. Confirm the legal description matches the deal property. Link the report to the Title Client Need when used. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Ask title for the preliminary title report. Confirm the legal description matches the deal property. Link the report to the Title request when used. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the prelim is received, linked if applicable, and the processor marks it accepted.",
   }),
@@ -372,7 +372,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Property Tax Certificate",
     needMatchAliases: ["tax certificate"],
     instructions:
-      "Request the property tax certificate from title. Confirm the parcel and address. Link it if a Client Need exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request the property tax certificate from title. Confirm the parcel and address. Link it if a request exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the certificate is received and the processor marks it accepted.",
   }),
@@ -391,7 +391,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     requestSummary:
       "Request the current hazard insurance binder for {{property_address}}.",
     instructions:
-      "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance Client Need. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
+      "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance request. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
     completionSummary:
       "Complete when evidence of coverage is received, linked, and the processor marks it accepted. This is not an insurance-compliance determination.",
   }),
@@ -406,7 +406,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Insurance Invoice",
     needMatchAliases: ["insurance invoice", "hazard"],
     instructions:
-      "Request the hazard insurance invoice or paid receipt from the agent. Confirm it matches the same policy as the binder. Link it if an Insurance Invoice Client Need exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request the hazard insurance invoice or paid receipt from the agent. Confirm it matches the same policy as the binder. Link it if an Insurance Invoice request exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the invoice/receipt is received and the processor marks it accepted.",
   }),
@@ -433,7 +433,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Appraisal",
     needMatchAliases: ["appraisal"],
     instructions:
-      "If the report is late, follow up with the appraiser. When it arrives, link it to the Appraisal Client Need if present. Confirm the address only. Escalate to the LO after 48 hours if still missing.",
+      "If the report is late, follow up with the appraiser. When it arrives, link it to the Appraisal request if present. Confirm the address only. Escalate to the LO after 48 hours if still missing.",
     completionSummary:
       "Complete when the report is received and linked if applicable. Do not conclude value.",
   }),
@@ -448,7 +448,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Contractor Insurance",
     needMatchAliases: ["contractor insurance"],
     instructions:
-      "Ask the contractor for current liability insurance. Confirm the named insured. Link the certificate if a Client Need exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Ask the contractor for current liability insurance. Confirm the named insured. Link the certificate if a request exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the certificate is received and the processor marks it accepted.",
   }),
@@ -463,7 +463,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     needDocumentType: "Contractor Estimate",
     needMatchAliases: ["contractor estimate"],
     instructions:
-      "Request the contractor estimate or scope. Confirm it is for this property. Link it if a Client Need exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+      "Request the contractor estimate or scope. Confirm it is for this property. Link it if a request exists. Follow up in 24 hours. Escalate to the LO after 48 hours.",
     completionSummary:
       "Complete when the estimate is received and the processor marks it accepted.",
   }),
@@ -499,11 +499,11 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     timing: "required_now",
     priority: "high",
     instructions:
-      "Open the Bank Statements Client Need. Confirm expected months are present, pages are complete, and the account holder matches. If a statement still needs review, leave the need in needs_review. Do not approve the need until the requirement as a whole is satisfied. Escalate to the LO only if the package cannot be interpreted.",
+      "Open the Bank Statements request. Confirm expected months are present, pages are complete, and the account holder matches. If a statement still needs review, leave the need in needs_review. Do not approve the need until the requirement as a whole is satisfied. Escalate to the LO only if the package cannot be interpreted.",
     completionRule: {
       key: "review_bank_statements_complete",
       summary:
-        "Complete when the processor has reviewed the linked statements. Approval of the Client Need is a separate decision and is never automatic.",
+        "Complete when the processor has reviewed the linked statements. Approval of the request is a separate decision and is never automatic.",
       requiresLinkedNeed: true,
       requiresNeedApprovedOrAccepted: false,
       requiresDocumentLinked: true,
@@ -526,7 +526,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     timing: "required_now",
     priority: "normal",
     instructions:
-      "Check the Lease / Rent Schedule Client Need. If the file is still in review or missing pages, contact the borrower for the correction. Record last contacted and the next follow-up. Escalate to the LO after 48 hours.",
+      "Check the Lease / Rent Schedule request. If the file is still in review or missing pages, contact the borrower for the correction. Record last contacted and the next follow-up. Escalate to the LO after 48 hours.",
     completionRule: {
       key: "follow_up_lease_complete",
       summary:
@@ -558,7 +558,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     timing: "required_later",
     priority: "low",
     instructions:
-      "Do not start this until required-now tasks are complete or waived. Walk the Client Needs list. If anything required is still missing or in review, stop and create or reopen the matching request task. When the file is actually ready, mark this complete. This does not submit to a lender.",
+      "Do not start this until needed-now tasks are complete or waived. Walk the Requests list. If anything required is still missing or in review, stop and create or reopen the matching request task. When the file is actually ready, mark this complete. This does not submit to a lender.",
     completionRule: {
       key: "prepare_submission_complete",
       summary:
@@ -608,7 +608,7 @@ export const COMMON_PLAYBOOKS: PlaybookDefinition[] = [
     timing: "required_now",
     priority: "high",
     instructions:
-      "Review outstanding borrower Client Needs. Contact the borrower with a specific list of missing items. Record last contacted and schedule the next follow-up. Escalate to the LO after 48 hours without a response.",
+      "Review outstanding borrower requests. Contact the borrower with a specific list of missing items. Record last contacted and schedule the next follow-up. Escalate to the LO after 48 hours without a response.",
     completionRule: {
       key: "follow_up_borrower_complete",
       summary:

@@ -15,7 +15,7 @@ export function ReadyToSubmitSection({
   }
   return (
     <section>
-      <SectionHeader title="Ready" meta={rows.length} />
+      <SectionHeader title="Ready to send" meta={rows.length} />
       <ul>
         {rows.map((row) => (
           <CommandRow
@@ -27,7 +27,7 @@ export function ReadyToSubmitSection({
                 ? ` · ${staffNames[row.processorId]}`
                 : ""
             }`}
-            action="Submit"
+            action="Open"
           />
         ))}
       </ul>

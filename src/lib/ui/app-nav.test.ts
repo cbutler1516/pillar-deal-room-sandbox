@@ -8,14 +8,14 @@ import {
 describe("app navigation", () => {
   it("keeps Tasks on desktop only and uses the existing /tasks route", () => {
     expect(MOBILE_APP_NAV.map((item) => item.label)).toEqual([
-      "Dashboard",
+      "Home",
       "Deals",
-      "Queue",
+      "Work",
     ]);
     expect(DESKTOP_APP_NAV.map((item) => item.label)).toEqual([
-      "Dashboard",
+      "Home",
       "Deals",
-      "Queue",
+      "Work",
       "Tasks",
       "Team",
     ]);
@@ -33,6 +33,18 @@ describe("app navigation", () => {
     expect(isAppNavActive("/deals/abc", "/deals")).toBe(true);
     expect(DESKTOP_APP_NAV.map((item) => item.href)).not.toEqual(
       expect.arrayContaining(["/reports", "/settings"]),
+    );
+  });
+
+  it("keeps Work and Tasks as separate destinations with unchanged routes", () => {
+    expect(DESKTOP_APP_NAV.find((item) => item.label === "Work")?.href).toBe(
+      "/processor-queue",
+    );
+    expect(DESKTOP_APP_NAV.find((item) => item.label === "Tasks")?.href).toBe(
+      "/tasks",
+    );
+    expect(DESKTOP_APP_NAV.find((item) => item.label === "Home")?.href).toBe(
+      "/dashboard",
     );
   });
 });

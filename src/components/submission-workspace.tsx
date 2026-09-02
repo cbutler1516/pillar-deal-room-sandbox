@@ -106,21 +106,21 @@ export function SubmissionWorkspace({
         }`}
       >
         <p className="text-[11px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
-          Submission readiness
+          Ready to send
         </p>
         <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight text-ink">
           {submitted
             ? "Submitted"
             : ready
-              ? "Ready to submit"
-              : "Not ready to submit"}
+              ? "Ready to send"
+              : "Not ready to send"}
         </h3>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
           {submitted && submittedLabel
             ? submittedLabel
             : ready
-              ? "All required-now items have been approved or waived."
-              : `${blockerCount} item${blockerCount === 1 ? "" : "s"} need attention before this file should be submitted.`}
+              ? "Needed-now items are complete."
+              : `${blockerCount} item${blockerCount === 1 ? "" : "s"} still need attention.`}
         </p>
         <dl className="mt-5 grid gap-4 border-t border-line pt-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact label="Borrower" value={borrowerName} />
@@ -158,7 +158,7 @@ export function SubmissionWorkspace({
                       <p className="text-xs text-ink-muted">{row.reason}</p>
                     </div>
                     <a href={row.href} className={`${buttonClass("secondary", "sm")} print-hide`}>
-                      Open {row.target === "contacts" ? "People" : row.target}
+                      Open {submissionTargetLabel(row.target)}
                     </a>
                   </li>
                 ))}
@@ -184,8 +184,8 @@ export function SubmissionWorkspace({
 
           <SurfaceCard>
             <CardHeader
-              title="Submission package"
-              description="Index of approved, linked documents. Files are not bundled or sent."
+              title="Lender package"
+              description="Approved, linked documents. Nothing is sent from here."
             />
             {manifest.length === 0 ? (
               <p className="text-sm text-ink-muted">
@@ -378,7 +378,7 @@ export function SubmissionWorkspace({
               </button>
               {!ready ? (
                 <p className="mt-2 text-xs text-ink-muted">
-                  Available only when readiness passes.
+                  Available when the file is ready to send.
                 </p>
               ) : null}
             </SurfaceCard>
@@ -389,6 +389,16 @@ export function SubmissionWorkspace({
       {error ? <p className="print-hide text-sm text-danger">{error}</p> : null}
     </div>
   );
+}
+
+function submissionTargetLabel(target: string): string {
+  if (target === "contacts") return "People";
+  if (target === "needs") return "Requests";
+  if (target === "documents") return "Documents";
+  if (target === "conditions") return "Conditions";
+  if (target === "submission") return "Submission";
+  if (target === "tasks") return "Tasks";
+  return target;
 }
 
 function Fact({ label, value }: { label: string; value: string }) {

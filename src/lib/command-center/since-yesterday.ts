@@ -101,7 +101,7 @@ export function deriveSinceYesterday(input: {
       count: conditionsCleared,
     },
     {
-      label: "file became ready to submit",
+      label: "ready-to-send file",
       count: filesReady,
       href: "/processor-queue?bucket=ready",
     },

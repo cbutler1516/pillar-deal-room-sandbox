@@ -165,13 +165,13 @@ export function recommendedDraftForTask(
 
 function recommendationReason(stage: SequenceStage, replacement: boolean): string {
   if (replacement) {
-    return "A required Client Need needs a replacement. Copy borrower-safe wording only.";
+    return "A required request needs a replacement. Copy borrower-safe wording only.";
   }
   switch (stage) {
     case "no_contact":
       return "No contact has been recorded. Copy the initial request.";
     case "waiting":
-      return "Waiting on a response. Follow the cadence; nothing is sent automatically.";
+      return "Waiting for a reply. Follow the cadence; nothing is sent automatically.";
     case "follow_up":
       return "Follow-up is due. Copy the follow-up draft.";
     case "second_follow_up":

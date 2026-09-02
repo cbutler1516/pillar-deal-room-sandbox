@@ -49,8 +49,8 @@ const SECTIONS = [
   { key: "unassigned", label: "Unassigned" },
   { key: "missingItems", label: "Missing items" },
   { key: "documentsToReview", label: "Documents to review" },
-  { key: "exceptions", label: "Exceptions" },
-  { key: "readyForSubmission", label: "Ready to submit" },
+  { key: "exceptions", label: "Issues" },
+  { key: "readyForSubmission", label: "Ready to send" },
 ] as const;
 
 const WORK_FILTERS = [
@@ -63,7 +63,7 @@ const WORK_FILTERS = [
   { value: "follow_up", label: "Follow-up" },
   { value: "waiting", label: "Waiting" },
   { value: "escalated", label: "Escalated" },
-  { value: "ready", label: "Ready to submit" },
+  { value: "ready", label: "Ready to send" },
 ] as const;
 
 export default async function ProcessorQueuePage({
@@ -198,10 +198,7 @@ export default async function ProcessorQueuePage({
 
   return (
     <div className={`${pageWidthClass} space-y-8`}>
-      <PageHeader
-        title="Queue"
-        description="Work in rank order."
-      />
+      <PageHeader title="Work" />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl
@@ -305,7 +302,7 @@ export default async function ProcessorQueuePage({
           </SelectField>
           <SelectField name="urgency" compact defaultValue={urgency}>
             <option value="all">All urgency</option>
-            <option value="exceptions">Exceptions first</option>
+            <option value="exceptions">Issues first</option>
             <option value="aging">Aging 7+ days</option>
           </SelectField>
           {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
@@ -429,7 +426,7 @@ export default async function ProcessorQueuePage({
                     : section.key === "due_today"
                       ? "Nothing else is due today."
                       : section.key === "waiting"
-                        ? "Nobody is waiting on a reply."
+                        ? "Nobody is waiting for a reply."
                         : section.key === "new"
                           ? "No new files."
                           : "No urgent items."

@@ -18,8 +18,7 @@ export function MyNextFiveSection({
           workQueueRow(row, { location: locationByDeal[row.dealId] }),
         )}
         staffNames={staffNames}
-        title="My next work"
-        description="Highest-ranked assigned work. One action each."
+        title="Up next"
         empty="Nothing assigned to you right now."
       />
     </section>

@@ -286,7 +286,7 @@ export default async function DealDetailPage({
               assist ? (
                 <details className="px-1">
                   <summary className="cursor-pointer text-sm font-medium text-ink-muted">
-                    Processor assist
+                    File summary
                   </summary>
                   <div className="mt-3">
                     <AIAssistPanel result={assist} />

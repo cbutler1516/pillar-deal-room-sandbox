@@ -46,8 +46,7 @@ export function ConditionsWorkspace({
             Conditions
           </h3>
           <p className="mt-0.5 max-w-2xl text-xs leading-5 text-ink-muted">
-            Human-entered lender requirements. Nothing is sent or cleared
-            automatically.
+            Lender requirements on this file. Nothing is sent automatically.
           </p>
         </div>
         {canMutate ? (

@@ -120,7 +120,7 @@ function createStore(input?: {
       const document = documents.get(row.documentId);
       const need = needs.get(row.clientNeedId);
       if (!document || !need || document.dealId !== need.dealId) {
-        throw new Error("A document may only link to a Client Need on the same deal.");
+        throw new Error("A document may only link to a request on the same deal.");
       }
       links.push({ documentId: row.documentId, clientNeedId: row.clientNeedId });
       return "created";

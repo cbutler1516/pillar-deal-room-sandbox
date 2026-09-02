@@ -8,7 +8,7 @@ export function RecentResponsesSection({ rows }: { rows: RecentResponseRow[] }) 
   }
   return (
     <section>
-      <SectionHeader title="Review — replies" meta={rows.length} />
+      <SectionHeader title="New replies" meta={rows.length} />
       <ul>
         {rows.map((row) => (
           <CommandRow

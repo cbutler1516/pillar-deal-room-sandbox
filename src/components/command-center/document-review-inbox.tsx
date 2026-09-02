@@ -12,7 +12,7 @@ export function DocumentReviewInboxSection({
   }
   return (
     <section>
-      <SectionHeader title="Review — documents" meta={rows.length} />
+      <SectionHeader title="To review" meta={rows.length} />
       <ul>
         {rows.map((row) => (
           <CommandRow

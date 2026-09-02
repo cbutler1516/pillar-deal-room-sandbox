@@ -22,8 +22,8 @@ export function formatDashboardSummary(counts: DashboardSummaryCounts): {
       : `${docs} documents ready for review`;
   const ready =
     counts.ready === 1
-      ? "1 ready to submit"
-      : `${counts.ready} ready to submit`;
+      ? "1 ready to send"
+      : `${counts.ready} ready to send`;
   return {
     attention,
     review,
@@ -42,6 +42,6 @@ export function formatDashboardSummaryLine(counts: DashboardSummaryCounts): stri
       ? "1 document to review"
       : `${counts.docsToReview} documents to review`;
   const ready =
-    counts.ready === 1 ? "1 ready to submit" : `${counts.ready} ready to submit`;
+    counts.ready === 1 ? "1 ready to send" : `${counts.ready} ready to send`;
   return `${files} · ${docs} · ${ready}`;
 }

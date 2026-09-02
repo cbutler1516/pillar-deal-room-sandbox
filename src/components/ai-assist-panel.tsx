@@ -22,7 +22,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-medium tracking-[0.08em] text-ink-muted uppercase">
-        Processor Assist
+        File summary
       </p>
       <p className="text-sm leading-6 text-ink">{polishAssistSummary(result.dealSummary)}</p>
       {importantFlag ? (
@@ -81,7 +81,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
 
       <p className="text-xs leading-5 text-ink-muted">
         {AI_ASSIST_DISCLAIMER} AI cannot send communications, approve or reject
-        documents, approve or waive Client Needs, change deal status, complete
+        documents, approve or waive requests, change deal status, complete
         tasks, assign processors, or make underwriting decisions.
       </p>
     </div>

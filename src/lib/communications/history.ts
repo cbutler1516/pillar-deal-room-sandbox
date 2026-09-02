@@ -32,7 +32,7 @@ function titleFor(attempt: CommunicationAttempt): string {
     return "Reply received";
   }
   if (attempt.status === "waiting") {
-    return "Waiting on a reply";
+    return "Waiting for a reply";
   }
   return attempt.subject ?? "Communication recorded";
 }

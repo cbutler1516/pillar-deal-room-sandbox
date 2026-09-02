@@ -6,7 +6,7 @@ export const DEAL_PROGRESS_STAGES = [
   { key: "application", label: "Application" },
   { key: "documents", label: "Documents" },
   { key: "review", label: "Processor review" },
-  { key: "ready", label: "Ready to submit" },
+  { key: "ready", label: "Ready to send" },
 ] as const;
 
 export type DealProgressState = "complete" | "current" | "future";
@@ -155,7 +155,7 @@ export function nextActionPresentation(input: {
   const action = input.action.toLowerCase();
   if (input.target === "submission" || action.includes("prepare lender submission")) {
     return {
-      context: "Required-now items are complete. Prepare the lender package from stored file facts.",
+      context: "Needed-now items are done. Prepare the lender package from this file.",
       cta: "Open submission",
     };
   }
@@ -228,7 +228,7 @@ export function nextActionPresentation(input: {
   if (action.startsWith("get ") && !action.includes("replacement")) {
     return {
       context: "A required document is still missing.",
-      cta: "View requirement",
+      cta: "View request",
     };
   }
   if (input.target === "documents" || action.includes("review")) {
@@ -246,7 +246,7 @@ export function nextActionPresentation(input: {
   if (input.target === "needs") {
     return {
       context: "A required item still needs processor attention.",
-      cta: "View requirement",
+      cta: "View request",
     };
   }
   return {
