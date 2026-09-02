@@ -21,7 +21,7 @@ export function TeamOverviewSection({
   return (
     <div className="space-y-8">
       <section>
-        title="Team"
+        <SectionHeader title="Team" />
         <FactLedger
           columns={2}
           rows={[

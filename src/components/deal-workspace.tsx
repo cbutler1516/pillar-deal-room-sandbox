@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { FactLedger } from "@/components/ui/fact-ledger";
 import { StatusChip } from "@/components/status-chip";
 import { TabList } from "@/components/ui/controls";
@@ -75,9 +76,9 @@ export function DealWorkspaceHeader({
         <div className="flex min-w-0 flex-1 items-start gap-4">
           <div className="min-w-0 flex-1">
             <p className="mb-3">
-              <a href="/deals" className="text-[11px] font-medium text-mineral">
+              <Link href="/deals" className="text-[11px] font-medium text-mineral">
                 ← Deals
-              </a>
+              </Link>
             </p>
             <p className={labelClass}>{deal.dealReference}</p>
             <h2 className="font-display mt-1.5 text-[2.15rem] leading-none font-semibold tracking-tight text-ink">
