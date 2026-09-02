@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 export function OverflowMenu({
   items,
   label = "More",
+  ariaLabel,
 }: {
   items: { label: string; onClick: () => void; tone?: "default" | "danger" }[];
   label?: string;
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -44,7 +46,8 @@ export function OverflowMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-md px-2 text-xs font-medium text-ink-muted hover:bg-surface-muted hover:text-ink"
+        aria-label={ariaLabel ?? label}
+        className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-md px-2 text-xs font-medium text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40"
         onClick={(event) => {
           event.stopPropagation();
           setOpen((value) => !value);
@@ -62,7 +65,7 @@ export function OverflowMenu({
               key={item.label}
               type="button"
               role="menuitem"
-              className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium ${
+              className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${
                 item.tone === "danger"
                   ? "text-danger hover:bg-danger-soft"
                   : "text-ink hover:bg-surface-muted"
