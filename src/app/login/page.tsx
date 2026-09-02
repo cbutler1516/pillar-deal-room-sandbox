@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/app/login/login-form";
-import { PillarWordmark } from "@/components/brand/pillar-logo";
+import { PillarMark } from "@/components/brand/pillar-logo";
 import { SandboxBadge } from "@/components/sandbox-badge";
 import { getAuthorizedProfileOrNull } from "@/lib/auth/session";
 import { isSupabaseUrlConfigured } from "@/lib/supabase/env";
@@ -36,8 +36,16 @@ export default async function LoginPage({
   return (
     <div className="flex min-h-full items-center justify-center bg-paper px-4 py-12">
       <div className="w-full max-w-md overflow-hidden rounded-[14px] border border-line bg-surface">
-        <div className="bg-pillar-ink px-6 py-6">
-          <PillarWordmark height={56} priority />
+        <div className="flex items-center gap-3.5 bg-pillar-ink px-6 py-7">
+          <PillarMark size={34} decorative className="shrink-0 brightness-0 invert" />
+          <div className="min-w-0">
+            <p className="font-display text-xl font-semibold leading-none tracking-tight text-white">
+              PILLAR
+            </p>
+            <p className="mt-1.5 text-[10px] uppercase tracking-[0.16em] text-white/55">
+              Private Lending
+            </p>
+          </div>
         </div>
         <div className="p-8">
           <div className="flex items-start justify-between gap-3">
@@ -49,7 +57,7 @@ export default async function LoginPage({
           <p className="mt-2 text-sm leading-6 text-ink-muted">
             Internal operations workspace. Access is limited to provisioned staff
             accounts. Evaluation applications are at{" "}
-            <a href="/apply" className="text-pillar-navy underline">
+            <a href="/apply" className="text-mineral underline">
               /apply
             </a>
             .
