@@ -9,6 +9,7 @@ import { CardHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import { linkClass, pageWidthClass } from "@/components/ui/styles";
 import { requireInternalUser } from "@/lib/auth/session";
+import { canMutateWorkflow } from "@/lib/ops/workflow";
 import { listActiveStaff } from "@/lib/communications/data";
 import { listQueueContacts, listWorkspaceTasks, staffDisplayName } from "@/lib/data/deals";
 import { operationalWorkFromSnapshot, queueSectionIds } from "@/lib/data/dashboard";
@@ -93,7 +94,8 @@ export default async function ProcessorQueuePage({
     source,
   };
 
-  const { supabase, user } = await requireInternalUser();
+  const { supabase, user, profile } = await requireInternalUser();
+  const canMutate = canMutateWorkflow(profile.role);
   const snapshot = await loadDealSnapshot(supabase);
   const [queueTasks, queueContacts, staff] = await Promise.all([
     listWorkspaceTasks(supabase),
@@ -158,7 +160,7 @@ export default async function ProcessorQueuePage({
     ]),
   );
   const toQueueRow = (row: (typeof workItems)[number]) =>
-    workQueueRow(row, { location: locationByDeal[row.dealId] });
+    workQueueRow(row, { location: locationByDeal[row.dealId], canMutate });
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);

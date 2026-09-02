@@ -6,15 +6,17 @@ export function MyNextFiveSection({
   items,
   staffNames,
   locationByDeal,
+  canMutate = true,
 }: {
   items: OperationalWorkItem[];
   staffNames: Record<string, string>;
   locationByDeal: Record<string, string>;
+  canMutate?: boolean;
 }) {
   return (
     <NextActionsQueue
       rows={items.map((row) =>
-        workQueueRow(row, { location: locationByDeal[row.dealId] }),
+        workQueueRow(row, { location: locationByDeal[row.dealId], canMutate }),
       )}
       staffNames={staffNames}
       title="My next 5"

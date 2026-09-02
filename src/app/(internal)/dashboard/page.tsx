@@ -25,6 +25,7 @@ import {
   greetingForNow,
 } from "@/lib/ops/ops-board";
 import { requireInternalUser } from "@/lib/auth/session";
+import { canMutateWorkflow } from "@/lib/ops/workflow";
 
 export default async function DashboardPage({
   searchParams,
@@ -34,6 +35,7 @@ export default async function DashboardPage({
   const params = await searchParams;
   const view = typeof params.view === "string" ? params.view : "mine";
   const { supabase, profile, user } = await requireInternalUser();
+  const canMutate = canMutateWorkflow(profile.role);
   const now = new Date();
   const staff = await listActiveStaff(supabase);
   const { data: roleRows } = await supabase
@@ -107,6 +109,7 @@ export default async function DashboardPage({
               items={board.myNextFive}
               staffNames={staffNames}
               locationByDeal={locationByDeal}
+              canMutate={canMutate}
             />
             <DocumentReviewInboxSection rows={board.documentInbox.slice(0, 3)} />
             <WaitingOnSection rows={board.waitingOn.slice(0, 4)} />
@@ -117,6 +120,7 @@ export default async function DashboardPage({
               items={board.myNextFive}
               staffNames={staffNames}
               locationByDeal={locationByDeal}
+              canMutate={canMutate}
             />
 
             {board.morningBrief ? (
