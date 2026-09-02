@@ -81,13 +81,13 @@ export function PortalWorkspace({
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8">
-      <div className={`${surfaceClass("elevated")} px-5 py-5`}>
+      <div className="border-b border-line pb-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] tracking-[0.14em] text-ink-muted uppercase">
-              Borrower portal
+              Pillar Private Lending
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+            <h1 className="font-display mt-2 text-[1.75rem] font-semibold tracking-tight text-ink">
               {deal.borrowerName}
             </h1>
             {deal.entityName ? (
@@ -106,10 +106,10 @@ export function PortalWorkspace({
             return (
               <li
                 key={step.key}
-                className={`rounded-[12px] px-3 py-2 text-xs ${
+                className={`rounded-[8px] border px-3 py-2 text-xs ${
                   active
-                    ? "bg-pillar-teal-soft font-semibold text-pillar-teal"
-                    : "bg-surface-muted text-ink-muted"
+                    ? "border-mineral font-semibold text-mineral"
+                    : "border-line text-ink-muted"
                 }`}
               >
                 {step.label}

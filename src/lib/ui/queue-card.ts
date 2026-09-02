@@ -40,29 +40,29 @@ export const QUEUE_SECTION_TINT: Record<QueueCardAccent, string> = {
 };
 
 export const QUEUE_SECTION_WASH: Record<QueueCardAccent, string> = {
-  urgent: "bg-danger-soft/80",
-  review: "bg-pillar-teal-soft/90",
-  waiting: "bg-amber-soft/80",
-  ready: "bg-success-soft/80",
-  new: "bg-slate-soft",
-  due: "bg-info-soft/80",
+  urgent: "bg-transparent",
+  review: "bg-transparent",
+  waiting: "bg-transparent",
+  ready: "bg-transparent",
+  new: "bg-transparent",
+  due: "bg-transparent",
 };
 
 export const QUEUE_FOOTER_TINT: Record<QueueCardAccent, string> = {
-  urgent: "bg-danger-soft/50",
-  review: "bg-pillar-teal-soft/60",
-  waiting: "bg-amber-soft/55",
-  ready: "bg-success-soft/50",
-  new: "bg-slate-soft/90",
-  due: "bg-info-soft/55",
+  urgent: "bg-transparent",
+  review: "bg-transparent",
+  waiting: "bg-transparent",
+  ready: "bg-transparent",
+  new: "bg-transparent",
+  due: "bg-transparent",
 };
 
 export function workActionChipClass(label: string): string {
   const escalate = /^escalate\b/i.test(label.trim());
   if (escalate) {
-    return "inline-flex shrink-0 items-center rounded-full bg-danger-soft px-2 py-0.5 text-[11px] font-semibold text-danger";
+    return "inline-flex shrink-0 items-center rounded-[8px] px-2 py-0.5 text-[11px] font-semibold text-danger";
   }
-  return "inline-flex shrink-0 items-center rounded-full bg-pillar-teal-soft px-2 py-0.5 text-[11px] font-semibold text-pillar-teal transition duration-200 hover:bg-pillar-teal/15 motion-reduce:transition-none";
+  return "inline-flex shrink-0 items-center rounded-[8px] px-2 py-0.5 text-[11px] font-medium text-mineral transition hover:bg-stone motion-reduce:transition-none";
 }
 
 export function queueContextLine(input: {

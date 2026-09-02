@@ -58,8 +58,8 @@ export function NextActionsQueue({
       <div
         className={
           tone
-            ? `-mx-1 mb-2 rounded-[12px] border border-line/70 px-2.5 py-1.5 ${QUEUE_SECTION_WASH[tone]}`
-            : "mb-2 border-y border-line/60 py-1.5"
+            ? `mb-2 border-b border-line px-0 py-1.5 ${QUEUE_SECTION_WASH[tone]}`
+            : "mb-2 border-b border-line py-1.5"
         }
       >
       <CardHeader
@@ -71,7 +71,7 @@ export function NextActionsQueue({
       />
       </div>
       {rows.length === 0 ? (
-        <p className="rounded-[14px] border border-dashed border-line bg-surface-muted/50 px-3 py-5 text-sm leading-6 text-ink-muted">
+        <p className="border border-dashed border-line bg-stone/50 px-3 py-5 text-sm leading-6 text-ink-muted">
           {empty}
         </p>
       ) : (
@@ -146,7 +146,7 @@ function WorkCard({
           actionLabel: row.actionLabel,
           ownerName: owner,
         })}
-        className={`${surfaceClass("elevated", true)} block h-full overflow-hidden border-l-[3px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
+        className={`${surfaceClass("card", true)} block h-full overflow-hidden border-l-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]} px-3.5 pt-3 pb-0`}
       >
         <div aria-hidden className={`flex h-full flex-col ${tall ? "min-h-[6.75rem]" : ""}`}>
           <p className="truncate text-[13px] font-semibold leading-4 tracking-[0.04em] text-ink uppercase">

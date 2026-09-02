@@ -13,13 +13,13 @@ export function PropertyThumb({
     <div
       role="img"
       aria-label={label}
-      className={`relative aspect-[16/9] w-[7.5rem] shrink-0 overflow-hidden rounded-[16px] border border-line bg-[linear-gradient(165deg,#d5dee8_0%,#e4eef0_48%,#cfd8e4_100%)] shadow-[var(--shadow-elevated)] sm:w-32 ${className}`.trim()}
+      className={`relative aspect-[16/9] w-[7.5rem] shrink-0 overflow-hidden rounded-[10px] border border-line bg-stone sm:w-32 ${className}`.trim()}
     >
       <span
         className="absolute inset-0 shadow-[inset_0_1px_0_rgb(255_255_255/0.7)]"
         aria-hidden
       />
-      <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full bg-white/70 shadow-[var(--shadow-card)]">
+      <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-[8px] border border-line bg-surface">
         <BuildingMark />
       </span>
     </div>

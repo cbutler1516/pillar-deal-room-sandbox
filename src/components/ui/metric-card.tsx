@@ -5,28 +5,24 @@ import { labelClass, surfaceClass } from "@/components/ui/styles";
 export type MetricAccent = "attention" | "waiting" | "review" | "ready";
 
 const ACCENT: Record<MetricAccent, string> = {
-  attention:
-    "text-danger bg-[linear-gradient(180deg,var(--danger-soft)_0%,rgb(248_234_234/0.55)_100%)]",
-  waiting:
-    "text-amber bg-[linear-gradient(180deg,var(--amber-soft)_0%,rgb(248_241_221/0.5)_100%)]",
-  review:
-    "text-pillar-teal bg-[linear-gradient(180deg,var(--pillar-teal-soft)_0%,rgb(231_244_242/0.45)_100%)]",
-  ready:
-    "text-success bg-[linear-gradient(180deg,var(--success-soft)_0%,rgb(232_245_238/0.45)_100%)]",
+  attention: "text-danger bg-danger-soft",
+  waiting: "text-amber bg-amber-soft",
+  review: "text-pillar-teal bg-pillar-teal-soft",
+  ready: "text-success bg-success-soft",
 };
 
 const WASH: Record<MetricAccent, string> = {
-  attention: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(248_234_234/0.28)_100%)]",
-  waiting: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(248_241_221/0.3)_100%)]",
-  review: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(231_244_242/0.32)_100%)]",
-  ready: "bg-[linear-gradient(180deg,#ffffff_0%,rgb(232_245_238/0.28)_100%)]",
+  attention: "bg-surface",
+  waiting: "bg-surface",
+  review: "bg-surface",
+  ready: "bg-surface",
 };
 
 const TOP: Record<MetricAccent, string> = {
-  attention: "border-t-[3px] border-t-danger",
-  waiting: "border-t-[3px] border-t-amber",
-  review: "border-t-[3px] border-t-pillar-teal",
-  ready: "border-t-[3px] border-t-success",
+  attention: "border-l-[2px] border-l-danger",
+  waiting: "border-l-[2px] border-l-amber",
+  review: "border-l-[2px] border-l-pillar-teal",
+  ready: "border-l-[2px] border-l-success",
 };
 
 export function MetricCard({
@@ -45,7 +41,7 @@ export function MetricCard({
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[1.5rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
+        <p className="text-[1.375rem] font-semibold leading-none tracking-tight text-ink tabular-nums">
           {value}
         </p>
         <span
@@ -59,7 +55,7 @@ export function MetricCard({
       {hint ? <p className="mt-0.5 text-[11px] leading-4 text-ink-muted">{hint}</p> : null}
     </>
   );
-  const frame = `${surfaceClass("elevated", Boolean(href))} ${WASH[accent]} ${TOP[accent]} block px-3.5 py-2.5`;
+  const frame = `${surfaceClass("card", Boolean(href))} ${WASH[accent]} ${TOP[accent]} block px-3.5 py-2.5`;
   if (href) {
     return (
       <Link href={href} className={frame}>

@@ -106,14 +106,14 @@ export function TabList({
   tabs: { href: string; label: string; active: boolean }[];
 }) {
   return (
-    <nav className="flex flex-wrap gap-1 border-b border-line">
+    <nav className="flex flex-wrap gap-0 border-b border-line">
       {tabs.map((tab) => (
         <Link
           key={tab.label}
           href={tab.href}
-          className={`min-h-10 border-b-2 px-3 py-2 text-sm font-medium transition duration-200 motion-reduce:transition-none ${
+          className={`min-h-10 border-b-2 px-3 py-2 text-[13px] font-medium transition duration-160 motion-reduce:transition-none ${
             tab.active
-              ? "border-pillar-teal text-pillar-teal"
+              ? "border-mineral text-ink"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >

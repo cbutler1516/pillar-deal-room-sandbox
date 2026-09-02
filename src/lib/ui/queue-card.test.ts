@@ -8,10 +8,10 @@ import {
 } from "@/lib/ui/queue-card";
 
 describe("queue card presentation", () => {
-  it("treats Escalate as a semantic chip and other actions as teal pills", () => {
+  it("treats Escalate as a semantic chip and other actions as mineral text", () => {
     expect(workActionChipClass("Escalate")).toContain("text-danger");
-    expect(workActionChipClass("Review document")).toContain("text-pillar-teal");
-    expect(workActionChipClass("Get replacement")).toContain("bg-pillar-teal-soft");
+    expect(workActionChipClass("Review document")).toContain("text-mineral");
+    expect(workActionChipClass("Get replacement")).toContain("text-mineral");
   });
 
   it("maps Queue Today sections to restrained accents", () => {

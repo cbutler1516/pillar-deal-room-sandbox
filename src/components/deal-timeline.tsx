@@ -111,7 +111,7 @@ export function DealTimeline({
                       className={`flex w-full items-start gap-3 rounded-[14px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                         system
                           ? "hover:bg-surface-muted/60"
-                          : "border border-transparent bg-surface/70 shadow-[var(--shadow-card)] hover:-translate-y-px hover:shadow-[var(--shadow-elevated)] motion-reduce:hover:translate-y-0"
+                          : "border border-transparent hover:bg-stone"
                       }`}
                     >
                       <StaffAvatar

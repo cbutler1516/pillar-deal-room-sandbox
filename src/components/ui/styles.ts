@@ -1,13 +1,13 @@
 export type SurfaceTone = "flat" | "card" | "elevated" | "floating";
 
-const PAPER =
-  "bg-[linear-gradient(180deg,#ffffff_0%,#fcfdfe_52%,#f4f7fa_100%)]";
-
 const SURFACE: Record<SurfaceTone, string> = {
-  flat: "rounded-[16px] border border-transparent bg-transparent shadow-none",
-  card: `rounded-[16px] border border-line ${PAPER} shadow-[var(--shadow-card)]`,
-  elevated: `rounded-[16px] border border-line ${PAPER} shadow-[var(--shadow-elevated)]`,
-  floating: `rounded-[16px] border border-line bg-surface shadow-[var(--shadow-float)]`,
+  flat: "rounded-none border-0 bg-transparent shadow-none",
+  card:
+    "rounded-[10px] border border-line bg-surface shadow-none",
+  elevated:
+    "rounded-[12px] border border-line bg-surface shadow-[var(--shadow-elevated)]",
+  floating:
+    "rounded-[12px] border border-line bg-surface shadow-[var(--shadow-float)]",
 };
 
 export function surfaceClass(
@@ -15,7 +15,7 @@ export function surfaceClass(
   clickable = false,
 ): string {
   const lift = clickable
-    ? "transition duration-200 hover:-translate-y-[3px] hover:shadow-[var(--shadow-lift)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+    ? "transition hover:border-mineral/30 hover:bg-stone motion-reduce:transition-none"
     : "";
   return `${SURFACE[tone]} ${lift}`.trim();
 }
@@ -26,38 +26,41 @@ export const cardPadClass = "px-5 py-4";
 
 export const pageWidthClass = "mx-auto w-full max-w-[1600px]";
 
-export const pageTitleClass = "text-[1.75rem] font-semibold tracking-tight text-ink";
+export const pageTitleClass =
+  "font-display text-[1.5rem] font-semibold tracking-tight text-ink";
 
-export const pageLeadClass = "mt-2 max-w-2xl text-sm leading-7 text-ink-muted";
+export const pageLeadClass = "mt-2 max-w-2xl text-sm leading-6 text-ink-muted";
 
-export const sectionTitleClass = "text-base font-semibold tracking-tight text-ink";
+export const sectionTitleClass =
+  "text-[15px] font-semibold tracking-tight text-ink";
 
 export const sectionMetaClass = "text-xs tabular-nums text-ink-muted";
 
-export const labelClass = "text-xs font-medium text-ink-muted";
+export const labelClass =
+  "text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted";
 
 export const inputClass =
-  "rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-pillar-teal focus:ring-2 focus:ring-pillar-teal/20";
+  "rounded-[8px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-pillar-teal focus:ring-2 focus:ring-pillar-teal/20";
 
 export const compactInputClass =
-  "rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs text-ink outline-none transition focus:border-pillar-teal focus:ring-2 focus:ring-pillar-teal/20";
+  "rounded-[8px] border border-line bg-surface px-2.5 py-1.5 text-xs text-ink outline-none transition focus:border-pillar-teal focus:ring-2 focus:ring-pillar-teal/20";
 
 export const btnPrimaryClass =
-  "inline-flex items-center justify-center rounded-md bg-pillar-navy px-3 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgb(11_31_58/0.18)] transition hover:-translate-y-px hover:bg-pillar-navy-soft disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:hover:translate-y-0";
+  "inline-flex items-center justify-center rounded-[8px] bg-mineral px-3 py-2 text-[13px] font-medium text-white transition hover:bg-pillar-teal disabled:cursor-not-allowed disabled:opacity-60";
 
 export const btnSecondaryClass =
-  "inline-flex items-center justify-center rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink shadow-[var(--shadow-card)] transition hover:-translate-y-px hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:hover:translate-y-0";
+  "inline-flex items-center justify-center rounded-[8px] border border-line bg-surface px-3 py-2 text-[13px] font-medium text-ink transition hover:bg-stone disabled:cursor-not-allowed disabled:opacity-60";
 
 export const btnCompactClass =
-  "inline-flex items-center justify-center rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink shadow-[var(--shadow-card)] transition hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-[8px] border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink transition hover:bg-stone disabled:cursor-not-allowed disabled:opacity-60";
 
 export const btnCompactPrimaryClass =
-  "inline-flex items-center justify-center rounded-md bg-pillar-navy px-2.5 py-1 text-xs font-medium text-white shadow-[0_1px_2px_rgb(11_31_58/0.16)] transition hover:bg-pillar-navy-soft disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-[8px] bg-mineral px-2.5 py-1 text-xs font-medium text-white transition hover:bg-pillar-teal disabled:cursor-not-allowed disabled:opacity-60";
 
 export const tableHeadClass =
-  "text-[11px] font-medium text-ink-muted";
+  "text-[11px] font-medium uppercase tracking-[0.06em] text-ink-muted";
 
 export const tableRowClass =
-  "border-t border-line/80 even:bg-surface-muted/30 hover:bg-pillar-teal-soft/35 focus-within:bg-pillar-teal-soft/45";
+  "border-t border-line/80 hover:bg-stone/80 focus-within:bg-stone";
 
 export const linkClass = "font-medium text-ink transition hover:text-pillar-teal";

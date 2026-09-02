@@ -152,7 +152,7 @@ export function ContactsWorkspace({
                     return (
                       <li
                         key={contact.id}
-                        className="rounded-[14px] border border-line/70 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfd_100%)] px-3 py-3 shadow-[var(--shadow-card)]"
+                        className="rounded-[10px] border border-line px-3 py-3"
                       >
                         <div className="flex items-start gap-3">
                           <StaffAvatar

@@ -10,7 +10,7 @@ import {
 
 describe("layout chrome", () => {
   it("keeps inspector below header and deal tabs", () => {
-    expect(APP_HEADER_HEIGHT).toBe("3.5rem");
+    expect(APP_HEADER_HEIGHT).toBe("3.25rem");
     expect(DEAL_TABS_HEIGHT).toBe("2.75rem");
     expect(dealTabsStickyClass).toContain("top-[var(--app-header-height)]");
     expect(dealTabsStickyClass).toContain("z-10");
@@ -20,7 +20,7 @@ describe("layout chrome", () => {
   });
 
   it("reserves bottom nav space so inspector actions stay reachable", () => {
-    expect(APP_BOTTOM_NAV_SPACE).toBe("8rem");
+    expect(APP_BOTTOM_NAV_SPACE).toBe("5.5rem");
     expect(APP_BOTTOM_NAV_SPACE_DESKTOP).toBe("1.5rem");
     expect(inspectorStickyClass).toContain(
       "lg:max-h-[calc(100vh-var(--inspector-sticky-top)-var(--app-bottom-nav-space))]",

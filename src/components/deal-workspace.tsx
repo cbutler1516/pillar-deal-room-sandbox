@@ -75,12 +75,12 @@ export function DealWorkspaceHeader({
   const loanAmount = formatCurrency(deal.loanAmount);
 
   return (
-    <div className="rounded-[16px] border border-pillar-navy/12 bg-[linear-gradient(160deg,rgb(11_31_58/0.08)_0%,rgb(231_244_242/0.82)_30%,#ffffff_64%,rgb(234_240_246/0.55)_100%)] px-5 py-5 shadow-[var(--shadow-elevated)]">
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+    <div className="border-b border-line pb-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
           <div className="min-w-0 flex-1">
             <p className={labelClass}>{deal.dealReference}</p>
-            <h2 className="mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink uppercase">
+            <h2 className="font-display mt-1 text-[2rem] leading-tight font-semibold tracking-tight text-ink">
               {deal.borrowerName}
             </h2>
             {deal.entityName ? (
@@ -105,7 +105,7 @@ export function DealWorkspaceHeader({
         </div>
 
         {loanAmount !== "—" ? (
-          <div className="min-w-[8.5rem] rounded-[16px] border border-line bg-[linear-gradient(180deg,#ffffff_0%,#f4f7fa_100%)] px-4 py-3.5 shadow-[var(--shadow-card)]">
+          <div className="min-w-[8.5rem] border-l-2 border-accent pl-4">
             <p className="text-[1.85rem] leading-none font-semibold tracking-tight tabular-nums text-ink">
               {loanAmount}
             </p>

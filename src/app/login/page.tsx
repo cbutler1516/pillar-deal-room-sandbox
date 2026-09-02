@@ -34,15 +34,15 @@ export default async function LoginPage({
       : undefined;
 
   return (
-    <div className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-elevated)]">
-        <div className="bg-black px-6 py-6">
+    <div className="flex min-h-full items-center justify-center bg-paper px-4 py-12">
+      <div className="w-full max-w-md overflow-hidden rounded-[14px] border border-line bg-surface">
+        <div className="bg-pillar-ink px-6 py-6">
           <PillarWordmark height={56} priority />
         </div>
         <div className="p-8">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-ink">
-              Pillar Deal Room
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
+              Deal Room
             </h1>
             <SandboxBadge />
           </div>

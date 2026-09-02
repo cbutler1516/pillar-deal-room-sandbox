@@ -67,20 +67,20 @@ export default async function DashboardPage({
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
-      <div className="rounded-[16px] border border-pillar-navy/15 bg-[linear-gradient(115deg,rgb(11_31_58/0.1)_0%,var(--pillar-teal-soft)_36%,#ffffff_70%,var(--info-soft)_100%)] px-4 py-3 shadow-[var(--shadow-elevated)]">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex min-w-0 items-center gap-3.5">
+      <div className="border-b border-line pb-5">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 items-center gap-4">
             <StaffAvatar name={displayName(profile)} size={48} />
             <div className="min-w-0">
-              <p className="text-[11px] leading-4 text-ink-muted">
+              <p className="text-[11px] uppercase tracking-[0.08em] text-ink-muted">
                 {formatLongDate(now)}
               </p>
-              <h2 className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-ink">
+              <h2 className="font-display mt-1 text-[1.75rem] font-semibold leading-none tracking-tight text-ink">
                 {greetingForNow(now)}, {firstName}
               </h2>
             </div>
           </div>
-          <p className="max-w-xl text-sm leading-5 text-ink-muted">
+          <p className="max-w-xl text-sm leading-6 text-ink-muted">
             {board.summaryLine}
           </p>
         </div>
