@@ -111,12 +111,11 @@ function WorkloadCard({ row }: { row: TeamWorkloadRow }) {
         </div>
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <Count label="Active files" value={row.activeFiles} />
+        <Count label="Current load" value={row.activeFiles} />
         <Count label="Urgent" value={row.urgent} />
-        <Count label="Documents to review" value={row.documentsToReview} />
+        <Count label="Review" value={row.documentsToReview} />
         <Count label="Waiting" value={row.waiting} />
-        <Count label="Overdue follow-ups" value={row.overdueFollowUps} />
-        <Count label="Ready to submit" value={row.ready} />
+        <Count label="Ready" value={row.ready} />
       </dl>
       <Link href={row.href} className={`${buttonClass("secondary", "sm")} mt-4`}>
         View work

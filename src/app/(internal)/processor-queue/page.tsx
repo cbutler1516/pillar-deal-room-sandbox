@@ -28,11 +28,17 @@ import {
   QUEUE_TODAY_SECTIONS,
   groupOperationalWorkToday,
   hasActionableOperationalWork,
-  workItemMatchesFilter,
 } from "@/lib/ops/operational-work";
 import { workQueueRow } from "@/lib/ops/queue-today";
 import { formatAgeDays, formatCurrency, formatProperty } from "@/lib/format";
 import { decorateBoardTasks } from "@/lib/playbooks/decorate";
+import {
+  filterOperationalWork,
+  QUEUE_BUCKET_FILTERS,
+  QUEUE_SOURCE_FILTERS,
+  type QueueBucketFilter,
+  type QueueSourceFilter,
+} from "@/lib/command-center/filters";
 
 const SECTIONS = [
   { key: "unassigned", label: "Unassigned" },
@@ -67,15 +73,27 @@ export default async function ProcessorQueuePage({
   const view = typeof params.view === "string" ? params.view : "today";
   const query = typeof params.q === "string" ? params.q : "";
   const work = typeof params.work === "string" ? params.work : "all";
+  const bucket =
+    typeof params.bucket === "string" &&
+    QUEUE_BUCKET_FILTERS.includes(params.bucket as QueueBucketFilter)
+      ? (params.bucket as QueueBucketFilter)
+      : undefined;
+  const source =
+    typeof params.source === "string" &&
+    QUEUE_SOURCE_FILTERS.includes(params.source as QueueSourceFilter)
+      ? (params.source as QueueSourceFilter)
+      : undefined;
   const queryState = {
     q: query || undefined,
     assignment: assignment === "all" ? undefined : assignment,
     urgency: urgency === "all" ? undefined : urgency,
     view: view === "today" ? undefined : view,
     work: work === "all" ? undefined : work,
+    bucket,
+    source,
   };
 
-  const { supabase } = await requireInternalUser();
+  const { supabase, user } = await requireInternalUser();
   const snapshot = await loadDealSnapshot(supabase);
   const [queueTasks, queueContacts, staff] = await Promise.all([
     listWorkspaceTasks(supabase),
@@ -86,29 +104,27 @@ export default async function ProcessorQueuePage({
     staff.map((person) => [person.id, staffDisplayName(person)]),
   );
   const now = new Date();
-  const workItems = operationalWorkFromSnapshot(snapshot, now).filter((row) => {
-    if (assignment === "unassigned" && row.assignedProcessorId) {
-      return false;
-    }
-    if (
-      assignment !== "all" &&
-      assignment !== "unassigned" &&
-      row.assignedProcessorId !== assignment
-    ) {
-      return false;
-    }
-    if (!workItemMatchesFilter(row, work)) {
-      return false;
-    }
-    return matchesTaskQuery(
-      taskSearchHaystack({
-        borrowerName: row.borrowerName,
-        entityName: row.entityName,
-        dealReference: row.dealReference,
-        title: row.title,
-      }),
-      query,
-    );
+  const allItems = operationalWorkFromSnapshot(snapshot, now);
+  const workItems = filterOperationalWork({
+    items: allItems.filter((row) =>
+      matchesTaskQuery(
+        taskSearchHaystack({
+          borrowerName: row.borrowerName,
+          entityName: row.entityName,
+          dealReference: row.dealReference,
+          propertyAddress: snapshot.deals.find((deal) => deal.id === row.dealId)
+            ?.propertyAddress,
+          title: row.title,
+        }),
+        query,
+      ),
+    ),
+    assignment,
+    bucket,
+    source,
+    work,
+    currentUserId: user.id,
+    tasks: snapshot.tasks,
   });
   const boardRows = decorateBoardTasks(
     queueTasks,
@@ -207,42 +223,100 @@ export default async function ProcessorQueuePage({
         </Link>
       </div>
 
-      <details className="group" open={work !== "all"}>
+      <details className="group" open={work !== "all" || assignment !== "all" || Boolean(bucket) || Boolean(source)}>
         <summary className="cursor-pointer text-sm font-medium text-ink-muted">
           Filter
         </summary>
-        <form className="mt-3 flex flex-wrap items-center gap-2">
-          <SearchField
-            name="q"
-            defaultValue={query}
-            placeholder="Search borrower, task, deal, property"
-            className="min-w-56 flex-1"
-          />
-          <SelectField name="work" defaultValue={work}>
-            {WORK_FILTERS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+        <form className="mt-3 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchField
+              name="q"
+              defaultValue={query}
+              placeholder="Search borrower, entity, property, file ID"
+              className="min-w-56 flex-1"
+            />
+            <SelectField name="assignment" defaultValue={assignment}>
+              <option value="all">All</option>
+              <option value="mine">Mine</option>
+              <option value="unassigned">Unassigned</option>
+              {staff.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {staffDisplayName(person)}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField name="work" defaultValue={work}>
+              {WORK_FILTERS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField name="urgency" defaultValue={urgency}>
+              <option value="all">All urgency</option>
+              <option value="exceptions">Exceptions first</option>
+              <option value="aging">Aging 7+ days</option>
+            </SelectField>
+            {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
+            {bucket ? <input type="hidden" name="bucket" value={bucket} /> : null}
+            {source ? <input type="hidden" name="source" value={source} /> : null}
+            <button type="submit" className={buttonClass("accent", "sm")}>
+              Apply
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs text-ink-muted">Status:</span>
+            {(
+              [
+                ["urgent", "Urgent"],
+                ["due_today", "Due today"],
+                ["review", "Review"],
+                ["waiting", "Waiting"],
+                ["new", "New"],
+                ["ready", "Ready"],
+              ] as const
+            ).map(([value, label]) => (
+              <Link
+                key={value}
+                href={hrefWithQuery("/processor-queue", queryState, {
+                  bucket: bucket === value ? undefined : value,
+                  work: undefined,
+                })}
+                className={`rounded-full border px-2.5 py-1 text-xs ${
+                  bucket === value
+                    ? "border-pillar-teal bg-pillar-teal-soft text-ink"
+                    : "border-line text-ink-muted hover:border-pillar-teal/40"
+                }`}
+              >
+                {label}
+              </Link>
             ))}
-          </SelectField>
-          <SelectField name="assignment" defaultValue={assignment}>
-            <option value="all">All assignments</option>
-            <option value="unassigned">Unassigned only</option>
-            {staff.map((person) => (
-              <option key={person.id} value={person.id}>
-                {staffDisplayName(person)}
-              </option>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs text-ink-muted">Source:</span>
+            {(
+              [
+                ["borrower", "Borrower"],
+                ["title", "Title"],
+                ["insurance", "Insurance"],
+                ["lender", "Lender"],
+              ] as const
+            ).map(([value, label]) => (
+              <Link
+                key={value}
+                href={hrefWithQuery("/processor-queue", queryState, {
+                  source: source === value ? undefined : value,
+                })}
+                className={`rounded-full border px-2.5 py-1 text-xs ${
+                  source === value
+                    ? "border-pillar-teal bg-pillar-teal-soft text-ink"
+                    : "border-line text-ink-muted hover:border-pillar-teal/40"
+                }`}
+              >
+                {label}
+              </Link>
             ))}
-          </SelectField>
-          <SelectField name="urgency" defaultValue={urgency}>
-            <option value="all">All urgency</option>
-            <option value="exceptions">Exceptions first</option>
-            <option value="aging">Aging 7+ days</option>
-          </SelectField>
-          {view !== "today" ? <input type="hidden" name="view" value={view} /> : null}
-          <button type="submit" className={buttonClass("accent", "sm")}>
-            Apply
-          </button>
+          </div>
         </form>
       </details>
 

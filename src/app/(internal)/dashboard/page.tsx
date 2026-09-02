@@ -1,57 +1,69 @@
-import Link from "next/link";
-import { NextActionsQueue } from "@/components/next-actions-queue";
-import { StatusChip } from "@/components/status-chip";
-import { MetricCard } from "@/components/ui/metric-card";
-import { StaffAvatar, StaffPresence } from "@/components/ui/staff-avatar";
+import { ConditionsSection } from "@/components/command-center/conditions-section";
+import { DocumentReviewInboxSection } from "@/components/command-center/document-review-inbox";
+import { ManagerViewToggle } from "@/components/command-center/manager-toggle";
+import { MorningBriefPanel } from "@/components/command-center/morning-brief-panel";
+import { MyNextFiveSection } from "@/components/command-center/my-next-five";
+import { ReadyToSubmitSection } from "@/components/command-center/ready-to-submit";
+import { RecentResponsesSection } from "@/components/command-center/recent-responses";
+import { SinceYesterdaySection } from "@/components/command-center/since-yesterday";
+import { StuckFilesSection } from "@/components/command-center/stuck-files";
+import { TeamOverviewSection } from "@/components/command-center/team-overview";
+import { TodayStrip } from "@/components/command-center/today-strip";
+import { UnassignedSection } from "@/components/command-center/unassigned-section";
+import { WaitingOnSection } from "@/components/command-center/waiting-on";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
+import { pageWidthClass } from "@/components/ui/styles";
 import { displayName } from "@/lib/auth/authorization";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
-import { linkClass, pageWidthClass } from "@/components/ui/styles";
-import { requireInternalUser } from "@/lib/auth/session";
+import { formatRoleLabel, isUserRole } from "@/lib/auth/roles";
+import { isManagerRole } from "@/lib/command-center/derive";
 import { listActiveStaff } from "@/lib/communications/data";
-import { getOperationalBoard } from "@/lib/data/dashboard";
+import { getCommandCenterSnapshot } from "@/lib/data/command-center";
 import { staffDisplayName } from "@/lib/data/deals";
 import {
   firstNameFromProfile,
   formatLongDate,
   greetingForNow,
 } from "@/lib/ops/ops-board";
-import { workQueueRow } from "@/lib/ops/queue-today";
-import { waitingCopyForDeal, workItemMatchesFilter } from "@/lib/ops/operational-work";
-import { isLenderCondition } from "@/lib/conditions/model";
-import { formatDashboardSummary } from "@/lib/ui/dashboard-summary";
-import { humanizeWorkReason } from "@/lib/ui/staff-copy";
-import { formatProperty } from "@/lib/format";
+import { requireInternalUser } from "@/lib/auth/session";
 
-export default async function DashboardPage() {
-  const { supabase, profile } = await requireInternalUser();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const view = typeof params.view === "string" ? params.view : "mine";
+  const { supabase, profile, user } = await requireInternalUser();
   const now = new Date();
-  const [{ snapshot, items, counts }, staff] = await Promise.all([
-    getOperationalBoard(supabase, now),
-    listActiveStaff(supabase),
-  ]);
+  const staff = await listActiveStaff(supabase);
+  const { data: roleRows } = await supabase
+    .from("users")
+    .select("id, role")
+    .in("id", staff.length > 0 ? staff.map((person) => person.id) : ["__none__"]);
+  const roleById = Object.fromEntries(
+    (roleRows ?? []).map((row) => [String(row.id), row.role]),
+  );
+  const staffForWorkload = staff.map((person) => {
+    const role = roleById[person.id];
+    return {
+      id: person.id,
+      name: staffDisplayName(person),
+      role: isUserRole(role) ? formatRoleLabel(role) : "Processor",
+    };
+  });
+  const board = await getCommandCenterSnapshot(supabase, {
+    userId: user.id,
+    role: profile.role,
+    staff: staffForWorkload,
+    now,
+  });
   const staffNames = Object.fromEntries(
     staff.map((person) => [person.id, staffDisplayName(person)]),
   );
-  const attentionRows = items.filter((row) => workItemMatchesFilter(row, "attention"));
-  const waitingRows = items.filter((row) => row.queueSection === "waiting").slice(0, 6);
-  const readyDeals = snapshot.deals
-    .filter((deal) => counts.readyDealIds.includes(deal.id))
-    .slice(0, 6);
+  const locationByDeal = board.locationByDeal;
   const firstName = firstNameFromProfile(profile);
-  const summary = formatDashboardSummary(counts);
-  const waitingCopy = waitingCopyForDeal(items);
-  const openConditions = snapshot.tasks.filter(
-    (task) =>
-      isLenderCondition(task) &&
-      task.status !== "completed" &&
-      task.status !== "dismissed",
-  ).length;
-  const locationByDeal = Object.fromEntries(
-    snapshot.deals.map((deal) => [
-      deal.id,
-      formatProperty(deal.propertyCity, deal.propertyState),
-    ]),
-  );
+  const manager = isManagerRole(profile.role);
+  const teamMode = manager && view === "team";
 
   return (
     <div className={`${pageWidthClass} space-y-5`}>
@@ -60,143 +72,88 @@ export default async function DashboardPage() {
           <div className="flex min-w-0 items-center gap-3.5">
             <StaffAvatar name={displayName(profile)} size={48} />
             <div className="min-w-0">
-              <p className="text-[11px] leading-4 text-ink-muted">{formatLongDate(now)}</p>
+              <p className="text-[11px] leading-4 text-ink-muted">
+                {formatLongDate(now)}
+              </p>
               <h2 className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-ink">
                 {greetingForNow(now)}, {firstName}
               </h2>
             </div>
           </div>
-          <p className="max-w-xl text-sm leading-5 text-ink-muted">{summary.line}</p>
+          <p className="max-w-xl text-sm leading-5 text-ink-muted">
+            {board.summaryLine}
+          </p>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Files needing attention"
-          value={counts.needsAttention}
-          href="/processor-queue?work=attention"
-          accent="attention"
-        />
-        <MetricCard
-          label="Waiting on others"
-          value={counts.waiting}
-          href="/processor-queue?work=waiting"
-          accent="waiting"
-        />
-        <MetricCard
-          label="Documents to review"
-          value={counts.docsToReview}
-          href="/processor-queue?work=review"
-          accent="review"
-        />
-        <MetricCard
-          label="Ready to submit"
-          value={counts.ready}
-          href="/processor-queue?work=ready"
-          accent="ready"
-        />
-      </div>
-      {openConditions > 0 ? (
-        <p className="text-xs text-ink-muted">
-          {openConditions} open condition{openConditions === 1 ? "" : "s"} are
-          included in operational work.{" "}
-          <Link href="/processor-queue" className={linkClass}>
-            Open Queue
-          </Link>
-        </p>
+      {manager ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ManagerViewToggle mode={teamMode ? "team" : "mine"} />
+        </div>
       ) : null}
 
-      <NextActionsQueue
-        rows={attentionRows.slice(0, 10).map((row) =>
-          workQueueRow(row, { location: locationByDeal[row.dealId] }),
-        )}
-        staffNames={staffNames}
-        title="Files needing attention"
-        description="Highest-priority work"
-        empty="You’re clear for now."
-        compact
-        layout="grid"
-        accent="urgent"
-      />
+      {teamMode ? (
+        <TeamOverviewSection
+          totals={board.teamOverview}
+          workloadRows={board.teamWorkload.rows}
+          unassigned={board.teamWorkload.unassigned}
+        />
+      ) : (
+        <>
+          <TodayStrip counts={board.todayStrip} assignment="mine" />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <SurfaceCard tone="elevated">
-          <CardHeader title="Waiting on others" />
-          {waitingRows.length === 0 ? (
-            <p className="text-sm text-ink-muted">{waitingCopy.empty}</p>
-          ) : (
-            <ul>
-              {waitingRows.map((row) => (
-                <li key={row.id} className="border-t border-line py-2 first:border-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link href={row.href} className={linkClass}>
-                        {row.borrowerName}
-                      </Link>
-                      <p className="text-xs text-ink-muted">
-                        {humanizeWorkReason(row.reason)}
-                        {` · ${row.title}`}
-                      </p>
-                    </div>
-                    <StaffPresence
-                      name={
-                        row.assignedProcessorId
-                          ? staffNames[row.assignedProcessorId]
-                          : null
-                      }
-                      unassigned={!row.assignedProcessorId}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SurfaceCard>
+          <div className="lg:hidden space-y-5">
+            <MyNextFiveSection
+              items={board.myNextFive}
+              staffNames={staffNames}
+              locationByDeal={locationByDeal}
+            />
+            <DocumentReviewInboxSection rows={board.documentInbox.slice(0, 3)} />
+            <WaitingOnSection rows={board.waitingOn.slice(0, 4)} />
+          </div>
 
-        <SurfaceCard tone="elevated">
-          <CardHeader title="Ready for submission" />
-          {readyDeals.length === 0 ? (
-            <p className="text-sm leading-6 text-ink-muted">
-              No files are ready to submit.
-            </p>
-          ) : (
-            <ul>
-              {readyDeals.map((deal) => (
-                <li
-                  key={deal.id}
-                  className="flex items-center justify-between gap-3 border-t border-line py-2 first:border-0"
-                >
-                  <div className="min-w-0">
-                    <Link href={`/deals/${deal.id}?tab=submission`} className={linkClass}>
-                      {deal.borrowerName}
-                    </Link>
-                    <p className="text-xs text-ink-muted">
-                      {deal.loanType ?? deal.dealReference}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <StaffPresence
-                      name={
-                        deal.assignedProcessorId
-                          ? staffNames[deal.assignedProcessorId]
-                          : null
-                      }
-                      unassigned={!deal.assignedProcessorId}
-                    />
-                    <StatusChip status={deal.status} label="Ready to submit" />
-                    <Link
-                      href={`/deals/${deal.id}?tab=submission`}
-                      className={`${linkClass} text-xs`}
-                    >
-                      Prepare submission
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SurfaceCard>
-      </div>
+          <div className="hidden lg:block space-y-5">
+            <MyNextFiveSection
+              items={board.myNextFive}
+              staffNames={staffNames}
+              locationByDeal={locationByDeal}
+            />
+
+            {board.morningBrief ? (
+              <MorningBriefPanel brief={board.morningBrief} />
+            ) : null}
+
+            <div className="grid gap-5 xl:grid-cols-2">
+              <StuckFilesSection rows={board.stuckFiles} />
+              <WaitingOnSection rows={board.waitingOn} />
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-2">
+              <RecentResponsesSection rows={board.recentResponses} />
+              <DocumentReviewInboxSection rows={board.documentInbox} />
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-3">
+              <ConditionsSection snapshot={board.conditions} />
+              <ReadyToSubmitSection
+                rows={board.readyToSubmit}
+                staffNames={staffNames}
+              />
+              <SinceYesterdaySection
+                counts={board.sinceYesterday}
+                summary={board.sinceYesterdaySummary}
+              />
+            </div>
+
+            {manager ? (
+              <UnassignedSection
+                rows={board.unassigned}
+                totalCount={board.unassignedCount}
+              />
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   );
 }
