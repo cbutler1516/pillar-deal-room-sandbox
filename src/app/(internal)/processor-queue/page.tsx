@@ -34,7 +34,9 @@ import {
   groupOperationalWorkToday,
   hasActionableOperationalWork,
 } from "@/lib/ops/operational-work";
+import { canMutateWorkflow } from "@/lib/ops/workflow";
 import { workQueueRow } from "@/lib/ops/queue-today";
+import { deriveQueueActionPlan } from "@/lib/queue-actions/derive";
 import { formatAgeDays, formatCurrency, formatProperty } from "@/lib/format";
 import { decorateBoardTasks } from "@/lib/playbooks/decorate";
 import {
@@ -98,7 +100,8 @@ export default async function ProcessorQueuePage({
     source,
   };
 
-  const { supabase, user } = await requireInternalUser();
+  const { supabase, user, profile } = await requireInternalUser();
+  const canMutate = canMutateWorkflow(profile.role);
   const snapshot = await loadDealSnapshot(supabase);
   const [queueTasks, queueContacts, staff] = await Promise.all([
     listWorkspaceTasks(supabase),
@@ -162,8 +165,13 @@ export default async function ProcessorQueuePage({
       formatProperty(deal.propertyCity, deal.propertyState),
     ]),
   );
-  const toQueueRow = (row: (typeof workItems)[number]) =>
-    workQueueRow(row, { location: locationByDeal[row.dealId] });
+  const toQueueRow = (row: (typeof workItems)[number]) => ({
+    ...workQueueRow(row, { location: locationByDeal[row.dealId] }),
+    actionPlan: deriveQueueActionPlan(row, {
+      canMutate,
+      currentUserId: user.id,
+    }),
+  });
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);

@@ -24,6 +24,7 @@ import {
   formatLongDate,
   greetingForNow,
 } from "@/lib/ops/ops-board";
+import { canMutateWorkflow } from "@/lib/ops/workflow";
 import { requireInternalUser } from "@/lib/auth/session";
 
 export default async function DashboardPage({
@@ -99,6 +100,8 @@ export default async function DashboardPage({
             items={board.myNextFive}
             staffNames={staffNames}
             locationByDeal={locationByDeal}
+            canMutate={canMutateWorkflow(profile.role)}
+            currentUserId={user.id}
           />
 
           <TodayStrip counts={board.todayStrip} assignment="mine" />

@@ -1,16 +1,17 @@
-import Link from "next/link";
+import { QueueActionBar } from "@/components/queue-actions/queue-action-bar";
 import { CardHeader } from "@/components/ui/surface-card";
 import { formatFollowUpAt } from "@/lib/format";
+import type { QueueActionPlan } from "@/lib/queue-actions/derive";
 import {
   QUEUE_ACCENT_EDGE,
   queueCardAccent,
   queueCardBody,
   queueContextLine,
   queueWorkCardLabel,
-  workActionChipClass,
   type QueueCardAccent,
 } from "@/lib/ui/queue-card";
 import type { QueueTodaySection } from "@/lib/ops/operational-work";
+import Link from "next/link";
 
 export type QueueDisplayRow = {
   id: string;
@@ -27,6 +28,7 @@ export type QueueDisplayRow = {
   assignedProcessorId?: string | null;
   queueSection?: QueueTodaySection | string | null;
   dueAt?: string | null;
+  actionPlan: QueueActionPlan;
 };
 
 export function NextActionsQueue({
@@ -93,54 +95,53 @@ function WorkRow({ row, owner }: { row: QueueDisplayRow; owner: string | null })
     assigned: Boolean(owner),
     actionLabel: row.actionLabel,
   });
+  const identityLabel = queueWorkCardLabel({
+    borrowerName: row.borrowerName,
+    title: body.workItem,
+    reason: body.reason ?? "",
+    actionLabel: row.actionPlan.primary.label,
+    ownerName: owner,
+  });
 
   return (
-    <Link
-      href={row.href}
-      aria-label={queueWorkCardLabel({
-        borrowerName: row.borrowerName,
-        title: body.workItem,
-        reason: body.reason ?? "",
-        actionLabel: row.actionLabel,
-        ownerName: owner,
-      })}
-      className={`flex items-center gap-4 border-l-2 px-3 py-2 transition hover:bg-stone/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${QUEUE_ACCENT_EDGE[accent]}`}
+    <div
+      className={`flex items-center gap-3 border-l-2 px-3 py-2 transition hover:bg-stone/70 ${QUEUE_ACCENT_EDGE[accent]}`}
     >
-      <span aria-hidden className="contents">
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-baseline gap-x-2">
-            <span className="truncate text-[13px] font-semibold tracking-[0.01em] text-ink">
-              {row.borrowerName}
+      <Link
+        href={row.href}
+        aria-label={identityLabel}
+        className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40"
+      >
+        <span className="flex flex-wrap items-baseline gap-x-2">
+          <span className="truncate text-[13px] font-semibold tracking-[0.01em] text-ink">
+            {row.borrowerName}
+          </span>
+          {context ? (
+            <span className="truncate text-[11px] text-ink-muted">{context}</span>
+          ) : null}
+        </span>
+        <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+          <span className="truncate text-[13px] text-ink">{body.workItem}</span>
+          {body.reason ? (
+            <span
+              className={`truncate text-[11px] ${
+                row.hot ? "text-warning" : "text-ink-muted"
+              }`}
+            >
+              {body.reason}
             </span>
-            {context ? (
-              <span className="truncate text-[11px] text-ink-muted">{context}</span>
-            ) : null}
-          </span>
-          <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-            <span className="truncate text-[13px] text-ink">{body.workItem}</span>
-            {body.reason ? (
-              <span
-                className={`truncate text-[11px] ${
-                  row.hot ? "text-warning" : "text-ink-muted"
-                }`}
-              >
-                {body.reason}
-              </span>
-            ) : null}
-          </span>
+          ) : null}
         </span>
-        <span className="hidden min-w-24 shrink-0 truncate text-[11px] text-ink-muted sm:block">
-          {owner ?? "Unassigned"}
-        </span>
-        {due ? (
-          <span className="hidden shrink-0 text-[11px] tabular-nums text-ink-muted md:block">
-            {due}
-          </span>
-        ) : null}
-        <span className={workActionChipClass(row.actionLabel)}>
-          {row.actionLabel} →
-        </span>
+      </Link>
+      <span className="hidden min-w-24 shrink-0 truncate text-[11px] text-ink-muted sm:block">
+        {owner ?? "Unassigned"}
       </span>
-    </Link>
+      {due ? (
+        <span className="hidden shrink-0 text-[11px] tabular-nums text-ink-muted md:block">
+          {due}
+        </span>
+      ) : null}
+      <QueueActionBar plan={row.actionPlan} />
+    </div>
   );
 }
