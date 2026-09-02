@@ -58,9 +58,6 @@ export function AppShell({
         </div>
         <div className="mx-5 h-px bg-white/10" />
         <nav aria-label="Primary" className="flex-1 py-5">
-          <p className="px-5 pb-2 text-[10px] uppercase tracking-[0.18em] text-white/32">
-            Work
-          </p>
           <ul>
             {DESKTOP_APP_NAV.map((item) => {
               const active = isAppNavActive(pathname, item.href);

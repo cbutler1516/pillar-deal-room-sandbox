@@ -11,9 +11,9 @@ const REASON_EXACT: Record<string, string> = {
   "Active collection task": "Review file",
   "Escalation due": "Follow-up is overdue",
   "Follow-up is overdue — escalate": "Follow-up is overdue",
-  "Ready to submit": "Ready to submit",
-  "Near-ready file": "Almost ready to submit",
-  "Waiting on a response": "Waiting on a reply",
+  "Ready to submit": "Ready to send",
+  "Near-ready file": "Almost ready to send",
+  "Waiting on a response": "Waiting for a reply",
   "Unassigned file": "New unassigned file",
   "New application": "New file",
   "Follow-up overdue": "Follow-up is overdue",
@@ -21,7 +21,8 @@ const REASON_EXACT: Record<string, string> = {
   "Condition still outstanding": "Condition still outstanding",
   "Condition response received": "Condition response received",
   "Condition document needs review": "Condition document needs review",
-  "Waiting on a condition response": "Waiting on a condition response",
+  "Waiting on a condition response": "Waiting for a condition response",
+  "Replacement needed on a required Client Need": "Replacement still needed",
 };
 
 export function humanizeWorkReason(reason: string): string {
@@ -42,7 +43,7 @@ export function humanizeWorkReason(reason: string): string {
   }
   const waitingOn = reason.match(/^Waiting on (.+)$/);
   if (waitingOn && waitingOn[1] !== "a response") {
-    return `Waiting on ${waitingOn[1]}`;
+    return `Waiting for ${waitingOn[1]}`;
   }
   const overdueBy = reason.match(/^Follow-up overdue by (.+)$/);
   if (overdueBy) {
@@ -80,7 +81,7 @@ export function humanizeWorkAction(row: {
   const type = row.workType;
 
   if (type === "ready_to_submit" || type === "near_ready" || row.target === "submission") {
-    return "Prepare submission";
+    return "Prepare package";
   }
   if (type === "escalation_due") {
     return "Follow up";
@@ -109,7 +110,7 @@ export function humanizeWorkAction(row: {
     return "Review reply";
   }
   if (type === "required_need_missing" || action === "Collect") {
-    return row.target === "needs" || !row.target ? "View requirement" : "Open file";
+    return row.target === "needs" || !row.target ? "View request" : "Open file";
   }
   if (type === "unassigned_file" || action === "Claim") {
     return "Claim file";
@@ -168,6 +169,8 @@ export function polishAssistSummary(summary: string): string {
     .replace(/\bfile in processor review\b/gi, "file in processor review")
     .replace(/\bfile in collecting documents\b/gi, "file collecting documents")
     .replace(/\bThis is an assistive summary\. It does not change the file\./gi, "")
+    .replace(/\bClient Needs\b/g, "requests")
+    .replace(/\bClient Need\b/g, "request")
     .replace(/\brequest replacement\b/gi, "get a replacement document")
     .replace(/\bRequest replacement\b/g, "Get a replacement document")
     .replace(/\s+/g, " ")

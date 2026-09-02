@@ -167,7 +167,7 @@ function createRelationStore(supabase: SupabaseClient): DocumentRelationStore {
         .select("id")
         .single();
       if (error || !data) {
-        throw new Error(error?.message ?? "Unable to clone this Client Need.");
+        throw new Error(error?.message ?? "Unable to duplicate this request.");
       }
       return { id: data.id };
     },
@@ -267,7 +267,7 @@ export async function cloneClientNeedAction(
     return { error: null, data: result.data };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Unable to clone this Client Need.",
+      error: error instanceof Error ? error.message : "Unable to duplicate this request.",
       data: null,
     };
   }
@@ -279,7 +279,7 @@ export async function updateNeedNotesAction(
   assertSandboxGuard();
   const { supabase, user, profile } = await requireInternalUser();
   if (profile.role === "loan_officer") {
-    return { error: "Loan officers cannot update Client Need notes.", data: null };
+    return { error: "Loan officers cannot update request notes.", data: null };
   }
   const needId = asString(formData.get("needId"));
   const notes = asString(formData.get("notes"));

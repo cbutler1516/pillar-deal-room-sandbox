@@ -8,7 +8,7 @@ export function StuckFilesSection({ rows }: { rows: StuckFileRow[] }) {
   }
   return (
     <section>
-      <SectionHeader title="Review — stuck files" meta={rows.length} />
+      <SectionHeader title="Needs attention" meta={rows.length} />
       <ul>
         {rows.map((row) => (
           <CommandRow

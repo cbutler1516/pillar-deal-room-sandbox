@@ -113,7 +113,7 @@ export function assertSameDealLink(
   needDealId: string,
 ): void {
   if (documentDealId !== needDealId) {
-    throw new Error("A document may only link to a Client Need on the same deal.");
+    throw new Error("A document may only link to a request on the same deal.");
   }
 }
 
@@ -262,7 +262,7 @@ export async function detachDocumentFromClientNeed(
 
   const removed = await deps.store.deleteLink(document.id, need.id);
   if (!removed) {
-    return { ok: false, error: "That document is not linked to this Client Need." };
+    return { ok: false, error: "That document is not linked to this request." };
   }
 
   await deps.logActivity({

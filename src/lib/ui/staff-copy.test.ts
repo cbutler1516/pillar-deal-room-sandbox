@@ -22,6 +22,11 @@ describe("staff copy", () => {
     expect(humanizeWorkReason("Response received from Title")).toBe(
       "Reply received from Title — review needed",
     );
+    expect(humanizeWorkReason("Waiting on title")).toBe("Waiting for title");
+    expect(humanizeWorkReason("Ready to submit")).toBe("Ready to send");
+    expect(humanizeWorkReason("Waiting on a condition response")).toBe(
+      "Waiting for a condition response",
+    );
     expect(humanizeWorkReason("Follow-up due today")).toBe("Follow-up due today");
     expect(humanizeWorkReason("Document awaiting processor review")).toBe(
       "New document ready for review",
@@ -79,7 +84,7 @@ describe("staff copy", () => {
         recommendedAction: "Collect",
         workType: "required_need_missing",
       }),
-    ).toBe("View requirement");
+    ).toBe("View request");
     expect(
       humanizeWorkAction({
         recommendedAction: "Open",
@@ -93,7 +98,7 @@ describe("staff copy", () => {
         workType: "ready_to_submit",
         target: "submission",
       }),
-    ).toBe("Prepare submission");
+    ).toBe("Prepare package");
   });
 
   it("removes robotic assist phrasing without changing facts", () => {
@@ -102,5 +107,8 @@ describe("staff copy", () => {
         "PDR-APP-1 is a Fix & Flip file in new. This is an assistive summary. It does not change the file.",
       ),
     ).toBe("PDR-APP-1 is a Fix & Flip new file.");
+    expect(
+      polishAssistSummary("The linked Client Need still needs a replacement."),
+    ).toBe("The linked request still needs a replacement.");
   });
 });

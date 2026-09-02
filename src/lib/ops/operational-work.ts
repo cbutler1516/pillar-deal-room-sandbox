@@ -1189,7 +1189,7 @@ export function waitingCopyForDeal(
   if (notRequested) {
     return { labels: [], empty: "No request has been sent yet." };
   }
-  return { labels: [], empty: "Nobody is waiting on a reply." };
+  return { labels: [], empty: "Nobody is waiting for a reply." };
 }
 
 export { CONTACT_MISSING };

@@ -26,8 +26,8 @@ const SUMMARY_CHIPS = [
 ] as const;
 
 const NEED_GROUPS = [
-  { key: "required_now", label: "Required now" },
-  { key: "required_later", label: "Required later" },
+  { key: "required_now", label: "Needed now" },
+  { key: "required_later", label: "Needed later" },
   { key: "optional", label: "Optional" },
   { key: "other", label: "Other" },
 ] as const;
@@ -156,7 +156,7 @@ export function ClientNeedsWorkspace({
   if (needs.length === 0) {
     return (
       <p className="text-sm text-ink-muted">
-        No Client Needs are on this file yet.
+        No requests on this file yet.
       </p>
     );
   }
@@ -212,7 +212,14 @@ export function ClientNeedsWorkspace({
                     >
                       <p className="text-sm font-medium text-ink">{need.documentType}</p>
                       <p className="mt-0.5 truncate text-xs text-ink-muted">
-                        {needStatusLine(need, progress, hint)}
+                        {[
+                          ops?.sourceType
+                            ? `Needed from ${formatStatusLabel(ops.sourceType)}`
+                            : null,
+                          needStatusLine(need, progress, hint),
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </p>
                     </button>
                     {!open && action ? (
@@ -311,14 +318,14 @@ function needOverflowItems(
     items.push({ label: "Get replacement", onClick: actions.onReplace });
   }
   items.push({ label: "Attach existing", onClick: actions.onAttach });
-  items.push({ label: "Duplicate item", onClick: actions.onClone });
+  items.push({ label: "Duplicate request", onClick: actions.onClone });
   if (status !== "requested") {
     items.push({ label: "Prepare request", onClick: actions.onRequest });
   }
   if (status !== "waived") {
     items.push({ label: "Waive", onClick: actions.onWaive });
   }
-  items.push({ label: "Add Note", onClick: actions.onNote });
+  items.push({ label: "Add note", onClick: actions.onNote });
   return items;
 }
 
@@ -371,7 +378,7 @@ function NeedReviewPanel({
         <p className="text-xs leading-5 text-ink-muted">{need.description}</p>
       ) : null}
       <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-        <Item label="Status" value={need.status.replaceAll("_", " ")} />
+        <Item label="Status" value={formatStatusLabel(need.status)} />
         <Item label="Requested" value={formatTimestamp(need.requestedAt)} />
         <Item
           label="Expected count"
@@ -393,7 +400,7 @@ function NeedReviewPanel({
           Linked Documents
         </h5>
         {linked.length === 0 ? (
-          <p className="text-sm text-ink-muted">No documents linked to this need.</p>
+          <p className="text-sm text-ink-muted">No documents linked yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
@@ -470,11 +477,11 @@ function NeedReviewPanel({
                 className={buttonClass("secondary", "sm")}
                 onClick={() => void runNeedStatus(need.id, "rejected")}
               >
-                Replace
+              Needs replacement
               </button>
             ) : null}
             <button type="button" className={buttonClass("secondary", "sm")} onClick={onToggleAttach}>
-              Attach Existing
+              Attach existing
             </button>
             <button
               type="button"
@@ -491,14 +498,14 @@ function NeedReviewPanel({
               className={buttonClass("ghost", "sm")}
               onClick={() => void runNeedStatus(need.id, "requested")}
             >
-              Mark Requested
+              Mark requested
             </button>
             <button
               type="button"
               className={buttonClass("ghost", "sm")}
               onClick={() => void cloneNeed(dealId, need.id)}
             >
-              Clone Need
+              Clone request
             </button>
           </div>
           <p className="text-[11px] text-ink-muted">
@@ -521,7 +528,7 @@ function NeedReviewPanel({
             />
           </label>
           <button type="button" className={buttonClass("secondary", "sm")} onClick={() => void saveNotes()}>
-            Add Note
+            Add note
           </button>
         </div>
       ) : null}

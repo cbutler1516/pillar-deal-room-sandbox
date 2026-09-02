@@ -12,7 +12,7 @@ const STRIP_ITEMS: {
   { key: "overdue", label: "Overdue", bucket: "urgent", work: "follow_up" },
   { key: "docsToReview", label: "Docs to review", bucket: "review" },
   { key: "waiting", label: "Waiting", bucket: "waiting" },
-  { key: "readyToSubmit", label: "Ready to submit", bucket: "ready" },
+  { key: "readyToSubmit", label: "Ready to send", bucket: "ready" },
 ];
 
 export function TodayStrip({

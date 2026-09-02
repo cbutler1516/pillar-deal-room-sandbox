@@ -167,7 +167,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         timing: "required_now",
         blockedReason: "contact_missing",
         instructions:
-          "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance Client Need. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
+          "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance request. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
         completionRule:
           "Complete when evidence of coverage is received, linked, and the processor marks it accepted. This is not an insurance-compliance determination.",
       }),
@@ -224,9 +224,9 @@ export const DEMO_DEALS: DemoDeal[] = [
         escalationAfterHours: 48,
         escalationLevel: "none",
         instructions:
-          "Request a line-item rehab budget for this Fix & Flip. Confirm it covers the planned work and matches the property. Link it to the Rehab Budget Client Need. Follow up in 24 hours if only a lump sum is sent. Escalate to the LO after 48 hours.",
+          "Request a line-item rehab budget for this Fix & Flip. Confirm it covers the planned work and matches the property. Link it to the Rehab Budget request. Follow up in 24 hours if only a lump sum is sent. Escalate to the LO after 48 hours.",
         completionRule:
-          "Complete when a usable budget is received, reviewed, and the Rehab Budget Client Need is approved or explicitly accepted.",
+          "Complete when a usable budget is received, reviewed, and the Rehab Budget request is approved or explicitly accepted.",
       }),
       task(222, "request_document", "Request scope of work", "Written scope of work is still missing.", "high", "open", daysAgo(-2), {
         playbookKey: "request_scope_of_work",
@@ -239,9 +239,9 @@ export const DEMO_DEALS: DemoDeal[] = [
         escalationAfterHours: 48,
         escalationLevel: "none",
         instructions:
-          "Request a written scope of work describing the rehab. Confirm it is property-specific. Link it to the Scope of Work Client Need. Follow up in 24 hours if it is generic or incomplete. Escalate to the LO after 48 hours.",
+          "Request a written scope of work describing the rehab. Confirm it is property-specific. Link it to the Scope of Work request. Follow up in 24 hours if it is generic or incomplete. Escalate to the LO after 48 hours.",
         completionRule:
-          "Complete when the scope is received, reviewed, and the Scope of Work Client Need is approved or explicitly accepted.",
+          "Complete when the scope is received, reviewed, and the Scope of Work request is approved or explicitly accepted.",
       }),
       task(223, "follow_up", "Follow up with borrower", "Borrower still owes rehab items.", "high", "waiting", daysAgo(-1), {
         playbookKey: "follow_up_borrower",
@@ -259,7 +259,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         lastContactedAt: daysAgo(1, 12),
         waitingSince: daysAgo(1, 12),
         instructions:
-          "Review outstanding borrower Client Needs. Contact the borrower with a specific list of missing items. Record last contacted and schedule the next follow-up. Escalate to the LO after 48 hours without a response.",
+          "Review outstanding borrower requests. Contact the borrower with a specific list of missing items. Record last contacted and schedule the next follow-up. Escalate to the LO after 48 hours without a response.",
         completionRule:
           "Complete when the borrower has responded or the outstanding items are tasked separately. Do not mark the deal complete from this task.",
       }),
@@ -340,7 +340,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         lastContactedAt: daysAgo(2, 11),
         waitingSince: daysAgo(2, 11),
         instructions:
-          "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance Client Need. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
+          "Contact the insurance agent listed on the deal and request the current binder. Verify the property address and borrower/entity name. Verify lender/mortgagee language if the file requires it. Upload/link the received document to the Insurance request. If no response within 24 hours, follow up. Escalate to the LO after 48 hours. Do not decide coverage adequacy beyond these checks.",
         completionRule:
           "Complete when evidence of coverage is received, linked, and the processor marks it accepted. This is not an insurance-compliance determination.",
       }),
@@ -353,9 +353,9 @@ export const DEMO_DEALS: DemoDeal[] = [
         escalationAfterHours: 48,
         escalationLevel: "none",
         instructions:
-          "Open the Bank Statements Client Need. Confirm expected months are present, pages are complete, and the account holder matches. If a statement still needs review, leave the need in needs_review. Do not approve the need until the requirement as a whole is satisfied. Escalate to the LO only if the package cannot be interpreted.",
+          "Open the Bank Statements request. Confirm expected months are present, pages are complete, and the account holder matches. If a statement still needs review, leave the need in needs_review. Do not approve the need until the requirement as a whole is satisfied. Escalate to the LO only if the package cannot be interpreted.",
         completionRule:
-          "Complete when the processor has reviewed the linked statements. Approval of the Client Need is a separate decision and is never automatic.",
+          "Complete when the processor has reviewed the linked statements. Approval of the request is a separate decision and is never automatic.",
       }),
       task(323, "follow_up", "Follow up on lease / rent schedule", "Lease is in review and may need a borrower correction.", "normal", "waiting", daysAgo(0, 12), {
         playbookKey: "follow_up_lease",
@@ -374,17 +374,17 @@ export const DEMO_DEALS: DemoDeal[] = [
         lastContactedAt: daysAgo(1, 14),
         waitingSince: daysAgo(1, 14),
         instructions:
-          "Check the Lease / Rent Schedule Client Need. If the file is still in review or missing pages, contact the borrower for the correction. Record last contacted and the next follow-up. Escalate to the LO after 48 hours.",
+          "Check the Lease / Rent Schedule request. If the file is still in review or missing pages, contact the borrower for the correction. Record last contacted and the next follow-up. Escalate to the LO after 48 hours.",
         completionRule:
           "Complete when the lease item is no longer blocked or the processor has a documented borrower response. Do not calculate DSCR.",
       }),
-      task(324, "prepare_submission", "Prepare submission when complete", "Do not start until required-now items are done.", "low", "open", daysAgo(-7), {
+      task(324, "prepare_submission", "Prepare submission when complete", "Do not start until needed-now items are done.", "low", "open", daysAgo(-7), {
         playbookKey: "prepare_submission",
         sourceType: "internal",
         taskKind: "prepare_submission",
         timing: "required_later",
         instructions:
-          "Do not start this until required-now tasks are complete or waived. Walk the Client Needs list. If anything required is still missing or in review, stop and create or reopen the matching request task. When the file is actually ready, mark this complete. This does not submit to a lender.",
+          "Do not start this until needed-now tasks are complete or waived. Walk the Requests list. If anything required is still missing or in review, stop and create or reopen the matching request task. When the file is actually ready, mark this complete. This does not submit to a lender.",
         completionRule:
           "Complete when the processor confirms required-now items are satisfied or waived. This is not an underwriting or credit decision.",
       }),
@@ -471,7 +471,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         timing: "required_now",
         clientNeedId: demoUuid(402),
         instructions:
-          "Open the Mortgage Statement Client Need. Confirm the property and unpaid balance are visible. Do not calculate a payoff. Leave the need in needs_review until the statement is accepted.",
+          "Open the Mortgage Statement request. Confirm the property and unpaid balance are visible. Do not calculate a payoff. Leave the need in needs_review until the statement is accepted.",
         completionRule:
           "Complete when the processor has reviewed the statement. This is not a credit decision.",
       }),
@@ -538,7 +538,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         taskKind: "prepare_submission",
         timing: "required_later",
         instructions:
-          "Walk the Client Needs list. Required items on this file are approved or waived. Mark complete when the package is assembled. This does not submit to a lender.",
+          "Walk the Requests list. Required items on this file are approved or waived. Mark complete when the package is assembled. This does not submit to a lender.",
         completionRule:
           "Complete when the processor confirms required-now items are satisfied or waived. This is not an underwriting or credit decision.",
       }),
@@ -634,7 +634,7 @@ export const DEMO_DEALS: DemoDeal[] = [
         lastContactedAt: daysAgo(3, 9),
         waitingSince: daysAgo(3, 9),
         instructions:
-          "Identify the title contact. Ask title for the preliminary title report. Confirm the legal description matches the deal property. Link the report to the Title Client Need when used. Follow up in 24 hours. Escalate to the LO after 48 hours.",
+          "Identify the title contact. Ask title for the preliminary title report. Confirm the legal description matches the deal property. Link the report to the Title request when used. Follow up in 24 hours. Escalate to the LO after 48 hours.",
         completionRule:
           "Complete when the prelim is received, linked if applicable, and the processor marks it accepted.",
       }),

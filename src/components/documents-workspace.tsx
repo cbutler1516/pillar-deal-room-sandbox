@@ -75,7 +75,7 @@ export function DocumentsWorkspace({
     visible.find((doc) => doc.id === selectedId) ?? visible[0] ?? null;
 
   const needLabel = (needId: string) =>
-    needs.find((need) => need.id === needId)?.documentType ?? "Client Need";
+    needs.find((need) => need.id === needId)?.documentType ?? "Request";
 
   function selectDocument(id: string, openMobile = true) {
     setSelectedId(id);
@@ -264,7 +264,7 @@ function DocumentDetailPanel({
       return;
     }
     setNeedId("");
-    setMessage("Linked to Client Need without copying the file.");
+    setMessage("Linked to the request without copying the file.");
   }
 
   return (
@@ -332,17 +332,17 @@ function DocumentDetailPanel({
             ) : null}
             {primary === "save" ? (
               <button type="submit" className={buttonClass("accent")}>
-                Save classification
+                Save type
               </button>
             ) : (
               <button type="submit" className={buttonClass("secondary", "sm")}>
-                Save classification
+                Save type
               </button>
             )}
           </form>
 
           <div>
-            <p className="text-xs font-medium text-ink-muted">Linked Needs</p>
+            <p className="text-xs font-medium text-ink-muted">Linked requests</p>
             <p className="mt-1 text-sm leading-6 text-ink">
               {document.linkedNeedIds.length === 0
                 ? "Unlinked"
@@ -350,7 +350,7 @@ function DocumentDetailPanel({
             </p>
             {attachable.length === 0 ? (
               <p className="mt-2 text-sm leading-6 text-ink-muted">
-                This document is already linked to every Client Need on the deal.
+                This document is already linked to every request on the deal.
               </p>
             ) : (
               <div className="mt-2 flex flex-col gap-2">
@@ -359,7 +359,7 @@ function DocumentDetailPanel({
                   onChange={(event) => setNeedId(event.target.value)}
                   className="min-h-10 rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink"
                 >
-                  <option value="">Select a Client Need</option>
+                  <option value="">Select a request</option>
                   {attachable.map((need) => (
                     <option key={need.id} value={need.id}>
                       {need.documentType}
@@ -372,7 +372,7 @@ function DocumentDetailPanel({
                   onClick={() => void attach()}
                   className={buttonClass(primary === "attach" ? "accent" : "secondary", primary === "attach" ? "md" : "sm")}
                 >
-                  Attach to Need
+                  Link to request
                 </button>
               </div>
             )}

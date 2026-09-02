@@ -100,7 +100,7 @@ export default async function TasksPage({
     <div className={`${pageWidthClass} space-y-6`}>
       <PageHeader
         title="Tasks"
-        description="Full task filters. Daily work lives in Queue."
+        description="Assigned actions. Daily work is in Work."
       />
       <Toolbar
         trailing={
@@ -140,9 +140,9 @@ export default async function TasksPage({
             <option value="internal">Internal</option>
           </SelectField>
           <SelectField name="timing" compact defaultValue={timing}>
-            <option value="all">All timing</option>
-            <option value="required_now">Required now</option>
-            <option value="required_later">Required later</option>
+            <option value="all">Any timing</option>
+            <option value="required_now">Needed now</option>
+            <option value="required_later">Needed later</option>
             <option value="optional">Optional</option>
           </SelectField>
           <SelectField name="priority" compact defaultValue={priority}>
@@ -168,11 +168,11 @@ export default async function TasksPage({
             <option value="yes">Escalated</option>
           </SelectField>
           <SelectField name="queue" compact defaultValue={queue ?? "all"}>
-            <option value="all">All queue states</option>
+            <option value="all">Any status</option>
             <option value="due_today">Due today</option>
             <option value="overdue">Follow-up overdue</option>
-            <option value="waiting_borrower">Waiting on borrower</option>
-            <option value="waiting_third_party">Waiting on third party</option>
+            <option value="waiting_borrower">Waiting for borrower</option>
+            <option value="waiting_third_party">Waiting for third party</option>
             <option value="escalated">Escalated</option>
             <option value="no_contact">No contact</option>
             <option value="response_received">Reply received</option>
@@ -204,8 +204,8 @@ export default async function TasksPage({
               ownerName: row.contactName,
             };
           })}
-          title="Task list"
-          description="Ranked active work. Completed items appear on the board."
+          title="Tasks"
+          description="Open items first. Completed items are on the board."
         />
       )}
     </div>

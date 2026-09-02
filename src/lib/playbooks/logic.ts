@@ -409,7 +409,7 @@ export function evaluateCompletionReadiness(input: {
 } {
   const blockers: string[] = [];
   if (input.requiresLinkedNeed && !input.linkedNeedStatus) {
-    blockers.push("No linked Client Need.");
+    blockers.push("No linked request.");
   }
   if (
     input.requiresNeedApprovedOrAccepted &&
@@ -417,7 +417,7 @@ export function evaluateCompletionReadiness(input: {
     input.linkedNeedStatus !== "approved" &&
     input.linkedNeedStatus !== "waived"
   ) {
-    blockers.push("Linked Client Need is not approved or accepted.");
+    blockers.push("Linked request is not approved or accepted.");
   }
   if (input.requiresDocumentLinked && !input.hasLinkedDocument) {
     blockers.push("Expected document is not linked.");

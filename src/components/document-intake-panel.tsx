@@ -178,13 +178,13 @@ export function DocumentIntakePanel({
 
       <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs text-ink-muted">
-            Client Need
+            Request
             <select
               value={clientNeedId}
               onChange={(event) => setClientNeedId(event.target.value)}
               className="mt-1 w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
             >
-              <option value="">Unlinked (no Client Need)</option>
+              <option value="">Unlinked</option>
               {needs.map((need) => (
                 <option key={need.id} value={need.id}>
                   {need.documentType} ({need.status.replaceAll("_", " ")})

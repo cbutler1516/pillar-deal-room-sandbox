@@ -61,7 +61,7 @@ export async function persistSandboxApplication(
     const { error: needError } = await admin.from("client_needs").insert(pack.needs);
     if (needError) {
       await admin.from("deals").delete().eq("id", pack.dealId);
-      return { ok: false, error: "Unable to create Client Needs." };
+      return { ok: false, error: "Unable to create requests." };
     }
   }
 

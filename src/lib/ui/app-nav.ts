@@ -1,12 +1,12 @@
 export type AppNavItem = {
   href: "/dashboard" | "/deals" | "/processor-queue" | "/tasks" | "/team";
-  label: "Dashboard" | "Deals" | "Queue" | "Tasks" | "Team";
+  label: "Home" | "Deals" | "Work" | "Tasks" | "Team";
 };
 
 export const MOBILE_APP_NAV = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Home" },
   { href: "/deals", label: "Deals" },
-  { href: "/processor-queue", label: "Queue" },
+  { href: "/processor-queue", label: "Work" },
 ] as const satisfies readonly AppNavItem[];
 
 export const DESKTOP_APP_NAV = [

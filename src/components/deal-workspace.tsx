@@ -74,6 +74,11 @@ export function DealWorkspaceHeader({
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-0 flex-1 items-start gap-4">
           <div className="min-w-0 flex-1">
+            <p className="mb-3">
+              <a href="/deals" className="text-[11px] font-medium text-mineral">
+                ← Deals
+              </a>
+            </p>
             <p className={labelClass}>{deal.dealReference}</p>
             <h2 className="font-display mt-1.5 text-[2.15rem] leading-none font-semibold tracking-tight text-ink">
               {deal.borrowerName}
@@ -187,7 +192,7 @@ function DealProgressStrip({
     <p className="text-[12px] text-ink-muted">
       {current}
       {received.required > 0
-        ? ` · ${received.received} of ${received.required} required items received`
+        ? ` · ${received.received} of ${received.required} needed items received`
         : ""}
       {reviewCount > 0 ? ` · ${reviewCount} still need review` : ""}
     </p>
@@ -352,7 +357,7 @@ export function DealOverview({
           <span aria-hidden className="w-[2px] shrink-0 bg-accent" />
           <div className="min-w-0 flex-1 py-0.5">
             <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase">
-              Next action
+              Next Action
             </p>
             <h3 className="font-display mt-2 text-[1.65rem] font-semibold leading-tight tracking-tight text-ink">
               {nextAction.action}
@@ -380,7 +385,7 @@ export function DealOverview({
           <span aria-hidden className="w-[2px] shrink-0 bg-line" />
           <div>
             <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted uppercase">
-              Next action
+              Next Action
             </p>
             <p className="mt-2 text-sm leading-6 text-ink-muted">
               Nothing needs your attention.
@@ -397,17 +402,17 @@ export function DealOverview({
       ) : null}
 
       <section>
-        <SectionHeader title="Submission readiness" />
+        <SectionHeader title="Ready to send" />
         <FactLedger
           rows={[
             {
-              label: "Required items",
+              label: "Needed items",
               value:
                 readiness.requiredCount > 0
                   ? `${readiness.satisfiedCount} of ${readiness.requiredCount} ready`
-                  : "No required items",
+                  : "None needed",
             },
-            { label: "Required now", value: requiredNow },
+            { label: "Needed now", value: requiredNow },
             { label: "Missing contacts", value: missingContacts },
             { label: "Follow-ups overdue", value: followUps },
           ]}
@@ -451,7 +456,7 @@ export function DealOverview({
 
       <div className="grid gap-10 lg:grid-cols-2">
         <section>
-          <SectionHeader title="Current blockers" />
+          <SectionHeader title="Blockers" />
           {blockers.length === 0 && rejectedNeeds.length === 0 ? (
             <p className="text-sm text-ink-muted">Nothing is blocking this file.</p>
           ) : (
@@ -480,7 +485,7 @@ export function DealOverview({
         </section>
 
         <section>
-          <SectionHeader title="Waiting on" />
+          <SectionHeader title="Waiting for" />
           {waitingOn.labels.length === 0 ? (
             <p className="text-sm leading-6 text-ink-muted">{waitingOn.empty}</p>
           ) : (
@@ -544,6 +549,16 @@ export function DealOverview({
   );
 }
 
+export const DEAL_TAB_NAV: { key: DealTab; label: string; tab: string }[] = [
+  { key: "overview", label: "Overview", tab: "overview" },
+  { key: "needs", label: "Requests", tab: "needs" },
+  { key: "documents", label: "Documents", tab: "documents" },
+  { key: "conditions", label: "Conditions", tab: "conditions" },
+  { key: "submission", label: "Submission", tab: "submission" },
+  { key: "contacts", label: "People", tab: "people" },
+  { key: "activity", label: "Activity", tab: "timeline" },
+];
+
 export function DealTabNav({
   dealId,
   tab,
@@ -551,19 +566,10 @@ export function DealTabNav({
   dealId: string;
   tab: DealTab;
 }) {
-  const items: { href: string; key: DealTab; label: string }[] = [
-    { key: "overview", label: "Overview", href: `/deals/${dealId}?tab=overview` },
-    { key: "needs", label: "Needs", href: `/deals/${dealId}?tab=needs` },
-    { key: "documents", label: "Documents", href: `/deals/${dealId}?tab=documents` },
-    { key: "conditions", label: "Conditions", href: `/deals/${dealId}?tab=conditions` },
-    { key: "submission", label: "Submission", href: `/deals/${dealId}?tab=submission` },
-    { key: "contacts", label: "People", href: `/deals/${dealId}?tab=people` },
-    { key: "activity", label: "Timeline", href: `/deals/${dealId}?tab=timeline` },
-  ];
   return (
     <TabList
-      tabs={items.map((item) => ({
-        href: item.href,
+      tabs={DEAL_TAB_NAV.map((item) => ({
+        href: `/deals/${dealId}?tab=${item.tab}`,
         label: item.label,
         active: tab === item.key,
       }))}

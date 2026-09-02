@@ -91,8 +91,8 @@ function buildFlags(snapshot: AIDealSnapshot): AIWorkflowFlag[] {
       flags.push({
         kind: "conflict",
         severity: "warning",
-        title: "Completed task with a rejected Need",
-        detail: `${task.title} is complete, but the linked Client Need still needs a replacement.`,
+        title: "Completed task still needs a replacement",
+        detail: `${task.title} is complete, but the linked request still needs a replacement.`,
       });
     }
   }
@@ -106,8 +106,8 @@ function buildFlags(snapshot: AIDealSnapshot): AIWorkflowFlag[] {
       flags.push({
         kind: "review",
         severity: "info",
-        title: "Document waiting on Need status",
-        detail: `${need.documentType} has a document in review while the Need is still requested.`,
+        title: "Document waiting on request status",
+        detail: `${need.documentType} has a document in review while the request is still requested.`,
       });
     }
   }
@@ -125,7 +125,7 @@ function buildFlags(snapshot: AIDealSnapshot): AIWorkflowFlag[] {
       kind: "missing_item",
       severity: "warning",
       title: "Required items still open",
-      detail: `${requiredIncomplete.length} required Client Need${
+      detail: `${requiredIncomplete.length} required request${
         requiredIncomplete.length === 1 ? "" : "s"
       } are incomplete.`,
     });

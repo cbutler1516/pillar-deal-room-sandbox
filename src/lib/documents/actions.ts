@@ -119,7 +119,7 @@ function createUserScopedStore(supabase: SupabaseClient): DocumentIntakeStore {
         link_source: input.linkSource,
       });
       if (error) {
-        throw new Error("Unable to link the document to the Client Need.");
+        throw new Error("Unable to link the document to this request.");
       }
     },
     async listNeedDocuments(needId) {

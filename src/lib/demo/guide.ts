@@ -6,24 +6,24 @@ export function canShowDemoGuide(env: SandboxEnv = process.env): boolean {
 
 export const DEMO_GUIDE_STEPS = [
   {
-    title: "Open Dashboard",
-    body: "Everything needing attention is derived from live file state.",
+    title: "Open Home",
+    body: "Start here. See what to do first, what is waiting, and what can move.",
   },
   {
     title: "Open Casey",
-    body: "Application, Needs, documents, processor work, contacts, conditions, and timeline live in one file.",
+    body: "Overview, requests, documents, conditions, people, and activity live in one file.",
   },
   {
     title: "Open Documents",
-    body: "Processors can review, classify, and link documents without exposing file content to AI.",
+    body: "Review, name, and link files. AI suggestions stay secondary.",
   },
   {
     title: "Open Conditions",
-    body: "Lender conditions become structured work instead of separate tickets.",
+    body: "Lender conditions are tracked on the file.",
   },
   {
     title: "Open Team",
-    body: "Ownership and workload are visible across the processing team.",
+    body: "See who owns which files.",
   },
   {
     title: "Open borrower portal",
@@ -31,6 +31,6 @@ export const DEMO_GUIDE_STEPS = [
   },
   {
     title: "Open the ready file",
-    body: "Casey Brooks opens on Submission. Readiness is deterministic — not an AI guess.",
+    body: "Casey Brooks opens on Submission. Ready to send is file state — not an AI guess.",
   },
 ] as const;

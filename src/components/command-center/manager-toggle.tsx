@@ -27,7 +27,7 @@ export function ManagerViewToggle({
 export function MobilePriorityHint() {
   return (
     <p className="text-xs text-ink-muted lg:hidden">
-      Mobile view prioritizes next work, today, documents, and waiting.
+      Mobile view prioritizes up next, today, documents, and waiting.
     </p>
   );
 }

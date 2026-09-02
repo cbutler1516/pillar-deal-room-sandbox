@@ -22,7 +22,7 @@ export const PORTAL_NEED_GROUPS: {
   { key: "action_needed", label: "Action needed" },
   { key: "under_review", label: "Under review" },
   { key: "complete", label: "Complete" },
-  { key: "required_later", label: "Required later" },
+  { key: "required_later", label: "Needed later" },
 ];
 
 export function portalNeedGroup(need: PortalNeedLike): PortalNeedGroupKey {
@@ -43,7 +43,7 @@ export function portalNeedGroup(need: PortalNeedLike): PortalNeedGroupKey {
 
 export function portalNeedStatusLabel(status: string): string {
   if (status === "rejected") return "Replacement needed";
-  if (status === "needs_review") return "Needs review";
+  if (status === "needs_review") return "Being reviewed";
   if (status === "received") return "Received";
   if (status === "approved") return "Accepted";
   if (status === "waived") return "Waived";
@@ -62,7 +62,7 @@ export function portalNeedExplanation(need: PortalNeedLike): string {
     return "This item is complete.";
   }
   if (need.status === "waived") {
-    return "This item is no longer required.";
+    return "You do not need to send this.";
   }
   if (need.timing === "required_later") {
     return "You do not need to send this yet.";
@@ -136,6 +136,6 @@ export const PORTAL_PROGRESS_STEPS: {
 }[] = [
   { key: "requested", label: "Documents requested" },
   { key: "received", label: "Documents received" },
-  { key: "review", label: "Processor review" },
+  { key: "review", label: "Being reviewed" },
   { key: "ready", label: "Ready for next step" },
 ];

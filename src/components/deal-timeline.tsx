@@ -17,8 +17,8 @@ import {
 const FILTERS: { id: TimelineFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "documents", label: "Documents" },
-  { id: "communications", label: "Communications" },
-  { id: "workflow", label: "Workflow" },
+          { id: "communications", label: "Messages" },
+          { id: "workflow", label: "File" },
 ];
 
 export function DealTimeline({
@@ -59,7 +59,7 @@ export function DealTimeline({
   if (!now) {
     return (
       <p className="text-sm leading-6 text-ink-muted">
-        Timeline could not determine the staff clock.
+        Activity could not load.
       </p>
     );
   }

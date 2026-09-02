@@ -16,7 +16,7 @@ export function DocumentIntelligencePanel({
         <div>
           {result.completeness.length === 0 ? (
             <p className="text-sm leading-6 text-ink-muted">
-              No Client Needs on this file.
+              No requests on this file.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -51,7 +51,7 @@ export function DocumentIntelligencePanel({
       </div>
       <p className="mt-4 text-xs leading-5 text-ink-muted">
         {DOCUMENT_INTELLIGENCE_DISCLAIMER} Intelligence cannot approve files,
-        waive Needs, change deal status, or send communications.
+        waive requests, change deal status, or send communications.
       </p>
     </details>
   );

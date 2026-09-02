@@ -80,7 +80,7 @@ describe("deal presentation", () => {
       }),
     ).toEqual({
       context:
-        "Required-now items are complete. Prepare the lender package from stored file facts.",
+        "Needed-now items are done. Prepare the lender package from this file.",
       cta: "Open submission",
     });
   });

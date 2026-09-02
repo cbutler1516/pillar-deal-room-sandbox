@@ -48,8 +48,8 @@ import {
 import { TASK_TIMINGS, type PlaybookDefinition } from "@/lib/playbooks/types";
 
 const GROUPS = [
-  { key: "required_now", label: "Required now" },
-  { key: "required_later", label: "Required later" },
+  { key: "required_now", label: "Needed now" },
+  { key: "required_later", label: "Needed later" },
   { key: "optional", label: "Optional" },
   { key: "completed", label: "Completed" },
 ] as const;
@@ -134,7 +134,7 @@ export function TaskWorkspace({
             onClick={() => setShowAdd((value) => !value)}
             className={buttonClass("ghost", "sm")}
           >
-            Add Task
+            Add task
           </button>
           {canGenerateBaseline ? (
             <form action={submitBaseline}>
@@ -143,7 +143,7 @@ export function TaskWorkspace({
                 type="submit"
                 className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-muted"
               >
-                Generate {loanType ?? "loan type"} baseline
+                Add {loanType ?? "standard"} tasks
               </button>
             </form>
           ) : null}
@@ -380,7 +380,7 @@ function TaskDetail({
         )}
       </Section>
       <Section title="What to request">
-        {requestSummaryFromTemplate(suggested) || "Use the playbook instructions."}
+        {requestSummaryFromTemplate(suggested) || "Use the task instructions."}
       </Section>
       {requestText ? (
         <div>
@@ -389,11 +389,11 @@ function TaskDetail({
           </h5>
           <p className="mt-1 text-sm text-ink">{requestText}</p>
           <div className="mt-2">
-            <CopyTextButton value={requestText} label="Copy Request" />
+            <CopyTextButton value={requestText} label="Copy request" />
           </div>
         </div>
       ) : null}
-      <Section title="Completion rule">
+      <Section title="Done when">
         {task.completionRule ??
           "Processor marks accepted. No underwriting conclusion."}
       </Section>
@@ -535,9 +535,9 @@ function AddTaskForm({
       <input type="hidden" name="dealId" value={dealId} />
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="text-xs text-ink-muted">
-          Playbook
+          Task type
           <select name="playbookKey" required className={`${inputClass} mt-1 w-full`}>
-            <option value="">Select a playbook</option>
+            <option value="">Select a type</option>
             {playbooks.map((playbook) => (
               <option key={playbook.playbookKey} value={playbook.playbookKey}>
                 {playbook.title} · {playbook.sourceType.replaceAll("_", " ")}
@@ -546,18 +546,18 @@ function AddTaskForm({
           </select>
         </label>
         <label className="text-xs text-ink-muted">
-          Timing override
+          Timing
           <select name="timing" className={`${inputClass} mt-1 w-full`}>
-            <option value="">Use playbook default</option>
+            <option value="">Use default</option>
             {TASK_TIMINGS.map((timing) => (
               <option key={timing} value={timing}>
-                {timing.replaceAll("_", " ")}
+                {formatStatusLabel(timing)}
               </option>
             ))}
           </select>
         </label>
         <label className="text-xs text-ink-muted">
-          Linked Client Need
+          Linked request
           <select name="clientNeedId" className={`${inputClass} mt-1 w-full`}>
             <option value="">Match or create if needed</option>
             {needs.map((need) => (
@@ -580,7 +580,7 @@ function AddTaskForm({
           type="submit"
           className={buttonClass("accent", "sm")}
         >
-          Create from playbook
+          Add task
         </button>
         <button type="button" onClick={onClose} className={actionClass}>
           Cancel
