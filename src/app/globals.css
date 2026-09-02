@@ -67,8 +67,10 @@
   --text-table: 0.8125rem;
   --text-button: 0.8125rem;
   --motion: 160ms;
-  --app-rail-width: 13.5rem;
+  --app-rail-width: 15rem;
   --app-header-height: 3.25rem;
+  --app-workspace-pad-x: 1.25rem;
+  --app-workspace-pad-y: 1.25rem;
   --deal-tabs-height: 2.75rem;
   --chrome-gap: 0.25rem;
   --inspector-sticky-top: calc(
@@ -80,7 +82,9 @@
 @media (min-width: 1024px) {
   :root {
     --app-header-height: 0px;
-    --app-bottom-nav-space: 1.5rem;
+    --app-bottom-nav-space: 2rem;
+    --app-workspace-pad-x: 2.5rem;
+    --app-workspace-pad-y: 2rem;
     --inspector-sticky-top: calc(var(--deal-tabs-height) + var(--chrome-gap));
   }
 }

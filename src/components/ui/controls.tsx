@@ -30,10 +30,10 @@ export function SelectField({
 }
 
 const CHIP_BASE =
-  "inline-flex min-h-8 items-center rounded-[8px] border px-2.5 py-1 text-xs font-medium transition motion-reduce:transition-none";
-const CHIP_ACTIVE = "border-mineral bg-mineral text-white";
+  "inline-flex min-h-8 items-center border-b-2 px-1.5 py-1 text-[11px] font-medium tracking-[0.04em] transition motion-reduce:transition-none";
+const CHIP_ACTIVE = "border-mineral text-ink";
 const CHIP_IDLE =
-  "border-line text-ink-muted hover:border-mineral/40 hover:text-ink";
+  "border-transparent text-ink-muted hover:text-ink";
 
 function chipClass(active: boolean): string {
   return `${CHIP_BASE} ${active ? CHIP_ACTIVE : CHIP_IDLE}`;
@@ -156,9 +156,9 @@ export function TabList({
         <Link
           key={tab.label}
           href={tab.href}
-          className={`min-h-10 border-b-2 px-3 py-2 text-[13px] font-medium transition duration-160 motion-reduce:transition-none ${
+          className={`-mb-px min-h-9 border-b px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.12em] transition duration-160 motion-reduce:transition-none ${
             tab.active
-              ? "border-mineral text-ink"
+              ? "border-ink text-ink"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >

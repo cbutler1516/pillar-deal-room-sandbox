@@ -23,24 +23,27 @@ export function TodayStrip({
   assignment?: string;
 }) {
   return (
-    <section
-      aria-label="Today"
-      className="flex flex-wrap divide-x divide-line border-y border-line"
-    >
-      {STRIP_ITEMS.map((item) => (
-        <Link
-          key={item.key}
-          href={queueFilterHref({
-            assignment,
-            bucket: item.bucket,
-            work: item.work,
-          })}
-          className="inline-flex min-w-[7.5rem] flex-1 items-center justify-between gap-2 px-4 py-3 text-sm transition hover:bg-stone"
-        >
-          <span className="text-ink-muted">{item.label}</span>
-          <span className="font-semibold tabular-nums text-ink">{counts[item.key]}</span>
-        </Link>
-      ))}
+    <section aria-label="Today" className="border-y border-line">
+      <div className="grid grid-cols-2 sm:grid-cols-5">
+        {STRIP_ITEMS.map((item) => (
+          <Link
+            key={item.key}
+            href={queueFilterHref({
+              assignment,
+              bucket: item.bucket,
+              work: item.work,
+            })}
+            className="flex flex-col gap-1 border-line px-4 py-3.5 transition hover:bg-stone/70 sm:border-r sm:last:border-r-0 max-sm:border-b max-sm:odd:border-r"
+          >
+            <span className="text-[10px] uppercase tracking-[0.12em] text-ink-muted">
+              {item.label}
+            </span>
+            <span className="text-[1.375rem] font-semibold tabular-nums leading-none text-ink">
+              {counts[item.key]}
+            </span>
+          </Link>
+        ))}
+      </div>
     </section>
   );
 }

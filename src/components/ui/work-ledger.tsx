@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { SectionHeader } from "@/components/ui/surface-card";
 import {
   QUEUE_ACCENT_EDGE,
@@ -47,9 +46,7 @@ export function WorkLedger({
         <p className="mb-3 text-xs text-ink-muted">{description}</p>
       ) : null}
       {rows.length === 0 ? (
-        <p className="border border-dashed border-line bg-stone/40 px-3 py-5 text-sm text-ink-muted">
-          {empty}
-        </p>
+        <p className="py-4 text-sm text-ink-muted">{empty}</p>
       ) : (
         <ul className="divide-y divide-line border-y border-line">
           {rows.map((row) => {
@@ -65,50 +62,50 @@ export function WorkLedger({
                     actionLabel: row.actionLabel,
                     ownerName: row.ownerName,
                   })}
-                  className={`flex items-center gap-3 border-l-2 px-3 py-2.5 transition hover:bg-stone focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${
+                  className={`flex items-center gap-3 border-l-2 px-3 py-2 transition hover:bg-stone/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-teal/40 ${
                     row.queueSection
                       ? QUEUE_ACCENT_EDGE[accent]
                       : "border-l-transparent"
                   }`}
                 >
                   <span aria-hidden className="contents">
-                  <StaffAvatar
-                    name={row.ownerName ?? null}
-                    unassigned={!row.ownerName}
-                    size={28}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-baseline gap-x-2">
-                      <span className="truncate text-[13px] font-semibold text-ink">
-                        {row.borrowerName}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-baseline gap-x-2">
+                        <span className="truncate text-[13px] font-semibold text-ink">
+                          {row.borrowerName}
+                        </span>
+                        {row.context ? (
+                          <span className="truncate text-[11px] text-ink-muted">
+                            {row.context}
+                          </span>
+                        ) : null}
                       </span>
-                      {row.context ? (
-                        <span className="truncate text-[11px] text-ink-muted">
-                          {row.context}
-                        </span>
-                      ) : null}
+                      <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+                        <span className="truncate text-[13px] text-ink">{row.title}</span>
+                        {row.reason ? (
+                          <span
+                            className={`truncate text-[11px] ${
+                              row.hot ? "text-warning" : "text-ink-muted"
+                            }`}
+                          >
+                            {row.reason}
+                          </span>
+                        ) : null}
+                      </span>
                     </span>
-                    <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
-                      <span className="truncate text-[13px] text-ink">{row.title}</span>
-                      {row.reason ? (
-                        <span
-                          className={`truncate text-[11px] ${
-                            row.hot ? "text-warning" : "text-ink-muted"
-                          }`}
-                        >
-                          {row.reason}
-                        </span>
-                      ) : null}
+                    {row.ownerName ? (
+                      <span className="hidden min-w-24 shrink-0 truncate text-[11px] text-ink-muted sm:block">
+                        {row.ownerName}
+                      </span>
+                    ) : null}
+                    {row.timing ? (
+                      <span className="hidden shrink-0 text-[11px] tabular-nums text-ink-muted sm:block">
+                        {row.timing}
+                      </span>
+                    ) : null}
+                    <span className={workActionChipClass(row.actionLabel)}>
+                      {row.actionLabel} →
                     </span>
-                  </span>
-                  {row.timing ? (
-                    <span className="hidden shrink-0 text-[11px] tabular-nums text-ink-muted sm:block">
-                      {row.timing}
-                    </span>
-                  ) : null}
-                  <span className={workActionChipClass(row.actionLabel)}>
-                    {row.actionLabel} →
-                  </span>
                   </span>
                 </Link>
               </li>

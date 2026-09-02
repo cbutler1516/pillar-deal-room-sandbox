@@ -48,7 +48,7 @@ describe("deal presentation", () => {
           requestedLoan: "612000",
         },
       }).map((row) => row.label),
-    ).toEqual(["Value", "Loan"]);
+    ).toEqual(["Requested loan", "Current value", "LTV"]);
     expect(
       dealSnapshotMetrics({
         loanType: "DSCR Purchase",

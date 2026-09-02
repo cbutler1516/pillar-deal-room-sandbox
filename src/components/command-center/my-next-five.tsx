@@ -12,16 +12,16 @@ export function MyNextFiveSection({
   locationByDeal: Record<string, string>;
 }) {
   return (
-    <NextActionsQueue
-      rows={items.map((row) =>
-        workQueueRow(row, { location: locationByDeal[row.dealId] }),
-      )}
-      staffNames={staffNames}
-      title="My next 5"
-      description="Your highest-priority assigned work"
-      empty="Nothing assigned to you right now."
-      layout="grid"
-      accent="urgent"
-    />
+    <section className="border-l-2 border-accent pl-5">
+      <NextActionsQueue
+        rows={items.map((row) =>
+          workQueueRow(row, { location: locationByDeal[row.dealId] }),
+        )}
+        staffNames={staffNames}
+        title="My next work"
+        description="Highest-ranked assigned work. One action each."
+        empty="Nothing assigned to you right now."
+      />
+    </section>
   );
 }

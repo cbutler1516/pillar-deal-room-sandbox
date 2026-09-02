@@ -60,9 +60,9 @@ export const QUEUE_FOOTER_TINT: Record<QueueCardAccent, string> = {
 export function workActionChipClass(label: string): string {
   const escalate = /^escalate\b/i.test(label.trim());
   if (escalate) {
-    return "inline-flex shrink-0 items-center rounded-[8px] px-2 py-0.5 text-[11px] font-semibold text-danger";
+    return "inline-flex shrink-0 items-center text-[11px] font-semibold text-danger";
   }
-  return "inline-flex shrink-0 items-center rounded-[8px] px-2 py-0.5 text-[11px] font-medium text-mineral transition hover:bg-stone motion-reduce:transition-none";
+  return "inline-flex shrink-0 items-center text-[11px] font-medium text-mineral";
 }
 
 export function queueContextLine(input: {
