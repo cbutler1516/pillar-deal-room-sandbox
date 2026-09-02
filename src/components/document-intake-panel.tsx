@@ -11,6 +11,7 @@ import {
   createFictitiousTestBlob,
   uploadBlobToProviderSession,
 } from "@/lib/documents/direct-upload";
+import { buttonClass } from "@/components/ui/button";
 import { SANDBOX_MIME_TYPES } from "@/lib/documents/types";
 import type { DocumentMetadataRecord, SafeUploadSession, TemporaryAccess } from "@/lib/documents/types";
 
@@ -248,7 +249,7 @@ export function DocumentIntakePanel({
             type="button"
             disabled={pending}
             onClick={() => void simulateUpload()}
-            className="mt-2 rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
+            className={`${buttonClass("accent", "sm")} mt-2`}
           >
             Simulate Upload
           </button>
@@ -260,7 +261,7 @@ export function DocumentIntakePanel({
           type="button"
           disabled={pending}
           onClick={() => void createSession()}
-          className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-navy-soft disabled:opacity-50"
+          className={buttonClass("primary", "sm")}
         >
           Create upload session
         </button>
@@ -268,7 +269,7 @@ export function DocumentIntakePanel({
           type="button"
           disabled={!session || pending}
           onClick={() => void sendTestDocument()}
-          className="rounded-lg border border-pillar-teal bg-surface px-3 py-1.5 text-xs font-medium text-pillar-teal hover:bg-pillar-teal-soft disabled:opacity-50"
+          className={buttonClass("secondary", "sm")}
         >
           {session && !session.simulated
             ? "Upload test document"
@@ -278,7 +279,7 @@ export function DocumentIntakePanel({
           type="button"
           disabled={!session || !simulated || pending}
           onClick={() => void completeSession()}
-          className="rounded-lg bg-pillar-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-teal/90 disabled:opacity-50"
+          className={buttonClass("accent", "sm")}
         >
           Complete upload
         </button>
@@ -352,7 +353,7 @@ export function DocumentIntakePanel({
             type="button"
             disabled={pending}
             onClick={() => void requestAccess()}
-            className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-muted"
+            className={buttonClass("secondary", "sm")}
           >
             Request temporary access
           </button>
@@ -374,7 +375,7 @@ export function DocumentIntakePanel({
               href={access.url}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block text-pillar-navy underline"
+              className="mt-1 inline-block text-mineral underline"
             >
               Open temporary view
             </a>
@@ -416,7 +417,7 @@ export function TemporaryAccessControl({
       <button
         type="button"
         onClick={() => void requestAccess()}
-        className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-muted"
+        className={buttonClass("secondary", "sm")}
       >
         Temp Access
       </button>
@@ -430,7 +431,7 @@ export function TemporaryAccessControl({
               href={access.url}
               target="_blank"
               rel="noreferrer"
-              className="text-pillar-navy underline"
+              className="text-mineral underline"
             >
               Open temporary view
             </a>

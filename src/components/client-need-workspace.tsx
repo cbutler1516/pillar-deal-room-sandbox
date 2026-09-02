@@ -218,7 +218,7 @@ export function ClientNeedsWorkspace({
                     {!open && action ? (
                       <button
                         type="button"
-                        className="shrink-0 text-xs font-medium text-pillar-teal hover:text-pillar-navy"
+                        className="shrink-0 text-xs font-medium text-mineral hover:text-pillar-teal"
                         onClick={() => {
                           if (action === "request" && need.status === "missing") {
                             void runNeedStatus(need.id, "requested");

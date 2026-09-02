@@ -77,7 +77,7 @@ export function ClaimButton({ dealId }: { dealId: string }) {
       <input type="hidden" name="dealId" value={dealId} />
       <button
         type="submit"
-        className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-pillar-navy-soft"
+        className="rounded-[8px] bg-mineral px-3 py-1.5 text-xs font-medium text-white transition hover:bg-pillar-teal"
       >
         Claim deal
       </button>

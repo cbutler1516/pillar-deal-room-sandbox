@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 import { compactInputClass, inputClass } from "@/components/ui/styles";
 
 export function SearchField({
@@ -29,6 +29,16 @@ export function SelectField({
   );
 }
 
+const CHIP_BASE =
+  "inline-flex min-h-8 items-center rounded-[8px] border px-2.5 py-1 text-xs font-medium transition motion-reduce:transition-none";
+const CHIP_ACTIVE = "border-mineral bg-mineral text-white";
+const CHIP_IDLE =
+  "border-line text-ink-muted hover:border-mineral/40 hover:text-ink";
+
+function chipClass(active: boolean): string {
+  return `${CHIP_BASE} ${active ? CHIP_ACTIVE : CHIP_IDLE}`;
+}
+
 export function FilterChip({
   active,
   href,
@@ -39,14 +49,7 @@ export function FilterChip({
   children: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition duration-200 motion-reduce:transition-none ${
-        active
-          ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
-          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
-      }`}
-    >
+    <Link href={href} aria-current={active ? "true" : undefined} className={chipClass(active)}>
       {children}
     </Link>
   );
@@ -65,11 +68,8 @@ export function FilterToggle({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition duration-200 motion-reduce:transition-none ${
-        active
-          ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
-          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
-      }`}
+      aria-pressed={active}
+      className={chipClass(active)}
     >
       {children}
     </button>
@@ -82,20 +82,65 @@ export function SegmentedControl({
   options: { href: string; label: string; active: boolean }[];
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-line bg-surface p-0.5">
+    <div className="inline-flex rounded-[8px] border border-line bg-surface p-0.5">
       {options.map((option) => (
         <Link
           key={option.label}
           href={option.href}
-          className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+          className={`rounded-[6px] px-3 py-1 text-xs font-medium transition ${
             option.active
-              ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
+              ? "bg-pillar-ink text-white"
               : "text-ink-muted hover:text-ink"
           }`}
         >
           {option.label}
         </Link>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Filter toolbar. Replaces raw <details> disclosures so filtering reads as
+ * part of the workspace chrome rather than a developer affordance.
+ */
+export function Toolbar({
+  children,
+  chips,
+  trailing,
+}: {
+  children: ReactNode;
+  chips?: ReactNode;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div className="border-y border-line bg-stone/40">
+      <div className="flex flex-wrap items-center gap-2 px-0 py-2.5">
+        {children}
+        {trailing ? <div className="ml-auto flex items-center gap-2">{trailing}</div> : null}
+      </div>
+      {chips ? (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-line/70 px-0 py-2">
+          {chips}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function ChipGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="mr-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+        {label}
+      </span>
+      {children}
     </div>
   );
 }

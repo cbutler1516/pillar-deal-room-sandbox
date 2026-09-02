@@ -124,6 +124,28 @@ export function ContactsWorkspace({
         />
       ) : null}
 
+      {active.length > 0 ? (
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-y border-line py-2.5">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            Directory
+          </span>
+          <span className="text-xs text-ink">
+            <span className="font-semibold tabular-nums">{active.length}</span>{" "}
+            {active.length === 1 ? "contact" : "contacts"}
+          </span>
+          {groups
+            .filter((group) => group.rows.length > 0)
+            .map((group) => (
+              <span key={group.key} className="text-xs text-ink-muted">
+                {group.label}{" "}
+                <span className="font-medium tabular-nums text-ink">
+                  {group.rows.length}
+                </span>
+              </span>
+            ))}
+        </div>
+      ) : null}
+
       {active.length === 0 && !showAdd ? (
         <p className="text-sm leading-6 text-ink-muted">
           No people are on this file yet.

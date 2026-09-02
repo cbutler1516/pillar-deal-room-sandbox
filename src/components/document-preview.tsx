@@ -178,7 +178,7 @@ function PreviewCanvas({
   if (display.mode === "sandbox") {
     return (
       <div className={`${frame} px-5 py-7 text-center`}>
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-pillar-navy">
+        <p className="text-[11px] font-semibold tracking-[0.14em] text-ink">
           {display.kindLabel} PREVIEW
         </p>
         <p className="mt-2 break-all text-sm font-medium text-ink">{display.fileName}</p>
