@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
+import { SectionHeader } from "@/components/ui/surface-card";
 import { buttonClass } from "@/components/ui/button";
 import type { ConditionsSnapshot } from "@/lib/command-center/conditions";
 
@@ -13,8 +13,8 @@ export function ConditionsSection({ snapshot }: { snapshot: ConditionsSnapshot }
     return null;
   }
   return (
-    <SurfaceCard tone="elevated">
-      <CardHeader title="Conditions" />
+    <section>
+      <SectionHeader title="Conditions" />
       <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <Stat label="Open" value={snapshot.open} />
         <Stat label="Waiting" value={snapshot.waiting} />
@@ -24,7 +24,7 @@ export function ConditionsSection({ snapshot }: { snapshot: ConditionsSnapshot }
       <Link href={snapshot.href} className={`${buttonClass("secondary", "sm")} mt-4`}>
         View conditions
       </Link>
-    </SurfaceCard>
+    </section>
   );
 }
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CardHeader, SurfaceCard } from "@/components/ui/surface-card";
+import { SectionHeader } from "@/components/ui/surface-card";
 import { linkClass } from "@/components/ui/styles";
 import type { WaitingOnRow } from "@/lib/command-center/waiting-on";
 
@@ -8,8 +8,8 @@ export function WaitingOnSection({ rows }: { rows: WaitingOnRow[] }) {
     return null;
   }
   return (
-    <SurfaceCard tone="elevated">
-      <CardHeader title="Waiting on" />
+    <section>
+      <SectionHeader title="Waiting on" />
       <ul className="grid gap-2 sm:grid-cols-2">
         {rows.map((row) => (
           <li key={row.key}>
@@ -32,6 +32,6 @@ export function WaitingOnSection({ rows }: { rows: WaitingOnRow[] }) {
           </li>
         ))}
       </ul>
-    </SurfaceCard>
+    </section>
   );
 }

@@ -59,7 +59,7 @@ export function AttachExistingPanel({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-line bg-surface-muted p-3">
+    <div className="space-y-3 rounded-[10px] border border-line bg-surface-muted p-3">
       <p className="text-xs font-medium text-ink">Attach existing</p>
       <p className="text-[11px] text-ink-muted">
         Same-deal metadata only. Linking does not copy or re-upload a file.

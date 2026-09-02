@@ -150,11 +150,11 @@ export function DocumentIntakePanel({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-line bg-workspace px-5 py-5">
+    <div className="space-y-4 rounded-[12px] border border-line bg-stone px-5 py-5">
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-pillar-teal-soft text-pillar-teal"
+          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-pillar-teal-soft text-pillar-teal"
         >
           <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none">
             <path
@@ -236,7 +236,7 @@ export function DocumentIntakePanel({
         </div>
 
       {sandboxMock ? (
-        <div className="rounded-xl border border-dashed border-pillar-teal/40 bg-pillar-teal-soft/40 px-3 py-3">
+        <div className="rounded-[10px] border border-dashed border-pillar-teal/40 bg-pillar-teal-soft/40 px-3 py-3">
           <p className="text-[11px] font-semibold tracking-wide text-pillar-teal uppercase">
             SANDBOX — Simulated Upload
           </p>
@@ -285,7 +285,7 @@ export function DocumentIntakePanel({
       </div>
 
       {session ? (
-        <dl className="grid gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink-muted sm:grid-cols-2">
+        <dl className="grid gap-2 rounded-[10px] border border-line bg-surface px-3 py-2 text-xs text-ink-muted sm:grid-cols-2">
           <div>
             <dt className="text-ink-muted">Provider</dt>
             <dd className="font-medium text-ink">{session.provider}</dd>
@@ -314,7 +314,7 @@ export function DocumentIntakePanel({
       ) : null}
 
       {result ? (
-        <div className="space-y-2 rounded-xl border border-line px-3 py-2">
+        <div className="space-y-2 rounded-[10px] border border-line px-3 py-2">
           <p className="text-xs font-semibold text-ink">
             Document metadata recorded
           </p>
@@ -360,7 +360,7 @@ export function DocumentIntakePanel({
       ) : null}
 
       {access ? (
-        <div className="rounded-xl border border-dashed border-line px-3 py-2 text-xs text-ink-muted">
+        <div className="rounded-[10px] border border-dashed border-line px-3 py-2 text-xs text-ink-muted">
           <p className="font-medium text-ink">{access.label}</p>
           <p className="mt-1">
             {access.simulated

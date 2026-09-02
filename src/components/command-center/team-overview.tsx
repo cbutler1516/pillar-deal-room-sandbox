@@ -16,9 +16,11 @@ export function TeamOverviewSection({
 }) {
   return (
     <div className="space-y-5">
-      <section className={`${surfaceClass("elevated")} px-4 py-4`}>
-        <h3 className="text-sm font-semibold text-ink">Team overview</h3>
-        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+      <section>
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+          Team overview
+        </h3>
+        <dl className="mt-3 grid grid-cols-2 divide-x divide-line border-y border-line sm:grid-cols-3 lg:grid-cols-6">
           <TeamStat label="Active work" value={totals.totalActiveWork} />
           <TeamStat label="Unassigned" value={totals.unassigned} />
           <TeamStat label="Urgent" value={totals.urgent} />
@@ -28,9 +30,7 @@ export function TeamOverviewSection({
         </dl>
       </section>
 
-      <section
-        className={`${surfaceClass("elevated")} border-l-4 border-l-rose-400 px-4 py-4`}
-      >
+      <section className="border-l-2 border-danger bg-stone/40 px-4 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <StaffAvatar unassigned size={40} />
@@ -95,9 +95,9 @@ function TeamStat({
     );
   }
   return (
-    <div className="rounded-[10px] border border-line/70 bg-white/60 px-3 py-2">
-      <dt className="text-[11px] text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 text-lg font-semibold tabular-nums text-ink">{value}</dd>
+    <div className="px-4 py-3">
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-muted">{label}</dt>
+      <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">{value}</dd>
     </div>
   );
 }

@@ -316,7 +316,7 @@ function DocumentDetailPanel({
                 name="documentType"
                 value={classification}
                 onChange={(event) => setClassification(event.target.value)}
-                className="mt-1 min-h-10 w-full rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
+                className="mt-1 min-h-10 w-full rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink"
               />
             </label>
             {intelligence?.classification.suggestedType ? (
@@ -357,7 +357,7 @@ function DocumentDetailPanel({
                 <select
                   value={needId}
                   onChange={(event) => setNeedId(event.target.value)}
-                  className="min-h-10 rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
+                  className="min-h-10 rounded-[10px] border border-line bg-surface px-3 py-2 text-sm text-ink"
                 >
                   <option value="">Select a Client Need</option>
                   {attachable.map((need) => (

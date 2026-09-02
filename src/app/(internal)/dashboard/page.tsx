@@ -66,7 +66,7 @@ export default async function DashboardPage({
   const teamMode = manager && view === "team";
 
   return (
-    <div className={`${pageWidthClass} space-y-5`}>
+    <div className={`${pageWidthClass} space-y-6`}>
       <div className="border-b border-line pb-5">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="flex min-w-0 items-center gap-4">
@@ -102,7 +102,7 @@ export default async function DashboardPage({
         <>
           <TodayStrip counts={board.todayStrip} assignment="mine" />
 
-          <div className="lg:hidden space-y-5">
+          <div className="space-y-8 lg:hidden">
             <MyNextFiveSection
               items={board.myNextFive}
               staffNames={staffNames}
@@ -112,7 +112,7 @@ export default async function DashboardPage({
             <WaitingOnSection rows={board.waitingOn.slice(0, 4)} />
           </div>
 
-          <div className="hidden lg:block space-y-5">
+          <div className="hidden space-y-8 lg:block">
             <MyNextFiveSection
               items={board.myNextFive}
               staffNames={staffNames}
@@ -123,17 +123,17 @@ export default async function DashboardPage({
               <MorningBriefPanel brief={board.morningBrief} />
             ) : null}
 
-            <div className="grid gap-5 xl:grid-cols-2">
+            <div className="grid gap-8 xl:grid-cols-2">
               <StuckFilesSection rows={board.stuckFiles} />
               <WaitingOnSection rows={board.waitingOn} />
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-2">
+            <div className="grid gap-8 xl:grid-cols-2">
               <RecentResponsesSection rows={board.recentResponses} />
               <DocumentReviewInboxSection rows={board.documentInbox} />
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-3">
+            <div className="grid gap-8 xl:grid-cols-3">
               <ConditionsSection snapshot={board.conditions} />
               <ReadyToSubmitSection
                 rows={board.readyToSubmit}

@@ -336,9 +336,9 @@ function TaskDetail({
     task.status === "waiting";
 
   return (
-    <div className="mt-3 space-y-4 rounded-[14px] bg-surface-muted px-3 py-3">
+    <div className="mt-3 space-y-4 rounded-[10px] bg-surface-muted px-3 py-3">
       {missing ? (
-        <div className="rounded-xl border border-danger/20 bg-danger-soft px-3 py-2">
+        <div className="rounded-[10px] border border-danger/20 bg-danger-soft px-3 py-2">
           <p className="text-sm font-medium text-danger">
             Blocked — contact missing
           </p>
@@ -530,7 +530,7 @@ function AddTaskForm({
         await submitCreate(formData);
         onClose();
       }}
-      className="space-y-3 rounded-xl border border-line bg-surface-muted p-3"
+      className="space-y-3 rounded-[10px] border border-line bg-surface-muted p-3"
     >
       <input type="hidden" name="dealId" value={dealId} />
       <div className="grid gap-2 sm:grid-cols-2">

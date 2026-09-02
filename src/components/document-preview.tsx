@@ -148,7 +148,7 @@ function PreviewCanvas({
   onMediaError: () => void;
 }) {
   const frame =
-    "overflow-hidden rounded-[16px] border border-line bg-[linear-gradient(180deg,#c5ced9_0%,#d2dae4_100%)] shadow-[inset_0_1px_0_rgb(255_255_255/0.35),inset_0_8px_18px_rgb(11_31_58/0.08)]";
+    "overflow-hidden rounded-[10px] border border-line bg-stone";
 
   if (display.mode === "loading") {
     return (
@@ -199,7 +199,7 @@ function PreviewCanvas({
           title={`Preview of ${display.fileName}`}
           src={display.url}
           onError={onMediaError}
-          className="h-64 w-full rounded-[8px] border border-line bg-surface shadow-[var(--shadow-page)]"
+          className="h-64 w-full rounded-[8px] border border-line bg-surface"
         />
       </div>
     );
@@ -213,7 +213,7 @@ function PreviewCanvas({
         src={display.url}
         alt={display.fileName}
         onError={onMediaError}
-        className="max-h-64 w-full rounded-[8px] bg-surface object-contain shadow-[var(--shadow-page)]"
+        className="max-h-64 w-full rounded-[8px] bg-surface object-contain"
       />
     </div>
   );

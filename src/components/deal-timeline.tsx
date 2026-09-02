@@ -108,7 +108,7 @@ export function DealTimeline({
                       onClick={() =>
                         setOpenId(open || !entry.detail ? null : entry.id)
                       }
-                      className={`flex w-full items-start gap-3 rounded-[14px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
+                      className={`flex w-full items-start gap-3 rounded-[10px] px-3 py-2.5 text-left transition duration-200 motion-reduce:transition-none ${
                         system
                           ? "hover:bg-surface-muted/60"
                           : "border border-transparent hover:bg-stone"
