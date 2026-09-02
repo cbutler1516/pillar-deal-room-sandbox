@@ -68,7 +68,7 @@ describe("deterministic next action", () => {
       nextActions: [action()],
       now: NOW,
     });
-    expect(next?.action).toMatch(/Request replacement Government-issued ID from borrower/);
+    expect(next?.action).toMatch(/Get replacement Government-issued ID/);
     expect(next?.target).toBe("needs");
     expect(next?.href).toBe("/deals/deal-1?tab=needs");
   });
@@ -121,7 +121,7 @@ describe("deterministic next action", () => {
       now: NOW,
     });
     expect(next?.action).toMatch(
-      /Send initial request to Alex Rivera for government-issued id/i,
+      /Contact Alex Rivera about government-issued id/i,
     );
   });
 
@@ -179,7 +179,7 @@ describe("deterministic next action", () => {
       ],
       now: NOW,
     });
-    expect(next?.action).toMatch(/Review response from Alex Rivera/i);
+    expect(next?.action).toMatch(/Review reply from Alex Rivera/i);
     expect(next?.target).toBe("tasks");
   });
 
@@ -234,7 +234,7 @@ describe("deterministic next action", () => {
       ],
       now: NOW,
     });
-    expect(next?.action).toMatch(/Collect missing required Bank Statements/);
+    expect(next?.action).toMatch(/Get Bank Statements/);
     expect(next?.target).toBe("needs");
   });
 
@@ -255,7 +255,7 @@ describe("deterministic next action", () => {
       nextActions: [action({ clientNeedId: "need-bank" })],
       now: NOW,
     });
-    expect(next?.action).toMatch(/Review newly received bank statements/i);
+    expect(next?.action).toMatch(/Review Bank Statements/i);
     expect(next?.target).toBe("documents");
   });
 });

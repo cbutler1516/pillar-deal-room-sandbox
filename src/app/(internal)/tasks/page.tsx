@@ -155,7 +155,7 @@ export default async function TasksPage({
             <option value="waiting_third_party">Waiting on third party</option>
             <option value="escalated">Escalated</option>
             <option value="no_contact">No contact</option>
-            <option value="response_received">Response received</option>
+            <option value="response_received">Reply received</option>
             <option value="ready_review">Ready for review</option>
           </SelectField>
           {view !== "list" ? <input type="hidden" name="view" value={view} /> : null}

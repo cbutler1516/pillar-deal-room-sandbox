@@ -8,7 +8,7 @@ export function DocumentIntelligencePanel({
 }) {
   const queue = result.reviewQueue.slice(0, 6);
   return (
-    <details className="group">
+    <details className="group rounded-[16px] border border-line bg-surface px-5 py-4">
       <summary className="cursor-pointer text-sm font-medium text-ink-muted">
         Set completeness
       </summary>

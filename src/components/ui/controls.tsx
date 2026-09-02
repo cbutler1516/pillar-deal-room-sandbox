@@ -41,9 +41,9 @@ export function FilterChip({
   return (
     <Link
       href={href}
-      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
+      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition duration-200 motion-reduce:transition-none ${
         active
-          ? "bg-pillar-teal text-white"
+          ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
           : "text-ink-muted hover:bg-surface-muted hover:text-ink"
       }`}
     >
@@ -65,9 +65,9 @@ export function FilterToggle({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
+      className={`inline-flex min-h-8 items-center rounded-md px-3 py-1.5 text-xs font-medium transition duration-200 motion-reduce:transition-none ${
         active
-          ? "bg-pillar-teal text-white"
+          ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
           : "text-ink-muted hover:bg-surface-muted hover:text-ink"
       }`}
     >
@@ -89,7 +89,7 @@ export function SegmentedControl({
           href={option.href}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
             option.active
-              ? "bg-pillar-teal text-white"
+              ? "bg-pillar-teal text-white shadow-[0_1px_2px_rgb(27_122_114/0.28)]"
               : "text-ink-muted hover:text-ink"
           }`}
         >
@@ -111,9 +111,9 @@ export function TabList({
         <Link
           key={tab.label}
           href={tab.href}
-          className={`border-b-2 px-3 py-2 text-sm font-medium transition ${
+          className={`min-h-10 border-b-2 px-3 py-2 text-sm font-medium transition duration-200 motion-reduce:transition-none ${
             tab.active
-              ? "border-pillar-teal text-ink"
+              ? "border-pillar-teal text-pillar-teal"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >

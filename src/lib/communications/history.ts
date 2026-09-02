@@ -21,7 +21,7 @@ function titleFor(attempt: CommunicationAttempt): string {
     return SANDBOX_SIMULATED_LABEL;
   }
   if (attempt.status === "contacted") {
-    return "Marked contacted";
+    return "Contacted";
   }
   if (attempt.status === "copied") {
     return attempt.channel === "portal"
@@ -29,10 +29,10 @@ function titleFor(attempt: CommunicationAttempt): string {
       : `Copied ${attempt.channel} draft`;
   }
   if (attempt.status === "responded") {
-    return "Response received";
+    return "Reply received";
   }
   if (attempt.status === "waiting") {
-    return "Marked waiting";
+    return "Waiting on a reply";
   }
   return attempt.subject ?? "Communication recorded";
 }

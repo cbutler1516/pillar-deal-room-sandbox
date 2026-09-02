@@ -43,7 +43,7 @@ function buildFlags(snapshot: AIDealSnapshot): AIWorkflowFlag[] {
       kind: "replacement",
       severity: "blocker",
       title: "Replacement needed",
-      detail: `${need.documentType} was rejected and still needs a borrower-safe replacement request.`,
+      detail: `${need.documentType} was rejected and still needs a replacement document.`,
     });
   }
   for (const task of snapshot.tasks) {
@@ -140,8 +140,8 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
   );
   if (replacement) {
     suggestions.push({
-      action: `Request replacement ${replacement.documentType} from borrower`,
-      reason: "A required Client Need is marked replacement needed.",
+      action: `Get a replacement ${replacement.documentType}`,
+      reason: "A required item still needs a replacement document.",
       target: "needs",
       href: href(snapshot.dealId, "needs"),
       executable: false,
@@ -180,7 +180,7 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
   if (review || receivedNeed) {
     suggestions.push({
       action: `Review newly received ${(review?.documentType ?? receivedNeed?.documentType ?? "documents").toLowerCase()}`,
-      reason: "A processor still has to accept or request a replacement.",
+      reason: "A processor still has to review it or get a replacement document.",
       target: "documents",
       href: href(snapshot.dealId, "documents"),
       executable: false,
@@ -204,11 +204,23 @@ function buildNextActions(snapshot: AIDealSnapshot): AINextActionSuggestion[] {
       !task.lastContactedAt &&
       !task.contactMissing,
   );
+  const openCondition = snapshot.tasks.find(
+    (task) => task.sourceType === "lender" && OPEN_TASK.has(task.status),
+  );
+  if (openCondition && suggestions.length < 4) {
+    suggestions.push({
+      action: `Review open condition: ${openCondition.title.toLowerCase()}`,
+      reason: "Conditions are processor-entered. Nothing is cleared automatically.",
+      target: "conditions",
+      href: href(snapshot.dealId, "conditions"),
+      executable: false,
+    });
+  }
   if (initial && suggestions.length < 4) {
     suggestions.push({
       action: initial.contactName
-        ? `Send initial request to ${initial.contactName} for ${initial.title.toLowerCase()}`
-        : `Copy the initial request for ${initial.title.toLowerCase()}`,
+        ? `Contact ${initial.contactName} about ${initial.title.toLowerCase()}`
+        : `Prepare a request for ${initial.title.toLowerCase()}`,
       reason: "No contact has been recorded. Copy only.",
       target: "tasks",
       href: href(snapshot.dealId, "tasks"),
@@ -222,13 +234,30 @@ function dealSummary(snapshot: AIDealSnapshot): string {
   const required = snapshot.needs.filter((need) => need.required);
   const complete = required.filter((need) => COMPLETE_NEED.has(need.status)).length;
   const waiting = snapshot.tasks.filter((task) => task.status === "waiting").length;
-  const assigned = snapshot.assignedProcessorId ? "assigned" : "unassigned";
+  const assigned = snapshot.assignedProcessorId
+    ? "A processor owns this file."
+    : "This file is unassigned.";
+  const openConditions = snapshot.tasks.filter(
+    (task) => task.sourceType === "lender" && OPEN_TASK.has(task.status),
+  ).length;
+  const status =
+    snapshot.status === "new"
+      ? "This is a new file"
+      : snapshot.status === "collecting_documents"
+        ? "This file is collecting documents"
+        : snapshot.status === "processor_review"
+          ? "This file is in processor review"
+          : `This file is ${snapshot.status.replaceAll("_", " ")}`;
   return [
-    `${snapshot.dealReference} is a ${snapshot.loanType ?? "business-purpose"} file in ${snapshot.status.replaceAll("_", " ")}.`,
-    `${complete} of ${required.length} required Client Needs are accepted or waived.`,
-    `${waiting} task${waiting === 1 ? " is" : "s are"} waiting.`,
-    `Processor is ${assigned}.`,
-    "This is an assistive summary. It does not change the file.",
+    `${status} (${snapshot.loanType ?? "business-purpose"}).`,
+    `${complete} of ${required.length} required items are accepted or waived.`,
+    waiting === 0
+      ? "Nothing is waiting on a reply."
+      : `${waiting} item${waiting === 1 ? " is" : "s are"} waiting on a reply.`,
+    assigned,
+    openConditions === 0
+      ? "No open lender conditions."
+      : `${openConditions} lender condition${openConditions === 1 ? " is" : "s are"} still open.`,
   ].join(" ");
 }
 

@@ -1,3 +1,4 @@
+import { isLenderCondition } from "@/lib/conditions/model";
 import { getPlaybook } from "@/lib/playbooks/registry";
 import type { PlaybookDefinition } from "@/lib/playbooks/types";
 import {
@@ -179,6 +180,13 @@ export function nextFollowUpAtFrom(
 }
 
 export function applyPlaybookContactRequirement(task: RankableTask): RankableTask {
+  if (isLenderCondition(task)) {
+    return {
+      ...task,
+      requiresContact: false,
+      expectedContactType: task.expectedContactType ?? null,
+    };
+  }
   const playbook = task.playbookKey ? getPlaybook(task.playbookKey) : null;
   if (playbook) {
     return {

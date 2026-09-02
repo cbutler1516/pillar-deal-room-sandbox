@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { btnCompactClass } from "@/components/ui/styles";
+import { buttonClass } from "@/components/ui/button";
 
 export function CopyTextButton({
   value,
@@ -19,7 +19,7 @@ export function CopyTextButton({
   return (
     <button
       type="button"
-      className={btnCompactClass}
+      className={buttonClass("ghost", "sm")}
       onClick={async () => {
         await navigator.clipboard.writeText(value);
         setCopied(true);
@@ -27,7 +27,7 @@ export function CopyTextButton({
         window.setTimeout(() => setCopied(false), 1500);
       }}
     >
-      {copied ? "Copied" : label}
+      <span aria-live="polite">{copied ? "Copied" : label}</span>
     </button>
   );
 }

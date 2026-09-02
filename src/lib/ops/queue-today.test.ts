@@ -65,7 +65,7 @@ describe("queue row language", () => {
       band: "follow_up_due",
       lastContactedAt: "2026-08-30T12:00:00.000Z",
     });
-    expect(queueWhyNow(overdue, now)).toBe("Follow-up overdue by 1 day");
+    expect(queueWhyNow(overdue, now)).toBe("Follow-up is overdue by 1 day");
     expect(queuePrimaryAction(overdue).label).toBe("Follow up");
   });
 
@@ -83,7 +83,7 @@ describe("queue row language", () => {
         escalationDue: false,
         status: "open",
       }),
-    ).toBe("Contact");
+    ).toBe("Add contact");
     expect(
       taskPrimaryActionLabel({
         contactMissing: false,

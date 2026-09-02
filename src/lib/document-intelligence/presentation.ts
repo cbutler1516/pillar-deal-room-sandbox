@@ -50,9 +50,57 @@ export function documentIntelligenceHeadline(
     return flags[0];
   }
   if (documentLooksConsistent(result)) {
-    return "Looks consistent with the requested item";
+    return "Likely match";
   }
-  return "Processor review required";
+  return "Needs review";
+}
+
+export function documentIntelligenceExplanation(
+  result: DocumentIntelligenceDocumentResult,
+): string {
+  const requested =
+    result.needFit.find((item) => item.linked)?.needDocumentType ??
+    result.needFit.find((item) => item.status === "fit" || item.status === "candidate")
+      ?.needDocumentType ??
+    result.classification.suggestedType;
+  const headline = documentIntelligenceHeadline(result);
+  if (headline === "Possible mismatch") {
+    const suggested = result.classification.suggestedType;
+    return requested && suggested && suggested !== requested
+      ? `This file appears to be ${suggested}, but it is linked to ${requested}.`
+      : requested
+        ? `This file may not match the requested ${requested}.`
+        : "This file may not match the requested item.";
+  }
+  if (headline === "Possible duplicate") {
+    return "Another file with the same name is already on this deal.";
+  }
+  if (headline === "Replacement received" || headline === "Likely match") {
+    return requested
+      ? `This file appears consistent with the requested ${requested}.`
+      : "This file appears consistent with the requested item.";
+  }
+  return "This document still needs review.";
+}
+
+export const DOCUMENT_REVIEW_REQUIRED =
+  "Processor review is still required.";
+
+export function documentInspectorPrimaryAction(input: {
+  documentType: string | null;
+  linkedNeedCount: number;
+  suggestedType?: string | null;
+}): "save" | "attach" | "review" {
+  if (
+    !input.documentType ||
+    (input.suggestedType && input.suggestedType !== input.documentType)
+  ) {
+    return "save";
+  }
+  if (input.linkedNeedCount === 0) {
+    return "attach";
+  }
+  return "review";
 }
 
 export function documentNeedFitLabel(
@@ -60,7 +108,7 @@ export function documentNeedFitLabel(
 ): string {
   const linkedFit = result.needFit.find((item) => item.linked);
   if (linkedFit?.status === "fit") {
-    return "Looks consistent with the requested item";
+    return "Likely match";
   }
   if (linkedFit?.status === "mismatch") {
     return "Possible mismatch";

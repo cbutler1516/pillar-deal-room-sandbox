@@ -32,6 +32,10 @@ const BLOCKED_CONTENT_KEYS = new Set([
   "buffer",
   "blob",
   "arraybuffer",
+  "previewurl",
+  "downloadurl",
+  "accessurl",
+  "providertoken",
 ]);
 
 function assertMetadataOnly(value: unknown): void {

@@ -1,28 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { DocumentIntelligenceDetail } from "@/components/document-intelligence-detail";
-import { TemporaryAccessControl } from "@/components/document-intake-panel";
-import { StatusChip } from "@/components/status-chip";
+import { DocumentPreview } from "@/components/document-preview";
 import { FilterToggle } from "@/components/ui/controls";
 import { buttonClass } from "@/components/ui/button";
 import { DocumentStatusControl } from "@/components/workflow-controls";
 import type { ClientNeedRow, DocumentRow } from "@/lib/data/deals";
 import {
   documentHasMaterialIssue,
+  documentInspectorPrimaryAction,
+  documentIntelligenceHeadline,
   materialDocumentFlags,
 } from "@/lib/document-intelligence/presentation";
 import type {
   DocumentIntelligenceDocumentResult,
   DocumentIntelligenceResult,
 } from "@/lib/document-intelligence/types";
-import { attachExistingAction } from "@/lib/documents/link-actions";
+import { attachExistingAction, detachExistingAction } from "@/lib/documents/link-actions";
 import { classifyDocumentAction } from "@/lib/workflow/actions";
 import {
   filterDocumentsForInbox,
   type DocumentInboxFilter,
 } from "@/lib/documents/need-progress";
-import { formatReceivedAt } from "@/lib/format";
+import { formatReceivedAt, formatStatusLabel } from "@/lib/format";
+import { previewKindFromFile } from "@/lib/documents/preview";
+import { inspectorStickyClass } from "@/lib/ui/layout-chrome";
 
 const FILTERS: { id: DocumentInboxFilter; label: string }[] = [
   { id: "needs_review", label: "Needs review" },
@@ -36,18 +39,18 @@ export function DocumentsWorkspace({
   documents,
   needs,
   canMutate,
-  canIntake,
   intelligence = null,
 }: {
   dealId: string;
   documents: DocumentRow[];
   needs: ClientNeedRow[];
   canMutate: boolean;
-  canIntake: boolean;
   intelligence?: DocumentIntelligenceResult | null;
 }) {
   const [filter, setFilter] = useState<DocumentInboxFilter>("needs_review");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobileDetail, setMobileDetail] = useState(false);
+  const rowRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const intelById = useMemo(() => {
     const map = new Map<string, DocumentIntelligenceDocumentResult>();
     for (const item of intelligence?.documents ?? []) {
@@ -74,6 +77,17 @@ export function DocumentsWorkspace({
   const needLabel = (needId: string) =>
     needs.find((need) => need.id === needId)?.documentType ?? "Client Need";
 
+  function selectDocument(id: string, openMobile = true) {
+    setSelectedId(id);
+    if (openMobile) {
+      setMobileDetail(true);
+    }
+  }
+
+  function focusRow(id: string) {
+    rowRefs.current.get(id)?.focus();
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap gap-2">
@@ -81,7 +95,10 @@ export function DocumentsWorkspace({
           <FilterToggle
             key={item.id}
             active={filter === item.id}
-            onClick={() => setFilter(item.id)}
+            onClick={() => {
+              setFilter(item.id);
+              setMobileDetail(false);
+            }}
           >
             {item.label}
           </FilterToggle>
@@ -98,25 +115,61 @@ export function DocumentsWorkspace({
                 : "No documents are on this file yet."}
         </p>
       ) : (
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)]">
-          <ul className="divide-y divide-line border-y border-line">
-            {visible.map((doc) => {
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.95fr)] lg:items-start">
+          <ul
+            className={`space-y-1 ${mobileDetail ? "hidden lg:block" : ""}`}
+            role="listbox"
+            aria-label="Document inbox"
+          >
+            {visible.map((doc, index) => {
               const active = doc.id === selected?.id;
               const intel = intelById.get(doc.id);
               const flags = materialDocumentFlags(intel);
+              const signal =
+                flags[0] ??
+                (intel ? documentIntelligenceHeadline(intel) : formatStatusLabel(doc.status));
               return (
-                <li key={doc.id}>
+                <li key={doc.id} role="none">
                   <button
                     type="button"
-                    onClick={() => setSelectedId(doc.id)}
-                    className={`flex min-h-14 w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3.5 text-left ${
-                      active ? "text-ink" : "hover:text-ink"
+                    role="option"
+                    aria-selected={active}
+                    ref={(node) => {
+                      if (node) {
+                        rowRefs.current.set(doc.id, node);
+                      } else {
+                        rowRefs.current.delete(doc.id);
+                      }
+                    }}
+                    onClick={() => selectDocument(doc.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowDown" && visible[index + 1]) {
+                        event.preventDefault();
+                        selectDocument(visible[index + 1].id, false);
+                        focusRow(visible[index + 1].id);
+                      }
+                      if (event.key === "ArrowUp" && visible[index - 1]) {
+                        event.preventDefault();
+                        selectDocument(visible[index - 1].id, false);
+                        focusRow(visible[index - 1].id);
+                      }
+                    }}
+                    className={`flex min-h-12 w-full items-start justify-between gap-3 rounded-[14px] border-l-[3px] px-3 py-2 text-left transition duration-200 motion-reduce:transition-none ${
+                      active
+                        ? "border-l-pillar-teal bg-surface shadow-[var(--shadow-elevated)]"
+                        : "border-l-transparent hover:-translate-y-px hover:bg-surface hover:shadow-[var(--shadow-card)] motion-reduce:hover:translate-y-0"
                     }`}
-                    aria-current={active ? "true" : undefined}
                   >
+                    <div className="flex min-w-0 items-start gap-3">
+                    <DocumentKindWell
+                      fileName={doc.fileName}
+                      mimeType={doc.mimeType}
+                    />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink">{doc.fileName}</p>
-                      <p className="mt-1 text-xs leading-5 text-ink-muted">
+                      <p className="truncate text-sm font-semibold text-ink">
+                        {doc.fileName}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs leading-5 text-ink-muted">
                         {[
                           doc.documentType ?? "Unclassified",
                           doc.linkedNeedIds.length === 0
@@ -124,34 +177,44 @@ export function DocumentsWorkspace({
                             : doc.linkedNeedIds.map(needLabel).join(" · "),
                         ].join(" · ")}
                       </p>
-                      {flags.length > 0 ? (
-                        <p className="mt-1 text-xs font-medium text-warning">
-                          {flags.join(" · ")}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <StatusChip status={doc.status} />
-                      <p className="mt-1 text-xs text-ink-muted">
-                        {formatReceivedAt(doc.uploadedAt)}
+                      <p
+                        className={`mt-1 text-xs font-medium ${
+                          flags.length > 0 ? "text-warning" : "text-ink-muted"
+                        }`}
+                      >
+                        {signal}
                       </p>
                     </div>
+                    </div>
+                    <time className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-muted">
+                      {formatReceivedAt(doc.uploadedAt)}
+                    </time>
                   </button>
                 </li>
               );
             })}
           </ul>
           {selected ? (
-            <DocumentDetailPanel
-              key={selected.id}
-              dealId={dealId}
-              document={selected}
-              needs={needs}
-              canMutate={canMutate}
-              canIntake={canIntake}
-              needLabel={needLabel}
-              intelligence={intelById.get(selected.id) ?? null}
-            />
+            <div
+              className={`${mobileDetail ? "" : "hidden lg:block"} inspector-enter ${inspectorStickyClass} rounded-[16px] border border-line bg-surface px-5 py-5 shadow-[var(--shadow-elevated)]`}
+            >
+              <button
+                type="button"
+                className={`${buttonClass("ghost", "sm")} mb-3 lg:hidden`}
+                onClick={() => setMobileDetail(false)}
+              >
+                ← Inbox
+              </button>
+              <DocumentDetailPanel
+                key={selected.id}
+                dealId={dealId}
+                document={selected}
+                needs={needs}
+                canMutate={canMutate}
+                needLabel={needLabel}
+                intelligence={intelById.get(selected.id) ?? null}
+              />
+            </div>
           ) : null}
         </div>
       )}
@@ -164,7 +227,6 @@ function DocumentDetailPanel({
   document,
   needs,
   canMutate,
-  canIntake,
   needLabel,
   intelligence,
 }: {
@@ -172,7 +234,6 @@ function DocumentDetailPanel({
   document: DocumentRow;
   needs: ClientNeedRow[];
   canMutate: boolean;
-  canIntake: boolean;
   needLabel: (needId: string) => string;
   intelligence: DocumentIntelligenceDocumentResult | null;
 }) {
@@ -180,9 +241,15 @@ function DocumentDetailPanel({
   const [classification, setClassification] = useState(document.documentType ?? "");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
   const attachable = needs.filter(
     (need) => !document.linkedNeedIds.includes(need.id),
   );
+  const primary = documentInspectorPrimaryAction({
+    documentType: document.documentType,
+    linkedNeedCount: document.linkedNeedIds.length,
+    suggestedType: intelligence?.classification.suggestedType ?? null,
+  });
 
   async function attach() {
     setError(null);
@@ -200,45 +267,127 @@ function DocumentDetailPanel({
     setMessage("Linked to Client Need without copying the file.");
   }
 
+  async function detach(clientNeedId: string) {
+    setError(null);
+    setMessage(null);
+    const formData = new FormData();
+    formData.set("dealId", dealId);
+    formData.set("documentId", document.id);
+    formData.set("clientNeedId", clientNeedId);
+    const result = await detachExistingAction(formData);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setMessage("Detached from Client Need. The file stays on the deal.");
+  }
+
   return (
-    <aside className="space-y-5 xl:border-l xl:border-line xl:pl-8">
+    <aside className="space-y-6">
       <div>
-        <p className="text-xs text-ink-muted">Selected document</p>
-        <h4 className="mt-1 text-base font-semibold text-ink">{document.fileName}</h4>
-        <p className="mt-1 text-sm leading-6 text-ink-muted">
-          {document.documentType ?? "Unclassified"}
-          {" · "}
-          {document.linkedNeedIds.length === 0
-            ? "Unlinked"
-            : document.linkedNeedIds.map(needLabel).join(" · ")}
-        </p>
-        <div className="mt-2">
-          <StatusChip status={document.status} />
-        </div>
+        <h4 className="text-xl font-semibold tracking-tight break-all text-ink">
+          {document.fileName}
+        </h4>
+        {intelligence ? (
+          <div className="mt-3">
+            <DocumentIntelligenceDetail result={intelligence} />
+          </div>
+        ) : (
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
+            {document.documentType ?? "Unclassified"}
+            {" · "}
+            {document.linkedNeedIds.length === 0
+              ? "Unlinked"
+              : document.linkedNeedIds.map(needLabel).join(" · ")}
+          </p>
+        )}
       </div>
-      {intelligence ? <DocumentIntelligenceDetail result={intelligence} /> : null}
-      {canIntake ? (
-        <div>
-          <p className="mb-1 text-xs text-ink-muted">Temporary secure access</p>
-          <TemporaryAccessControl dealId={dealId} documentId={document.id} />
-        </div>
-      ) : null}
+
+      <DocumentPreview
+        key={document.id}
+        dealId={dealId}
+        documentId={document.id}
+        fileName={document.fileName}
+        mimeType={document.mimeType}
+      />
+
       {canMutate ? (
-        <div className="space-y-4">
-          <div>
-            <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
-              Attach to Need
-            </p>
+        <div className="space-y-6">
+          <section className="space-y-2">
+            <form
+              action={async (formData) => {
+                formData.set("documentId", document.id);
+                const result = await classifyDocumentAction(formData);
+                if (result.error) {
+                  setError(result.error);
+                  return;
+                }
+                setMessage("Document type updated. This is not an underwriting decision.");
+              }}
+              className="space-y-2"
+            >
+              <label className="block text-xs font-medium text-ink-muted">
+                Document type
+                <input
+                  name="documentType"
+                  value={classification}
+                  onChange={(event) => setClassification(event.target.value)}
+                  className="mt-1 min-h-10 w-full rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              {intelligence?.classification.suggestedType ? (
+                <button
+                  type="button"
+                  className={buttonClass("ghost", "sm")}
+                  onClick={() =>
+                    setClassification(intelligence.classification.suggestedType ?? "")
+                  }
+                >
+                  Use suggested type
+                </button>
+              ) : null}
+              {primary === "save" ? (
+                <button type="submit" className={buttonClass("accent")}>
+                  Save classification
+                </button>
+              ) : (
+                <button type="submit" className={buttonClass("secondary", "sm")}>
+                  Save classification
+                </button>
+              )}
+            </form>
+          </section>
+
+          <section className="space-y-2">
+            <p className="text-xs font-medium text-ink-muted">Linked Needs</p>
+            {document.linkedNeedIds.length === 0 ? (
+              <p className="text-sm leading-6 text-ink-muted">Unlinked</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {document.linkedNeedIds.map((id) => (
+                  <li key={id} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-ink">{needLabel(id)}</span>
+                    <button
+                      type="button"
+                      className={buttonClass("ghost", "sm")}
+                      onClick={() => void detach(id)}
+                    >
+                      Detach
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             {attachable.length === 0 ? (
-              <p className="mt-1 text-sm leading-6 text-ink-muted">
+              <p className="text-sm leading-6 text-ink-muted">
                 This document is already linked to every Client Need on the deal.
               </p>
             ) : (
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <select
                   value={needId}
                   onChange={(event) => setNeedId(event.target.value)}
-                  className="min-h-10 rounded-lg border border-line bg-surface px-2.5 py-2 text-sm text-ink"
+                  className="min-h-10 rounded-[14px] border border-line bg-surface px-3 py-2 text-sm text-ink"
                 >
                   <option value="">Select a Client Need</option>
                   {attachable.map((need) => (
@@ -251,59 +400,107 @@ function DocumentDetailPanel({
                   type="button"
                   disabled={!needId}
                   onClick={() => void attach()}
-                  className={buttonClass("accent", "sm")}
+                  className={buttonClass(
+                    primary === "attach" ? "accent" : "secondary",
+                    primary === "attach" ? "md" : "sm",
+                  )}
                 >
                   Attach to Need
                 </button>
               </div>
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-medium tracking-wide text-ink-muted uppercase">
-              Status update
-            </p>
-            <DocumentStatusControl documentId={document.id} status={document.status} />
-          </div>
-          <form
-            action={async (formData) => {
-              formData.set("documentId", document.id);
-              const result = await classifyDocumentAction(formData);
-              if (result.error) {
-                setError(result.error);
-                return;
-              }
-              setMessage("Document type updated. This is not an underwriting decision.");
-            }}
-            className="space-y-2"
-          >
-            <p className="text-xs font-medium tracking-wide text-ink-muted uppercase">
-              Classify manually
-            </p>
-            <input
-              name="documentType"
-              value={classification}
-              onChange={(event) => setClassification(event.target.value)}
-              className="min-h-10 w-full rounded-lg border border-line bg-surface px-2.5 py-2 text-sm text-ink"
-            />
-            {intelligence?.classification.suggestedType ? (
+          </section>
+
+          <section ref={statusRef} className="space-y-2">
+            <p className="text-xs font-medium text-ink-muted">Document status</p>
+            {primary === "review" ? (
               <button
                 type="button"
-                className={buttonClass("ghost", "sm")}
+                className={buttonClass("accent")}
                 onClick={() =>
-                  setClassification(intelligence.classification.suggestedType ?? "")
+                  statusRef.current
+                    ?.querySelector<HTMLElement>("select, button")
+                    ?.focus()
                 }
               >
-                Use suggested type
+                Review document
               </button>
             ) : null}
-            <button type="submit" className={buttonClass("secondary", "sm")}>
-              Save classification
-            </button>
-          </form>
+            <DocumentStatusControl documentId={document.id} status={document.status} />
+          </section>
         </div>
       ) : null}
-      {message ? <p className="text-sm text-pillar-teal">{message}</p> : null}
-      {error ? <p className="text-sm text-danger">{error}</p> : null}
+
+      {message ? (
+        <p className="text-sm text-pillar-teal" role="status" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
     </aside>
+  );
+}
+
+function DocumentKindWell({
+  fileName,
+  mimeType,
+}: {
+  fileName: string;
+  mimeType: string | null;
+}) {
+  const kind = previewKindFromFile({ fileName, mimeType });
+  const tone =
+    kind === "pdf"
+      ? "bg-danger-soft text-danger"
+      : kind === "image"
+        ? "bg-aqua-soft text-aqua"
+        : "bg-slate-soft text-slate";
+  return (
+    <span
+      className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] ${tone}`}
+      aria-hidden
+    >
+      {kind === "image" ? <ImageMark /> : <PageMark />}
+    </span>
+  );
+}
+
+function PageMark() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+      <path
+        d="M5 2.5h4.2L12 5.3V13.5H5z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M9.2 2.5V5.3H12" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function ImageMark() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+      <rect
+        x="2.5"
+        y="3.5"
+        width="11"
+        height="9"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="m3.4 10.4 2.6-2.6 2.1 2.1 1.5-1.5 3 3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

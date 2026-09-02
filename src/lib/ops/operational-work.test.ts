@@ -440,6 +440,50 @@ describe("dashboard and queue reconciliation", () => {
   });
 });
 
+describe("lender condition work", () => {
+  it("remaps lender-task work to Conditions without changing rank", () => {
+    const items = collectOperationalWork({
+      deals: [deal({ status: "collecting_documents" })],
+      needs: [
+        need({
+          id: "need-earnest",
+          documentType: "Proof of earnest money",
+          status: "missing",
+        }),
+      ],
+      documents: [],
+      tasks: [
+        task({
+          id: "task-condition",
+          title: "Proof earnest money deposit",
+          sourceType: "lender",
+          playbookKey: "lender_condition",
+          taskKind: "request_document",
+          status: "open",
+          lastContactedAt: "2026-08-29T10:00:00.000Z",
+          nextFollowUpAt: "2026-08-30T10:00:00.000Z",
+          followUpIntervalHours: 24,
+          clientNeedId: "need-earnest",
+        }),
+      ],
+      now: NOW,
+    });
+    const conditionWork = items.filter((row) => row.sourceId === "task-condition");
+    expect(conditionWork.length).toBeGreaterThan(0);
+    expect(conditionWork.every((row) => row.target === "conditions")).toBe(true);
+    expect(conditionWork.every((row) => row.href.includes("tab=conditions"))).toBe(
+      true,
+    );
+    expect(conditionWork.some((row) => row.reason === "Condition still outstanding")).toBe(
+      true,
+    );
+    expect(conditionWork.some((row) => row.recommendedAction === "Follow up")).toBe(true);
+    const overdue = conditionWork.find((row) => row.workType === "follow_up_overdue");
+    expect(overdue?.priorityRank).toBe(5);
+    expect(overdue?.queueSection).toBe("due_today");
+  });
+});
+
 describe("waiting language", () => {
   it("says no request was sent instead of waiting on nobody", () => {
     const items = collectOperationalWork(caseyInput());

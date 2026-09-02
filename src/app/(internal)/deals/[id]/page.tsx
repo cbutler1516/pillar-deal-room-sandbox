@@ -9,6 +9,7 @@ import { canViewDocumentIntelligence } from "@/lib/document-intelligence/authori
 import { getDocumentIntelligenceProvider } from "@/lib/document-intelligence/factory";
 import { buildDocumentIntelligenceSnapshot } from "@/lib/document-intelligence/snapshot";
 import { ContactsWorkspace } from "@/components/contacts-workspace";
+import { ConditionsWorkspace } from "@/components/conditions-workspace";
 import { DealTimeline } from "@/components/deal-timeline";
 import { TaskWorkspace } from "@/components/task-workspace";
 import { canViewAIAssist } from "@/lib/ai/authorization";
@@ -29,6 +30,7 @@ import {
 } from "@/components/workflow-controls";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { pageWidthClass } from "@/components/ui/styles";
+import { dealTabsStickyClass } from "@/lib/ui/layout-chrome";
 import { requireInternalUser } from "@/lib/auth/session";
 import { canUseDocumentIntake } from "@/lib/documents/authorization";
 import { canCreateProcessorTask } from "@/lib/playbooks/authorization";
@@ -173,6 +175,7 @@ export default async function DealDetailPage({
       <DealWorkspaceHeader
         deal={deal}
         processorLabel={processorLabel}
+        ownerName={assignedStaff ? staffDisplayName(assignedStaff) : null}
         actions={
           <>
             {canMutate &&
@@ -190,7 +193,7 @@ export default async function DealDetailPage({
         }
       />
 
-      <div className="pointer-events-none sticky top-14 z-10 -mx-3 bg-workspace px-3 sm:-mx-5 sm:px-5">
+      <div className={dealTabsStickyClass}>
         <div className="pointer-events-auto">
           <DealTabNav dealId={deal.id} tab={tab} />
         </div>
@@ -213,22 +216,24 @@ export default async function DealDetailPage({
                 ?.safeMetadata ??
               null
             }
+            assist={
+              assist ? (
+                <details className="rounded-[16px] border border-line bg-surface px-5 py-4">
+                  <summary className="cursor-pointer text-sm font-medium text-ink-muted">
+                    Processor assist
+                  </summary>
+                  <div className="mt-3">
+                    <AIAssistPanel result={assist} />
+                  </div>
+                </details>
+              ) : null
+            }
           />
-          {assist ? (
-            <details className="px-1 py-2">
-              <summary className="cursor-pointer text-sm font-medium text-ink-muted">
-                Processor assist
-              </summary>
-              <div className="mt-4">
-                <AIAssistPanel result={assist} />
-              </div>
-            </details>
-          ) : null}
         </>
       ) : null}
 
       {tab === "tasks" ? (
-        <SurfaceCard>
+        <div>
           <TaskWorkspace
             dealId={deal.id}
             loanType={deal.loanType}
@@ -267,7 +272,22 @@ export default async function DealDetailPage({
               .map((need) => need.id)}
             nowMs={nowMs}
           />
-        </SurfaceCard>
+        </div>
+      ) : null}
+
+      {tab === "conditions" ? (
+        <ConditionsWorkspace
+          dealId={deal.id}
+          tasks={tasks}
+          needs={needs.map((need) => ({
+            id: need.id,
+            documentType: need.documentType,
+            status: need.status,
+          }))}
+          staffNames={staffNames}
+          canMutate={canEditTasks}
+          nowMs={nowMs}
+        />
       ) : null}
 
       {tab === "needs" ? (
@@ -313,21 +333,18 @@ export default async function DealDetailPage({
               }))}
             />
           ) : null}
-          <SurfaceCard>
-            <DocumentsWorkspace
-              dealId={deal.id}
-              documents={documents}
-              needs={needs}
-              canMutate={canMutate}
-              canIntake={canIntake}
-              intelligence={documentIntelligence}
-            />
-          </SurfaceCard>
+          <DocumentsWorkspace
+            dealId={deal.id}
+            documents={documents}
+            needs={needs}
+            canMutate={canMutate}
+            intelligence={documentIntelligence}
+          />
         </div>
       ) : null}
 
       {tab === "contacts" ? (
-        <SurfaceCard>
+        <div>
           <ContactsWorkspace
             dealId={deal.id}
             contacts={contacts}
@@ -343,11 +360,11 @@ export default async function DealDetailPage({
               ),
             ]}
           />
-        </SurfaceCard>
+        </div>
       ) : null}
 
       {tab === "activity" ? (
-        <SurfaceCard>
+        <div>
           <DealTimeline
             activity={activity}
             attempts={attempts}
@@ -355,7 +372,7 @@ export default async function DealDetailPage({
             staffNames={staffNames}
             nowMs={nowMs}
           />
-        </SurfaceCard>
+        </div>
       ) : null}
       </div>
     </div>

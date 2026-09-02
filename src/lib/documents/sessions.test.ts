@@ -356,6 +356,19 @@ describe("upload-session flow", () => {
     expect(access.data.simulated).toBe(true);
     expect(access.data.url).toMatch(/^https:\/\/sandbox\.invalid\/view\//);
     expect(access.data.expiresAt).toBe("2026-08-28T18:01:00.000Z");
+    expect(service.inserted[0]).not.toHaveProperty("access_url");
+    expect(service.inserted[0]).not.toHaveProperty("url");
+  });
+
+  it("does not issue a preview URL without staff deal access", async () => {
+    const denied = await requestTemporaryDocumentAccess(
+      deps({ userId: null, role: null }),
+      { documentId: "doc-1", dealId: "deal-1" },
+    );
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) {
+      expect(denied.error).toMatch(/Sign in/i);
+    }
   });
 });
 

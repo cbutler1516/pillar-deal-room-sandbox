@@ -6,42 +6,79 @@ import { useEffect, useRef, useState, type ReactNode, type SVGProps } from "reac
 import { PillarMark } from "@/components/brand/pillar-logo";
 import { LogoutButton } from "@/components/logout-button";
 import { SandboxBadge } from "@/components/sandbox-badge";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { displayName, type InternalProfile } from "@/lib/auth/authorization";
 import { formatRoleLabel } from "@/lib/auth/roles";
+import { DemoGuide } from "@/components/demo-guide";
+import {
+  DESKTOP_APP_NAV,
+  MOBILE_APP_NAV,
+  isAppNavActive,
+} from "@/lib/ui/app-nav";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
-  { href: "/deals", label: "Deals", icon: DealsIcon },
-  { href: "/processor-queue", label: "Queue", icon: QueueIcon },
-] as const;
-
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+const NAV_ICONS = {
+  "/dashboard": DashboardIcon,
+  "/deals": DealsIcon,
+  "/processor-queue": QueueIcon,
+  "/tasks": TasksIcon,
+  "/team": TeamIcon,
+} as const;
 
 export function AppShell({
   profile,
   children,
+  demoGuide = null,
 }: {
   profile: InternalProfile;
   children: ReactNode;
+  demoGuide?: {
+    caseyHref: string;
+    readyHref: string;
+    portalHref: string;
+  } | null;
 }) {
   const pathname = usePathname();
   const name = displayName(profile);
   const role = formatRoleLabel(profile.role);
 
   return (
-    <div className="min-h-full bg-workspace">
-      <header className="sticky top-0 z-20 h-14 border-b border-line bg-surface/95 backdrop-blur">
-        <div className="flex h-full items-center justify-between gap-3 px-3 sm:px-5">
+    <div className="min-h-full bg-transparent">
+      <header className="sticky top-0 z-20 h-[var(--app-header-height)] border-b border-line bg-surface/95 backdrop-blur">
+        <div className="grid h-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3.5">
             <PillarMark size={32} decorative className="shrink-0" />
             <p className="truncate text-sm font-semibold text-pillar-navy">
               Deal Room
             </p>
             <SandboxBadge />
+            {demoGuide ? <DemoGuide {...demoGuide} /> : null}
           </div>
-          <div className="flex min-w-0 items-center gap-2">
+          <nav aria-label="Primary" className="hidden lg:block">
+            <ul className="flex items-center gap-2">
+              {DESKTOP_APP_NAV.map((item) => {
+                const active = isAppNavActive(pathname, item.href);
+                const Icon = NAV_ICONS[item.href];
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30 motion-reduce:transition-none ${
+                        active
+                          ? "bg-pillar-teal-soft text-pillar-teal shadow-[var(--shadow-card)] ring-1 ring-pillar-teal/20"
+                          : "text-ink-muted hover:bg-surface-muted hover:text-ink"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className="flex min-w-0 items-center justify-end gap-2">
+            <StaffAvatar name={name} size={32} />
             <div className="hidden min-w-0 text-right sm:block">
               <p className="truncate text-xs font-medium text-ink">{name}</p>
               <p className="text-[11px] text-ink-muted">{role}</p>
@@ -51,17 +88,17 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="px-3 pb-28 pt-5 sm:px-5 sm:pb-32 sm:pt-6">{children}</main>
+      <main className="px-3 pb-[var(--app-bottom-nav-space)] pt-4 sm:px-5 sm:pt-5">{children}</main>
 
       <nav
         aria-label="Application"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[10px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-card)]"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-md sm:bottom-4 sm:left-1/2 sm:right-auto sm:w-[min(64rem,calc(100%-2.5rem))] sm:-translate-x-1/2 sm:rounded-[14px] sm:border sm:px-3 sm:py-1.5 sm:shadow-[var(--shadow-elevated)] lg:hidden"
       >
         <div className="flex items-center">
           <ul className="flex min-w-0 flex-1 items-stretch justify-between gap-1 sm:gap-2">
-          {NAV.map((item) => {
-            const active = isActive(pathname, item.href);
-            const Icon = item.icon;
+          {MOBILE_APP_NAV.map((item) => {
+            const active = isAppNavActive(pathname, item.href);
+            const Icon = NAV_ICONS[item.href];
             return (
               <li key={item.href} className="min-w-0 flex-1">
                 <Link
@@ -73,7 +110,7 @@ export function AppShell({
                       : "text-ink-muted hover:bg-surface-muted hover:text-ink"
                   }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
                   <span className="max-w-full truncate text-[13px] font-medium">
                     {item.label}
                   </span>
@@ -132,7 +169,7 @@ function AccountMenu({ name, role }: { name: string; role: string }) {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-1 min-w-48 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-card)]"
+          className="absolute right-0 z-30 mt-1 min-w-48 rounded-xl border border-line bg-surface p-2 shadow-[var(--shadow-float)]"
         >
           <div className="border-b border-line px-2.5 py-2 sm:hidden">
             <p className="text-xs font-medium text-ink">{name}</p>
@@ -181,6 +218,33 @@ function QueueIcon(props: SVGProps<SVGSVGElement>) {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TeamIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden {...props}>
+      <path
+        d="M7 8.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM13 8.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4ZM4.2 16c0-2.2 1.8-3.6 2.8-3.6h2M10.2 12.4h2c1 0 2.8 1.4 2.8 3.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TasksIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden {...props}>
+      <path
+        d="M4.4 5.2h2.2v2.2H4.4zM8.6 6.3h7M4.4 8.9h2.2v2.2H4.4zM8.6 10h7M4.4 12.6h2.2v2.2H4.4zM8.6 13.7h5.2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
       />
     </svg>
   );

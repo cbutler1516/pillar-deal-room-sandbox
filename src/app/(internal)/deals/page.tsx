@@ -12,7 +12,10 @@ import {
   tableHeadClass,
   tableRowClass,
 } from "@/components/ui/styles";
+import { StaffPresence } from "@/components/ui/staff-avatar";
 import { requireInternalUser } from "@/lib/auth/session";
+import { listActiveStaff } from "@/lib/communications/data";
+import { staffDisplayName } from "@/lib/data/deals";
 import { loadDealSnapshot } from "@/lib/data/snapshot";
 import { filterDeals, parseDealFilters } from "@/lib/ops/filters";
 import { documentCompletion } from "@/lib/ops/metrics";
@@ -27,7 +30,13 @@ export default async function DealsPage({
   const params = await searchParams;
   const filters = parseDealFilters(params);
   const { supabase } = await requireInternalUser();
-  const snapshot = await loadDealSnapshot(supabase);
+  const [snapshot, staff] = await Promise.all([
+    loadDealSnapshot(supabase),
+    listActiveStaff(supabase),
+  ]);
+  const staffNames = Object.fromEntries(
+    staff.map((person) => [person.id, staffDisplayName(person)]),
+  );
   const deals = filterDeals(snapshot.deals, filters);
   const loanTypes = [...new Set(snapshot.deals.map((deal) => deal.loanType).filter(Boolean))];
 
@@ -101,7 +110,10 @@ export default async function DealsPage({
                   return (
                     <tr key={deal.id} className={tableRowClass}>
                       <td className="px-5 py-3.5">
-                        <Link href={`/deals/${deal.id}`} className={linkClass}>
+                        <Link
+                          href={`/deals/${deal.id}`}
+                          className={`${linkClass} rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pillar-navy/30`}
+                        >
                           {deal.dealReference}
                         </Link>
                         <p className="text-xs text-ink-muted">{deal.borrowerName}</p>
@@ -119,8 +131,15 @@ export default async function DealsPage({
                       <td className="px-5 py-3.5">
                         <ProgressBar complete={docs.complete} total={docs.required} />
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-ink-muted">
-                        {deal.assignedProcessorId ? "Assigned" : "Unassigned"}
+                      <td className="px-5 py-3.5 align-middle">
+                        <StaffPresence
+                          name={
+                            deal.assignedProcessorId
+                              ? staffNames[deal.assignedProcessorId]
+                              : null
+                          }
+                          unassigned={!deal.assignedProcessorId}
+                        />
                       </td>
                       <td className="px-5 py-3.5 text-xs text-ink-muted">
                         {formatTimestamp(deal.updatedAt)}

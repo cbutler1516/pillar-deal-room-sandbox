@@ -1,4 +1,5 @@
 import { AI_ASSIST_DISCLAIMER, type AISummaryResult } from "@/lib/ai/types";
+import { polishAssistSummary } from "@/lib/ui/staff-copy";
 
 function severityClass(severity: "info" | "warning" | "blocker"): string {
   if (severity === "blocker") {
@@ -19,11 +20,11 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
   const suggestions = result.nextActions.slice(0, 3);
 
   return (
-    <div className="space-y-4">
-      <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
+    <div className="space-y-3">
+      <p className="text-[11px] font-medium tracking-[0.08em] text-ink-muted uppercase">
         AI-assisted
       </p>
-      <p className="text-sm leading-6 text-ink">{result.dealSummary}</p>
+      <p className="text-sm leading-6 text-ink">{polishAssistSummary(result.dealSummary)}</p>
       {importantFlag ? (
         <p className={`text-sm font-medium leading-6 ${severityClass(importantFlag.severity)}`}>
           {importantFlag.title}
@@ -34,7 +35,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
           {suggestions.map((item) => (
             <li key={item.action}>
               <p className="text-sm font-medium text-ink">{item.action}</p>
-              <p className="text-xs leading-5 text-ink-muted">{item.reason}</p>
+              <p className="text-sm leading-6 text-ink-muted">{item.reason}</p>
             </li>
           ))}
         </ul>
@@ -70,7 +71,7 @@ export function AIAssistPanel({ result }: { result: AISummaryResult }) {
                   <p className={`text-sm font-medium ${severityClass(flag.severity)}`}>
                     {flag.title}
                   </p>
-                  <p className="text-xs text-ink-muted">{flag.detail}</p>
+                  <p className="text-sm leading-6 text-ink-muted">{flag.detail}</p>
                 </li>
               ))}
             </ul>

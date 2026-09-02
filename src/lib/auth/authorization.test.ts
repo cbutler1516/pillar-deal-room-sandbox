@@ -22,6 +22,7 @@ describe("protected routes", () => {
     expect(isProtectedPath("/deals/abc")).toBe(true);
     expect(isProtectedPath("/processor-queue")).toBe(true);
     expect(isProtectedPath("/tasks")).toBe(true);
+    expect(isProtectedPath("/team")).toBe(true);
   });
 
   it("does not treat login as protected", () => {

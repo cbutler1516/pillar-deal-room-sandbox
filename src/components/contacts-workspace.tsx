@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { buttonClass } from "@/components/ui/button";
+import { surfaceClass } from "@/components/ui/styles";
 import {
   archiveDealContactAction,
   createDealContactAction,
@@ -82,7 +84,7 @@ export function ContactsWorkspace({
             A required contact is missing
           </p>
           <p className="mt-1 text-sm leading-6 text-ink-muted">
-            Add the person before related tasks can proceed. No messages are sent.
+            Add this person before related work can continue. Nothing is sent.
           </p>
           {canMutate ? (
             <button
@@ -143,14 +145,23 @@ export function ContactsWorkspace({
                   No {group.label.toLowerCase()} on file.
                 </p>
               ) : (
-                <ul className="divide-y divide-line">
+                <ul className="space-y-2">
                   {group.rows.map((contact) => {
                     const open = openId === contact.id;
                     const method =
                       contact.email || contact.phone || "No contact method";
                     return (
-                      <li key={contact.id} className="py-3.5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
+                      <li
+                        key={contact.id}
+                        className={`${surfaceClass("card", true)} px-3 py-3`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <StaffAvatar
+                            name={contact.name}
+                            size={40}
+                            label={contact.name}
+                            kind="external"
+                          />
                           <button
                             type="button"
                             className="min-w-0 flex-1 text-left"
@@ -178,35 +189,43 @@ export function ContactsWorkspace({
                             </p>
                             <p className="text-sm leading-6 text-ink">{method}</p>
                           </button>
-                          <div className="flex flex-wrap items-center gap-1">
+                          <div className="flex shrink-0 flex-wrap items-center gap-1">
                             {contact.email ? (
                               <CopyTextButton value={contact.email} label="Copy email" />
                             ) : null}
                             {contact.phone ? (
                               <CopyTextButton value={contact.phone} label="Copy phone" />
                             ) : null}
+                            <button
+                              type="button"
+                              className={buttonClass("ghost", "sm")}
+                              onClick={() => {
+                                setOpenId((current) =>
+                                  current === contact.id ? null : contact.id,
+                                );
+                                if (canMutate) {
+                                  setEditId(contact.id);
+                                }
+                              }}
+                            >
+                              {open ? "Hide" : canMutate ? "View / Edit" : "View"}
+                            </button>
+                            {canMutate && !contact.isPrimary ? (
+                              <button
+                                type="button"
+                                className={buttonClass("ghost", "sm")}
+                                onClick={() => {
+                                  const data = new FormData();
+                                  data.set("contactId", contact.id);
+                                  void submitPrimary(data);
+                                }}
+                              >
+                                Mark primary
+                              </button>
+                            ) : null}
                             {canMutate ? (
                               <OverflowMenu
                                 items={[
-                                  {
-                                    label: open ? "Hide details" : "View / Edit",
-                                    onClick: () => {
-                                      setOpenId(contact.id);
-                                      setEditId(contact.id);
-                                    },
-                                  },
-                                  ...(!contact.isPrimary
-                                    ? [
-                                        {
-                                          label: "Mark primary",
-                                          onClick: () => {
-                                            const data = new FormData();
-                                            data.set("contactId", contact.id);
-                                            void submitPrimary(data);
-                                          },
-                                        },
-                                      ]
-                                    : []),
                                   {
                                     label: "Archive",
                                     tone: "danger" as const,
@@ -222,7 +241,7 @@ export function ContactsWorkspace({
                           </div>
                         </div>
                         {open ? (
-                          <div className="mt-3 space-y-3">
+                          <div className="mt-3 ml-[3.25rem] space-y-3 rounded-[12px] bg-surface-muted/80 px-3 py-3 transition duration-200 motion-reduce:transition-none">
                             {contact.notes ? (
                               <p className="text-sm leading-6 text-ink-muted">
                                 {contact.notes}
@@ -276,7 +295,7 @@ function ContactForm({
         }
         onClose();
       }}
-      className="grid gap-2 rounded-xl bg-workspace p-3 sm:grid-cols-2"
+      className="grid gap-2 rounded-[16px] border border-line bg-surface p-3 sm:grid-cols-2"
     >
       <input type="hidden" name="dealId" value={dealId} />
       {existing ? <input type="hidden" name="contactId" value={existing.id} /> : null}

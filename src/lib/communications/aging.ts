@@ -74,7 +74,7 @@ function agingLabel(
     return "No contact recorded";
   }
   if (stage === "response_received") {
-    return "Response received — review";
+    return "Reply received — review";
   }
   return "On cadence";
 }

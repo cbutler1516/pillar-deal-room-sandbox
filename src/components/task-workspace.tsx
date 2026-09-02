@@ -6,7 +6,9 @@ import { CommunicationPanel } from "@/components/communication-panel";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { StatusChip } from "@/components/status-chip";
 import { OverflowMenu } from "@/components/ui/overflow-menu";
+import { StaffAvatar } from "@/components/ui/staff-avatar";
 import { buttonClass } from "@/components/ui/button";
+import { surfaceClass } from "@/components/ui/styles";
 import { taskPrimaryActionLabel } from "@/lib/ops/queue-today";
 import type { CommunicationAttempt } from "@/lib/communications/types";
 import { communicationAging } from "@/lib/communications/aging";
@@ -46,8 +48,8 @@ import {
 import { TASK_TIMINGS, type PlaybookDefinition } from "@/lib/playbooks/types";
 
 const GROUPS = [
-  { key: "required_now", label: "Required Now" },
-  { key: "required_later", label: "Required Later" },
+  { key: "required_now", label: "Required now" },
+  { key: "required_later", label: "Required later" },
   { key: "optional", label: "Optional" },
   { key: "completed", label: "Completed" },
 ] as const;
@@ -139,7 +141,7 @@ export function TaskWorkspace({
               <input type="hidden" name="dealId" value={dealId} />
               <button
                 type="submit"
-                className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-muted"
+                className={buttonClass("secondary", "sm")}
               >
                 Generate {loanType ?? "loan type"} baseline
               </button>
@@ -172,7 +174,7 @@ export function TaskWorkspace({
               <h4 className="mb-2 text-xs font-semibold tracking-wide text-ink-muted uppercase">
                 {group.label}
               </h4>
-              <ul className="divide-y divide-line border-y border-line">
+              <ul className="space-y-2">
                 {rows.map((task) => {
                   const open = openId === task.id;
                   const followUpDue = isFollowUpDue(task, now);
@@ -190,20 +192,36 @@ export function TaskWorkspace({
                     escalationDue,
                     lastResponseAt: task.lastResponseAt,
                     status: task.status,
+                    sourceType: task.sourceType,
+                    title: task.title,
+                    escalationLevel: task.escalationLevel,
                   });
                   const dueState = followUpDue
-                    ? "Follow-up overdue"
+                    ? "Follow-up is overdue"
                     : aging.followUpOverdue
-                      ? "Follow-up overdue"
+                      ? "Follow-up is overdue"
                       : formatFollowUpAt(task.nextFollowUpAt, now);
                   return (
-                    <li key={task.id}>
-                      <div className="flex flex-wrap items-start justify-between gap-3 py-3.5">
+                    <li
+                      key={task.id}
+                      className={`${open ? `${surfaceClass("elevated")} border-l-[3px] border-l-pillar-teal` : surfaceClass("card", true)} px-4 py-3`}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : task.id)}
-                        className="min-w-0 flex-1 text-left"
+                        className="flex min-w-0 flex-1 items-start gap-3 text-left"
                       >
+                        <StaffAvatar
+                          name={
+                            task.assignedTo
+                              ? staffNames[task.assignedTo] ?? null
+                              : null
+                          }
+                          unassigned={!task.assignedTo}
+                          size={32}
+                        />
+                        <span className="min-w-0">
                         <p className="text-sm font-semibold text-ink">
                           {task.title}
                         </p>
@@ -222,6 +240,7 @@ export function TaskWorkspace({
                         >
                           {dueState}
                         </p>
+                        </span>
                       </button>
                         <div className="flex flex-wrap items-center gap-2">
                           <StatusChip status={task.status} />
@@ -235,6 +254,7 @@ export function TaskWorkspace({
                         </div>
                       </div>
                       {open ? (
+                        <div className="mt-3 border-t border-line/80 pt-3">
                         <TaskDetail
                           task={task}
                           needs={needs}
@@ -250,6 +270,7 @@ export function TaskWorkspace({
                               : false
                           }
                         />
+                        </div>
                       ) : null}
                     </li>
                   );
@@ -315,7 +336,7 @@ function TaskDetail({
     task.status === "waiting";
 
   return (
-    <div className="space-y-4 border-t border-line px-3 py-3">
+    <div className="mt-1 space-y-4">
       {missing ? (
         <div className="rounded-xl border border-danger/20 bg-danger-soft px-3 py-2">
           <p className="text-sm font-medium text-danger">
@@ -557,11 +578,11 @@ function AddTaskForm({
       <div className="flex gap-2">
         <button
           type="submit"
-          className="rounded-lg bg-pillar-navy px-3 py-1.5 text-xs font-medium text-white"
+          className={buttonClass("accent", "sm")}
         >
           Create from playbook
         </button>
-        <button type="button" onClick={onClose} className={actionClass}>
+        <button type="button" onClick={onClose} className={buttonClass("ghost", "sm")}>
           Cancel
         </button>
       </div>
@@ -578,7 +599,5 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const actionClass =
-  "rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface-muted";
 const inputClass =
   "rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink";

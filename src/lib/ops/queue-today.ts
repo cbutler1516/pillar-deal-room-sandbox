@@ -6,6 +6,7 @@ import {
   type QueueTodaySection,
 } from "@/lib/ops/operational-work";
 import { staffCalendarDate } from "@/lib/format";
+import { contactRoleFromText, humanizeWorkAction, humanizeWorkReason } from "@/lib/ui/staff-copy";
 
 export { QUEUE_TODAY_SECTIONS };
 export type { QueueTodaySection };
@@ -21,22 +22,22 @@ export function queueWhyNow(row: DecoratedAction, now = new Date()): string {
   if (row.contactMissing) {
     return "Contact missing";
   }
-  if (row.escalationDue) {
-    return "Escalation overdue";
+  if (row.escalationDue && row.escalationLevel && row.escalationLevel !== "none") {
+    return "Escalation is required";
   }
-  if (row.followUpDue) {
+  if (row.followUpDue || row.escalationDue) {
     const hours = row.waitingAgeHours;
     if (hours != null && hours >= 24) {
       const days = Math.floor(hours / 24);
-      return `Follow-up overdue by ${days} day${days === 1 ? "" : "s"}`;
+      return `Follow-up is overdue by ${days} day${days === 1 ? "" : "s"}`;
     }
-    return "Follow-up overdue";
+    return "Follow-up is overdue";
   }
   if (row.lastResponseAt) {
-    return "Response received";
+    return "Reply received — review needed";
   }
   if (row.band === "document_review") {
-    return "Ready to review";
+    return "New document ready for review";
   }
   if (row.status === "waiting" && row.lastContactedAt) {
     return `Waiting ${formatWaitingAge(row.waitingAgeHours)}`;
@@ -58,16 +59,23 @@ export function queuePrimaryAction(row: DecoratedAction): {
   if (row.contactMissing) {
     return { label: "Add contact", href: `/deals/${row.dealId}?tab=people` };
   }
+  if (row.escalationDue && row.escalationLevel && row.escalationLevel !== "none") {
+    return { label: "Escalate", href };
+  }
   if (row.followUpDue || row.escalationDue) {
     return { label: "Follow up", href };
   }
-  if (row.lastResponseAt || row.band === "document_review") {
-    return { label: "Review", href };
+  if (row.lastResponseAt) {
+    return { label: "Review reply", href };
+  }
+  if (row.band === "document_review") {
+    return { label: "Review document", href };
   }
   if (row.status === "waiting" && row.lastContactedAt) {
-    return { label: "Review", href };
+    return { label: "Review task", href };
   }
-  return { label: "Contact", href };
+  const role = contactRoleFromText(row.sourceType ?? row.title);
+  return { label: role ? `Contact ${role}` : "Contact", href };
 }
 
 export function taskPrimaryActionLabel(input: {
@@ -77,43 +85,65 @@ export function taskPrimaryActionLabel(input: {
   lastResponseAt?: string | null;
   status: string;
   lastContactedAt?: string | null;
+  sourceType?: string | null;
+  title?: string | null;
+  escalationLevel?: string | null;
 }): string {
   if (input.contactMissing) {
-    return "Contact";
+    return "Add contact";
+  }
+  if (input.escalationDue && input.escalationLevel && input.escalationLevel !== "none") {
+    return "Escalate";
   }
   if (input.followUpDue || input.escalationDue) {
     return "Follow up";
   }
   if (input.lastResponseAt) {
-    return "Review";
+    return "Review reply";
   }
   if (input.status === "completed" || input.status === "dismissed") {
-    return "Review";
+    return "Review task";
   }
   if (input.status === "waiting" && input.lastContactedAt) {
     return "Follow up";
   }
-  return "Contact";
+  const role = contactRoleFromText(input.sourceType ?? input.title);
+  return role ? `Contact ${role}` : "Contact";
 }
 
-export function workQueueRow(row: OperationalWorkItem): {
+export function workQueueRow(
+  row: OperationalWorkItem,
+  extra: { location?: string | null } = {},
+): {
   id: string;
   dealId: string;
   borrowerName: string;
+  entityName: string | null;
+  loanType: string | null;
+  location: string | null;
   title: string;
   reason: string;
   actionLabel: string;
   href: string;
   hot: boolean;
+  assignedProcessorId: string | null;
+  queueSection: QueueTodaySection;
+  dueAt: string | null;
 } {
   return {
     id: row.id,
     dealId: row.dealId,
     borrowerName: row.borrowerName,
+    entityName: row.entityName,
+    loanType: row.loanType,
+    location: extra.location ?? null,
     title: row.title,
-    reason: row.reason,
-    actionLabel: row.recommendedAction,
+    reason: humanizeWorkReason(row.reason),
+    actionLabel: humanizeWorkAction(row),
     href: row.href,
     hot: row.priorityBand === "critical" || row.dueState === "overdue",
+    assignedProcessorId: row.assignedProcessorId,
+    queueSection: row.queueSection,
+    dueAt: row.dueAt,
   };
 }

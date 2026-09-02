@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NextActionsQueue } from "@/components/next-actions-queue";
 import { StatusChip } from "@/components/status-chip";
+import { StaffPresence } from "@/components/ui/staff-avatar";
 import { TaskBoard } from "@/components/task-board";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchField, SegmentedControl, SelectField } from "@/components/ui/controls";
@@ -43,7 +44,7 @@ const SECTIONS = [
 
 const WORK_FILTERS = [
   { value: "all", label: "All work" },
-  { value: "attention", label: "Needs attention" },
+  { value: "attention", label: "Files needing attention" },
   { value: "new", label: "New" },
   { value: "review", label: "Needs review" },
   { value: "missing_contact", label: "Missing contact" },
@@ -51,7 +52,7 @@ const WORK_FILTERS = [
   { value: "follow_up", label: "Follow-up" },
   { value: "waiting", label: "Waiting" },
   { value: "escalated", label: "Escalated" },
-  { value: "ready", label: "Ready" },
+  { value: "ready", label: "Ready to submit" },
 ] as const;
 
 export default async function ProcessorQueuePage({
@@ -87,6 +88,13 @@ export default async function ProcessorQueuePage({
   const now = new Date();
   const workItems = operationalWorkFromSnapshot(snapshot, now).filter((row) => {
     if (assignment === "unassigned" && row.assignedProcessorId) {
+      return false;
+    }
+    if (
+      assignment !== "all" &&
+      assignment !== "unassigned" &&
+      row.assignedProcessorId !== assignment
+    ) {
       return false;
     }
     if (!workItemMatchesFilter(row, work)) {
@@ -127,6 +135,14 @@ export default async function ProcessorQueuePage({
   );
   const today = groupOperationalWorkToday(workItems);
   const hasWork = hasActionableOperationalWork(workItems);
+  const locationByDeal = Object.fromEntries(
+    snapshot.deals.map((deal) => [
+      deal.id,
+      formatProperty(deal.propertyCity, deal.propertyState),
+    ]),
+  );
+  const toQueueRow = (row: (typeof workItems)[number]) =>
+    workQueueRow(row, { location: locationByDeal[row.dealId] });
 
   const decorate = (id: string) => {
     const deal = snapshot.deals.find((item) => item.id === id);
@@ -212,6 +228,11 @@ export default async function ProcessorQueuePage({
           <SelectField name="assignment" defaultValue={assignment}>
             <option value="all">All assignments</option>
             <option value="unassigned">Unassigned only</option>
+            {staff.map((person) => (
+              <option key={person.id} value={person.id}>
+                {staffDisplayName(person)}
+              </option>
+            ))}
           </SelectField>
           <SelectField name="urgency" defaultValue={urgency}>
             <option value="all">All urgency</option>
@@ -236,6 +257,8 @@ export default async function ProcessorQueuePage({
 
             if (assignment === "unassigned") {
               rows = rows.filter((row) => !row.assignedProcessorId);
+            } else if (assignment !== "all") {
+              rows = rows.filter((row) => row.assignedProcessorId === assignment);
             }
             if (urgency === "exceptions") {
               rows = rows.filter((row) => row.exceptions > 0);
@@ -286,11 +309,14 @@ export default async function ProcessorQueuePage({
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                           <StatusChip status={deal.status} />
-                          <span className="text-ink-muted">
-                            {deal.assignedProcessorId
-                              ? staffNames[deal.assignedProcessorId] ?? "Assigned"
-                              : "Unassigned"}
-                          </span>
+                          <StaffPresence
+                            name={
+                              deal.assignedProcessorId
+                                ? staffNames[deal.assignedProcessorId]
+                                : null
+                            }
+                            unassigned={!deal.assignedProcessorId}
+                          />
                           <span className="text-ink-muted">
                             {formatAgeDays(deal.ageDays)}
                           </span>
@@ -308,31 +334,51 @@ export default async function ProcessorQueuePage({
           Nothing needs your attention.
         </p>
       ) : (
-        <div className="space-y-8">
-          {QUEUE_TODAY_SECTIONS.map((section) => {
-            const rows = today[section.key];
-            if (rows.length === 0 && section.key === "new") {
-              return null;
-            }
-            return (
+        <div className="space-y-8 xl:grid xl:grid-cols-[minmax(0,1.4fr)_minmax(17rem,0.8fr)] xl:items-start xl:gap-8 xl:space-y-0">
+          <div className="space-y-8">
+            {QUEUE_TODAY_SECTIONS.filter((section) =>
+              section.key === "urgent" ||
+              section.key === "due_today" ||
+              section.key === "needs_review",
+            ).map((section) => (
               <NextActionsQueue
                 key={section.key}
-                rows={rows.map(workQueueRow)}
+                rows={today[section.key].map(toQueueRow)}
+                staffNames={staffNames}
                 title={section.label}
                 empty={
-                  section.key === "waiting"
-                    ? "Nobody is waiting on a reply."
-                    : section.key === "needs_review"
-                      ? "Nothing is ready to review."
-                      : section.key === "due_today"
-                        ? "Nothing else is due today."
-                        : section.key === "new"
-                          ? "No new files."
-                          : "No urgent items."
+                  section.key === "needs_review"
+                    ? "Nothing is ready to review."
+                    : section.key === "due_today"
+                      ? "Nothing else is due today."
+                      : "No urgent items."
                 }
               />
-            );
-          })}
+            ))}
+          </div>
+          <div className="space-y-8">
+            {QUEUE_TODAY_SECTIONS.filter(
+              (section) => section.key === "waiting" || section.key === "new",
+            ).map((section) => {
+              if (today[section.key].length === 0 && section.key === "new") {
+                return null;
+              }
+              return (
+                <NextActionsQueue
+                  key={section.key}
+                  rows={today[section.key].map(toQueueRow)}
+                  staffNames={staffNames}
+                  title={section.label}
+                  compact
+                  empty={
+                    section.key === "waiting"
+                      ? "Nobody is waiting on a reply."
+                      : "No new files."
+                  }
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

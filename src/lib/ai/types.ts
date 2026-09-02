@@ -101,7 +101,7 @@ export type AISummaryRequest = {
 export type AINextActionSuggestion = {
   action: string;
   reason: string;
-  target: "tasks" | "needs" | "documents" | "contacts" | "overview";
+  target: "tasks" | "needs" | "documents" | "contacts" | "overview" | "conditions";
   href: string;
   executable: false;
 };

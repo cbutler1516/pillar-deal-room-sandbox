@@ -224,7 +224,7 @@ export function CommunicationPanel({
                     },
                   },
                   {
-                    label: "Response received",
+                    label: "Reply received",
                     onClick: () => {
                       const data = new FormData();
                       data.set("taskId", task.id);

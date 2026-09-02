@@ -26,6 +26,7 @@ export const PROTECTED_PREFIXES = [
   "/deals",
   "/processor-queue",
   "/tasks",
+  "/team",
 ] as const;
 
 export function isProtectedPath(pathname: string): boolean {
