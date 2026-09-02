@@ -17,6 +17,9 @@ import { requireInternalUser } from "@/lib/auth/session";
 import { listActiveStaff } from "@/lib/communications/data";
 import { staffDisplayName } from "@/lib/data/deals";
 import { loadDealSnapshot } from "@/lib/data/snapshot";
+import { operationalWorkFromSnapshot } from "@/lib/data/dashboard";
+import { topWorkItemForDeal } from "@/lib/ops/operational-work";
+import { humanizeWorkAction } from "@/lib/ui/staff-copy";
 import { filterDeals, parseDealFilters } from "@/lib/ops/filters";
 import { documentCompletion } from "@/lib/ops/metrics";
 import { DEAL_STATUSES } from "@/lib/ops/workflow";
@@ -39,6 +42,8 @@ export default async function DealsPage({
   );
   const deals = filterDeals(snapshot.deals, filters);
   const loanTypes = [...new Set(snapshot.deals.map((deal) => deal.loanType).filter(Boolean))];
+  const now = new Date();
+  const workItems = operationalWorkFromSnapshot(snapshot, now);
 
   return (
     <div className={`${pageWidthClass} space-y-6`}>
@@ -99,6 +104,7 @@ export default async function DealsPage({
                   <th className="px-5 py-3 font-medium">Amount</th>
                   <th className="px-5 py-3 font-medium">Property</th>
                   <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Next action</th>
                   <th className="px-5 py-3 font-medium">Documents</th>
                   <th className="px-5 py-3 font-medium">Processor</th>
                   <th className="px-5 py-3 font-medium">Updated</th>
@@ -107,6 +113,7 @@ export default async function DealsPage({
               <tbody>
                 {deals.map((deal) => {
                   const docs = documentCompletion(deal.id, snapshot.needs);
+                  const top = topWorkItemForDeal(workItems, deal.id);
                   return (
                     <tr key={deal.id} className={tableRowClass}>
                       <td className="px-5 py-3.5">
@@ -127,6 +134,15 @@ export default async function DealsPage({
                       </td>
                       <td className="px-5 py-3.5">
                         <StatusChip status={deal.status} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {top ? (
+                          <Link href={top.href} className={`text-xs ${linkClass}`}>
+                            {humanizeWorkAction(top)}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-ink-muted">—</span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5">
                         <ProgressBar complete={docs.complete} total={docs.required} />
